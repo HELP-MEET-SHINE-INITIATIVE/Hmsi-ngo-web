@@ -1,20 +1,14 @@
-import ImpactGallery from '@/components/ImpactGallery';
-
-export default function Home() {
-  return (
-    <main className="min-h-screen bg-slate-950 text-slate-100">
-      {/* Hero Section */}
-      <section className="py-20 px-6 text-center max-w-4xl mx-auto">
-        <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-6 leading-tight">
-          Empowering Communities. <br />Restoring Hope Across Nigeria.
-        </h1>
-        <p className="text-lg text-slate-300 max-w-2xl mx-auto mb-8 leading-relaxed">
-          Help-Meet Shine Initiative (HMSI) provides humanitarian support and equips individuals for sustainable wealth creation.
-        </p>
-      </section>
-
-      {/* Impact Gallery Section */}
-      <ImpactGallery />
-    </main>
-  );
-}
+<div className="flex flex-col sm:flex-row items-center gap-4 pt-4">
+  <a 
+    href="/donate" 
+    className="w-full sm:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl text-center transition shadow-lg"
+  >
+    Make a Donation
+  </a>
+  <a 
+    href="/contact" 
+    className="w-full sm:w-auto px-6 py-3 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white font-semibold rounded-xl text-center transition"
+  >
+    Become a Volunteer
+  </a>
+</div>
