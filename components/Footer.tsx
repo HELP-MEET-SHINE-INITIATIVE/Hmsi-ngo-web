@@ -13,7 +13,8 @@ export default function Footer() {
           <ul className="space-y-2 text-sm">
             <li><a href="/" className="hover:text-white transition">Home</a></li>
             <li><a href="/about" className="hover:text-white transition">About Us</a></li>
-            <li><a href="/donate" className="hover:text-white transition text-blue-400 font-semibold">Donate & Support</a></li>
+            <li><a href="/donate" className="hover:text-white transition">Donate & Support</a></li>
+            <li><a href="/contact" className="hover:text-white transition text-blue-400 font-semibold">Contact Us</a></li>
           </ul>
         </div>
         <div>
