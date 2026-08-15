@@ -8,7 +8,8 @@ export default function Navbar() {
         <div className="flex items-center space-x-8 text-sm font-medium text-slate-300">
           <a href="/" className="hover:text-white transition">Home</a>
           <a href="/about" className="hover:text-white transition">About Us</a>
-          <a href="/donate" className="hover:text-white transition text-blue-400 font-semibold">Donate</a>
+          <a href="/donate" className="hover:text-white transition">Donate</a>
+          <a href="/contact" className="hover:text-white transition text-blue-400 font-semibold">Contact Us</a>
         </div>
       </div>
     </nav>
