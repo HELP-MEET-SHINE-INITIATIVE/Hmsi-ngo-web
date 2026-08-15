@@ -21,6 +21,8 @@ export default function ImpactGallery() {
                 src="/impact-1.jpg" 
                 alt="HMSI Community Food Distribution Drive" 
                 fill 
+                sizes="(max-width: 768px) 100vw, 33vw"
+                priority
                 className="object-cover hover:scale-105 transition duration-300"
               />
             </div>
@@ -37,6 +39,7 @@ export default function ImpactGallery() {
                 src="/impact-2.jpg" 
                 alt="HMSI Volunteers and Security Team" 
                 fill 
+                sizes="(max-width: 768px) 100vw, 33vw"
                 className="object-cover hover:scale-105 transition duration-300"
               />
             </div>
@@ -53,6 +56,7 @@ export default function ImpactGallery() {
                 src="/impact-3.jpg" 
                 alt="Empowering Vulnerable Groups" 
                 fill 
+                sizes="(max-width: 768px) 100vw, 33vw"
                 className="object-cover hover:scale-105 transition duration-300"
               />
             </div>
