@@ -1,10 +1,9 @@
-import type { Metadata } from 'next';
+import Navbar from '@/components/Navbar';
 import './globals.css';
-import Footer from '@/components/Footer';
 
-export const metadata: Metadata = {
-  title: 'Help Meet Shine Initiative (HMSI)',
-  description: 'Empowering communities and providing humanitarian support across Nigeria.',
+export const metadata = {
+  title: 'Help-Meet Shine Initiative (HMSI)',
+  description: 'Empowering communities and restoring hope across Nigeria.',
 };
 
 export default function RootLayout({
@@ -14,12 +13,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="flex flex-col min-h-screen bg-slate-950 text-white">
-        <main className="flex-grow">
-          {children}
-        </main>
-        
-        <Footer />
+      <body className="bg-slate-950 text-slate-100 antialiased">
+        <Navbar />
+        {children}
       </body>
     </html>
   );
