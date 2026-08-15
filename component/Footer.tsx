@@ -27,10 +27,9 @@ export default function Footer() {
         <div>
           <h3 className="text-white font-semibold mb-4 tracking-wide uppercase text-xs">Contact Us</h3>
           <ul className="space-y-3 opacity-80">
-            {/* TODO: Update with your physical HQ address */}
             <li className="flex items-start space-x-2">
-              <span>📍</span>
-              <span>[Insert Physical Office Address, e.g., Abuja, FCT]</span>
+              <span className="mt-1">📍</span>
+              <span>3 Egrebide Street, Off Ugbor Road,<br/>GRA, Benin City,<br/>Edo State, Nigeria</span>
             </li>
             <li className="flex items-center space-x-2">
               <span>✉️</span>
@@ -38,7 +37,7 @@ export default function Footer() {
             </li>
             <li className="flex items-center space-x-2">
               <span>📞</span>
-              <a href="tel:+2340000000000" className="hover:text-white transition">+234 (0) [Insert Phone]</a>
+              <a href="tel:+2348057452756" className="hover:text-white transition">+234 805 745 2756</a>
             </li>
           </ul>
         </div>
