@@ -1,6 +1,5 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import HmsiHeader from '@/components/HmsiHeader';
 export default function Home() {
   const donationAmounts = ['₦5,000', '₦10,000', '₦20,000', '₦50,000']; 
   const outreachItems = [
@@ -43,7 +42,18 @@ export default function Home() {
   ];
   return (
     <div className="bg-white min-h-screen text-slate-900 pb-36 font-sans antialiased">
-      <HmsiHeader />
+      {/* Inline Header */}
+      <header className="px-6 lg:px-16 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div className="font-black text-xl tracking-tighter text-red-700 uppercase">
+          HMSI Foundation
+        </div>
+        <nav className="hidden md:flex gap-6 font-semibold text-sm text-slate-700">
+          <Link href="/" className="hover:text-red-600 transition">Home</Link>
+          <Link href="/about" className="hover:text-red-600 transition">About</Link>
+          <Link href="/outreaches" className="hover:text-red-600 transition">Outreaches</Link>
+          <Link href="/contact" className="hover:text-red-600 transition">Contact</Link>
+        </nav>
+      </header>
       {/* 1. HERO & DONATION WIDGET */}
       <section className="px-6 lg:px-16 pt-12 pb-16 max-w-4xl mx-auto">
         <h1 className="text-red-700 text-xl md:text-2xl font-bold mb-6 leading-snug">
