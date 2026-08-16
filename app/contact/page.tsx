@@ -1,3 +1,4 @@
+use client";
 export const metadata = {
   title: 'Contact Us | Help-Meet Shine Initiative (HMSI)',
   description: 'Get in touch with Help-Meet Shine Initiative for partnerships, volunteer opportunities, and community support inquiries.',
