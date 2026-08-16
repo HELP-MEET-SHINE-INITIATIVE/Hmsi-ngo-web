@@ -57,7 +57,6 @@ export default function AboutPage() {
               To provide immediate humanitarian support to crisis-stricken areas while aggressively equipping individuals with educational materials, skills, and resources necessary for sustainable, long-term wealth creation.
             </p>
           </div>
-
           <div>
             <div className="w-12 h-1 bg-teal-500 mb-6"></div>
             <h3 className="text-3xl font-black uppercase mb-4 tracking-tighter">Our Vision</h3>
