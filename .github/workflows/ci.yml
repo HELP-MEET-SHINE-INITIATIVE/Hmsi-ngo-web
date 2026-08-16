@@ -1,0 +1,29 @@
+name: Next.js CI
+# This triggers the workflow on any push or pull request to the main branch
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Check out the repository code
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      # 2. Set up the Node.js environment
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Using Node 20 for Next.js 15 compatibility
+          cache: 'npm'
+      # 3. Install dependencies (handling your React 19 peer dependency conflicts)
+      - name: Install Dependencies
+        run: npm install --legacy-peer-deps
+      # 4. Run Next.js Linter
+      - name: Run Lint
+        run: npm run lint
+      # 5. Run the Build Process to catch compilation/metadata errors
+      - name: Test Build
+        run: npm run build
