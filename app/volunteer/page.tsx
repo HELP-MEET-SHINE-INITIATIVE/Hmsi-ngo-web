@@ -79,7 +79,6 @@ export default function VolunteerPage() {
             </form>
           )}
         </div>
-
       </div>
     </div>
   );
