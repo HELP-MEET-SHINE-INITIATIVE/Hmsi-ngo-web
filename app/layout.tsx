@@ -1,9 +1,14 @@
-import Navbar from '@/components/Navbar';
+import type { Metadata } from 'next';
 import './globals.css';
 
-export const metadata = {
-  title: 'Help-Meet Shine Initiative (HMSI)',
-  description: 'Empowering communities and restoring hope across Nigeria.',
+// 🛑 Fix: Using '../components/' instead of '@/components/'
+// If you have a Navbar or Footer, uncomment and use these exact paths:
+// import Navbar from '../components/Navbar';
+// import Footer from '../components/Footer';
+
+export const metadata: Metadata = {
+  title: 'Help-Meet Shine Initiative',
+  description: 'Impacting vulnerable households across Nigeria',
 };
 
 export default function RootLayout({
@@ -13,9 +18,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-slate-950 text-slate-100 antialiased">
-        <Navbar />
-        {children}
+      <body className="bg-slate-950 text-slate-200 antialiased">
+        {/* <Navbar /> */}
+        
+        <main className="min-h-screen flex flex-col">
+          {children}
+        </main>
+        
+        {/* <Footer /> */}
       </body>
     </html>
   );
