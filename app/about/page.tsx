@@ -35,7 +35,6 @@ export default function AboutPage() {
                 HMSI Field Operations, Nigeria
               </p>
             </div>
-
             <p className="mb-6 leading-relaxed">
               The Help-Meet Shine Initiative (HMSI) was founded on the fundamental belief that every human being deserves dignity, access to basic necessities, and the opportunity to build a self-sustaining future. In regions severely affected by economic hardship and lack of infrastructure, we serve as a beacon of hope.
             </p>
@@ -58,7 +57,6 @@ export default function AboutPage() {
               To provide immediate humanitarian support to crisis-stricken areas while aggressively equipping individuals with educational materials, skills, and resources necessary for sustainable, long-term wealth creation.
             </p>
           </div>
-
           <div>
             <div className="w-12 h-1 bg-teal-500 mb-6"></div>
             <h3 className="text-3xl font-black uppercase mb-4 tracking-tighter">Our Vision</h3>
