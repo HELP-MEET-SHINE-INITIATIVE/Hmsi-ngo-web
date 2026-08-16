@@ -18,8 +18,7 @@ export default function AboutPage() {
       </div>
       {/* EDITORIAL STORY SECTION */}
       <section className="py-16 md:py-24 px-6 max-w-6xl mx-auto">
-        <div className="prose prose-lg prose-slate max-w-none text-slate-700">
-          
+        <div className="prose prose-lg prose-slate max-w-none text-slate-700">          
           <h2 className="text-3xl font-black uppercase tracking-tight text-slate-900 mb-8 border-l-8 border-red-600 pl-4">Our Story</h2>          
           <div className="clearfix">
             {/* FLOATING IMAGE - LEFT */}
@@ -68,7 +67,6 @@ export default function AboutPage() {
               A Nigeria where no community is left vulnerable to extreme poverty, and where every youth and family has the capacity to shine and positively impact their local economy.
             </p>
           </div>
-
         </div>
       </section>
       {/* CTA SECTION */}
@@ -84,7 +82,6 @@ export default function AboutPage() {
           </Link>
         </div>
       </section>
-
     </div>
   );
 }
