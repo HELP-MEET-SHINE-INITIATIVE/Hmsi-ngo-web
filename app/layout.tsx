@@ -1,31 +1,20 @@
-import type { Metadata } from 'next';
-import './globals.css';
-
-// 🛑 Fix: Using '../components/' instead of '@/components/'
-// If you have a Navbar or Footer, uncomment and use these exact paths:
-// import Navbar from '../components/Navbar';
-// import Footer from '../components/Footer';
+import type { Metadata } from "next";
+import "./globals.css";
 
 export const metadata: Metadata = {
-  title: 'Help-Meet Shine Initiative',
-  description: 'Impacting vulnerable households across Nigeria',
+  title: "Help-Meet Shine Initiative (HMSI)",
+  description: "Empowering Communities and Restoring Hope Across Nigeria",
 };
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
     <html lang="en">
-      <body className="bg-slate-950 text-slate-200 antialiased">
-        {/* <Navbar /> */}
-        
-        <main className="min-h-screen flex flex-col">
-          {children}
-        </main>
-        
-        {/* <Footer /> */}
+      <body className="bg-white text-slate-900 antialiased font-sans">
+        {children}
       </body>
     </html>
   );
