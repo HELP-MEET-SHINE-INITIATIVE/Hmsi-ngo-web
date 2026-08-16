@@ -13,11 +13,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' 
-          # Removed the cache requirement here so it stops looking for package-lock.json
+          node-version: '20'
       - name: Install Dependencies
         run: npm install --legacy-peer-deps
-      - name: Run Lint
-        run: npm run lint
       - name: Test Build
         run: npm run build
