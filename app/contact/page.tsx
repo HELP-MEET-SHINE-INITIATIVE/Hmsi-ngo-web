@@ -1,4 +1,10 @@
-use client";
+"use client";
+
+import React from 'react';
+
+export default function ContactPage() {
+  // Your contact page code here
+}
 export const metadata = {
   title: 'Contact Us | Help-Meet Shine Initiative (HMSI)',
   description: 'Get in touch with Help-Meet Shine Initiative for partnerships, volunteer opportunities, and community support inquiries.',
