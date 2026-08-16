@@ -1,3 +1,4 @@
+use client";
 export const metadata = {
   title: 'Support Our Cause & Donate | Help-Meet Shine Initiative',
   description: 'Partner with Help-Meet Shine Initiative (HMSI) to fund community outreaches, food distribution drives, and sustainable wealth creation programs in Nigeria.',
