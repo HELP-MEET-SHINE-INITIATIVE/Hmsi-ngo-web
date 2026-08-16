@@ -48,7 +48,6 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
-
       {/* MISSION & VISION GRID */}
       <section className="bg-slate-900 text-white py-20 px-6">
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">          
