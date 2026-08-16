@@ -1,97 +1,96 @@
-use client";
-export const metadata = {
-  title: 'About Us | Help-Meet Shine Initiative (HMSI)',
-  description: 'Learn about HMSI, our mission, legal compliance, and our commitment to sustainable community development and humanitarian support across Nigeria.',
-};
+import Image from 'next/image';
+import HmsiHeader from '../components/HmsiHeader';
+import Link from 'next/link';
 
 export default function AboutPage() {
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 py-16 px-6">
-      <div className="max-w-4xl mx-auto space-y-16">
-        
-        {/* Page Header */}
-        <div className="text-center space-y-4">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight">
-            About Help-Meet Shine Initiative
+    <div className="bg-white min-h-screen text-slate-900 font-sans antialiased">
+      <HmsiHeader />
+
+      {/* PAGE HEADER */}
+      <div className="bg-slate-50 py-16 md:py-24 border-b border-slate-200">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter text-slate-900 mb-6">
+            Empowering Communities. <br/><span className="text-red-600">Restoring Hope.</span>
           </h1>
-          <p className="text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed">
-            Equipping individuals for sustainable wealth creation and providing critical humanitarian support across Nigeria.
+          <p className="text-lg md:text-xl font-medium text-slate-600 max-w-2xl mx-auto">
+            We exist to bridge the gap for vulnerable demographics in Nigeria, offering a hand-up rather than just a hand-out through humanitarian aid and sustainable wealth creation.
           </p>
         </div>
-
-        {/* Mission & Vision Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl shadow-xl">
-            <h2 className="text-2xl font-bold text-white mb-3 flex items-center">
-              <span className="text-blue-500 mr-2">🎯</span> Our Mission
-            </h2>
-            <p className="text-slate-300 leading-relaxed">
-              To alleviate poverty and empower vulnerable groups through targeted humanitarian aid, community outreach, and practical resources that foster long-term self-sufficiency.
-            </p>
-          </div>
-
-          <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl shadow-xl">
-            <h2 className="text-2xl font-bold text-white mb-3 flex items-center">
-              <span className="text-blue-500 mr-2">🌍</span> Our Vision
-            </h2>
-            <p className="text-slate-300 leading-relaxed">
-              A resilient society where every individual has access to basic human needs, sustainable economic opportunities, and the tools to build a thriving future.
-            </p>
-          </div>
-        </div>
-
-        {/* Legal & Institutional Transparency */}
-        <div className="bg-gradient-to-r from-blue-950/40 to-slate-900 border border-blue-900/50 p-8 rounded-2xl">
-          <h2 className="text-2xl font-bold text-white mb-4">Governance & Legal Compliance</h2>
-          <p className="text-slate-300 mb-6 leading-relaxed">
-            Help-Meet Shine Initiative is fully registered and compliant with regulatory authorities in the Federal Republic of Nigeria. We maintain strict transparency regarding our operations and public donations.
-          </p>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
-            <div className="bg-slate-900/80 p-4 rounded-xl border border-slate-800">
-              <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Registration Status</p>
-              <p className="text-white font-semibold">Registered NGO</p>
-            </div>
-            <div className="bg-slate-900/80 p-4 rounded-xl border border-slate-800">
-              <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">CAC Registration No</p>
-              <p className="text-white font-semibold">125103</p>
-            </div>
-            <div className="bg-slate-900/80 p-4 rounded-xl border border-slate-800">
-              <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Incorporation Date</p>
-              <p className="text-white font-semibold">Feb 21, 2019</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Our Focus Areas */}
-        <div className="space-y-6">
-          <h2 className="text-3xl font-bold text-white text-center">What We Do</h2>
-          
-          <div className="space-y-4">
-            <div className="bg-slate-900 border border-slate-800 p-6 rounded-xl">
-              <h3 className="text-xl font-semibold text-white mb-2">1. Community Humanitarian Outreaches</h3>
-              <p className="text-slate-300 leading-relaxed">
-                Direct food distribution drives, resource allocation, and support initiatives designed to bring immediate relief to families and vulnerable segments of the population.
-              </p>
-            </div>
-
-            <div className="bg-slate-900 border border-slate-800 p-6 rounded-xl">
-              <h3 className="text-xl font-semibold text-white mb-2">2. Sustainable Wealth Creation</h3>
-              <p className="text-slate-300 leading-relaxed">
-                Providing education, skill-building framework, and empowerment resources aimed at helping youth and individuals break cycles of poverty.
-              </p>
-            </div>
-
-            <div className="bg-slate-900 border border-slate-800 p-6 rounded-xl">
-              <h3 className="text-xl font-semibold text-white mb-2">3. Transparency & Accountability</h3>
-              <p className="text-slate-300 leading-relaxed">
-                Ensuring that public donations and partnership resources are accounted for and channeled directly toward impactful grassroot interventions.
-              </p>
-            </div>
-          </div>
-        </div>
-
       </div>
-    </main>
+
+      {/* EDITORIAL STORY SECTION */}
+      <section className="py-16 md:py-24 px-6 max-w-6xl mx-auto">
+        <div className="prose prose-lg prose-slate max-w-none text-slate-700">
+          
+          <h2 className="text-3xl font-black uppercase tracking-tight text-slate-900 mb-8 border-l-8 border-red-600 pl-4">Our Story</h2>
+          
+          <div className="clearfix">
+            {/* FLOATING IMAGE - LEFT */}
+            <div className="md:float-left md:w-[45%] md:mr-10 md:mb-6 mb-8">
+              <div className="relative h-[400px] w-full bg-slate-200">
+                <Image 
+                  src="/images/outreach-6.png" 
+                  alt="HMSI Core Mission" 
+                  fill 
+                  className="object-cover shadow-lg"
+                />
+              </div>
+              <p className="text-xs font-bold uppercase text-slate-400 mt-3 tracking-widest text-center">
+                HMSI Field Operations, Nigeria
+              </p>
+            </div>
+
+            <p className="mb-6 leading-relaxed">
+              The Help-Meet Shine Initiative (HMSI) was founded on the fundamental belief that every human being deserves dignity, access to basic necessities, and the opportunity to build a self-sustaining future. In regions severely affected by economic hardship and lack of infrastructure, we serve as a beacon of hope.
+            </p>
+            <p className="mb-6 leading-relaxed">
+              Our approach is holistic. We do not stop at delivering emergency food supplies and medical interventions. We stay back to equip youths, mothers, and local entrepreneurs with the skills required for sustainable wealth creation. By addressing both the symptoms of poverty and its root causes, we create enduring change.
+            </p>
+            <p className="mb-6 leading-relaxed">
+              From our administrative hubs to our front-line field volunteers, HMSI operates with transparency, urgency, and deep compassion. Over the years, we have grown from a localized effort into a highly coordinated non-governmental organization capable of executing massive community outreach programs across multiple states.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* MISSION & VISION GRID */}
+      <section className="bg-slate-900 text-white py-20 px-6">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">
+          
+          <div>
+            <div className="w-12 h-1 bg-red-600 mb-6"></div>
+            <h3 className="text-3xl font-black uppercase mb-4 tracking-tighter">Our Mission</h3>
+            <p className="text-lg text-slate-300 leading-relaxed">
+              To provide immediate humanitarian support to crisis-stricken areas while aggressively equipping individuals with educational materials, skills, and resources necessary for sustainable, long-term wealth creation.
+            </p>
+          </div>
+
+          <div>
+            <div className="w-12 h-1 bg-teal-500 mb-6"></div>
+            <h3 className="text-3xl font-black uppercase mb-4 tracking-tighter">Our Vision</h3>
+            <p className="text-lg text-slate-300 leading-relaxed">
+              A Nigeria where no community is left vulnerable to extreme poverty, and where every youth and family has the capacity to shine and positively impact their local economy.
+            </p>
+          </div>
+
+        </div>
+      </section>
+
+      {/* CTA SECTION */}
+      <section className="py-24 px-6 text-center max-w-3xl mx-auto">
+        <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tighter mb-6 text-slate-900">Join the Movement</h2>
+        <p className="text-lg text-slate-600 mb-10">We cannot do this alone. Your financial support and your time are critical to our ongoing mission.</p>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Link href="/" className="bg-teal-500 hover:bg-teal-600 text-white font-bold py-4 px-10 rounded-sm uppercase tracking-widest transition-colors">
+            Make a Donation
+          </Link>
+          <Link href="/volunteer" className="bg-slate-900 hover:bg-slate-800 text-white font-bold py-4 px-10 rounded-sm uppercase tracking-widest transition-colors">
+            Become a Volunteer
+          </Link>
+        </div>
+      </section>
+
+    </div>
   );
 }
