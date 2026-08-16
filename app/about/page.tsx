@@ -1,12 +1,10 @@
 import Image from 'next/image';
 import HmsiHeader from '../components/HmsiHeader';
 import Link from 'next/link';
-
 export default function AboutPage() {
   return (
     <div className="bg-white min-h-screen text-slate-900 font-sans antialiased">
       <HmsiHeader />
-
       {/* PAGE HEADER */}
       <div className="bg-slate-50 py-16 md:py-24 border-b border-slate-200">
         <div className="max-w-4xl mx-auto px-6 text-center">
@@ -18,13 +16,11 @@ export default function AboutPage() {
           </p>
         </div>
       </div>
-
       {/* EDITORIAL STORY SECTION */}
       <section className="py-16 md:py-24 px-6 max-w-6xl mx-auto">
         <div className="prose prose-lg prose-slate max-w-none text-slate-700">
           
-          <h2 className="text-3xl font-black uppercase tracking-tight text-slate-900 mb-8 border-l-8 border-red-600 pl-4">Our Story</h2>
-          
+          <h2 className="text-3xl font-black uppercase tracking-tight text-slate-900 mb-8 border-l-8 border-red-600 pl-4">Our Story</h2>          
           <div className="clearfix">
             {/* FLOATING IMAGE - LEFT */}
             <div className="md:float-left md:w-[45%] md:mr-10 md:mb-6 mb-8">
@@ -56,8 +52,7 @@ export default function AboutPage() {
 
       {/* MISSION & VISION GRID */}
       <section className="bg-slate-900 text-white py-20 px-6">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">
-          
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">          
           <div>
             <div className="w-12 h-1 bg-red-600 mb-6"></div>
             <h3 className="text-3xl font-black uppercase mb-4 tracking-tighter">Our Mission</h3>
@@ -76,7 +71,6 @@ export default function AboutPage() {
 
         </div>
       </section>
-
       {/* CTA SECTION */}
       <section className="py-24 px-6 text-center max-w-3xl mx-auto">
         <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tighter mb-6 text-slate-900">Join the Movement</h2>

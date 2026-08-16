@@ -1,15 +1,11 @@
 "use client";
-
 import React, { useState } from 'react';
-
 export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
   };
-
   return (
     <div className="bg-white min-h-screen text-slate-900 py-12 px-6 max-w-2xl mx-auto font-sans">
       <h1 className="text-3xl font-black uppercase mb-6 tracking-tighter">Contact HMSI</h1>
