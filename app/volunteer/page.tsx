@@ -1,23 +1,17 @@
 "use client";
-
 import React, { useState } from 'react';
 import Image from 'next/image';
 import HmsiHeader from '../components/HmsiHeader';
-
 export default function VolunteerPage() {
   const [submitted, setSubmitted] = useState(false);
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
   };
-
   return (
     <div className="bg-white min-h-screen text-slate-900 font-sans antialiased">
       <HmsiHeader />
-
-      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row min-h-[85vh]">
-        
+      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row min-h-[85vh]">        
         {/* LEFT SIDE: INSPIRATIONAL CONTEXT */}
         <div className="w-full lg:w-1/2 relative bg-slate-900 flex flex-col justify-center p-8 md:p-16 text-white overflow-hidden">
           <Image 
@@ -41,11 +35,9 @@ export default function VolunteerPage() {
             </ul>
           </div>
         </div>
-
         {/* RIGHT SIDE: APPLICATION FORM */}
         <div className="w-full lg:w-1/2 p-8 md:p-16 flex flex-col justify-center bg-slate-50">
-          <h2 className="text-2xl font-black uppercase mb-8 tracking-tight text-slate-900">Volunteer Application</h2>
-          
+          <h2 className="text-2xl font-black uppercase mb-8 tracking-tight text-slate-900">Volunteer Application</h2>          
           {submitted ? (
             <div className="bg-teal-100 border-l-4 border-teal-500 p-8 text-teal-900">
               <h3 className="font-black text-xl mb-2">Application Received!</h3>
@@ -62,13 +54,11 @@ export default function VolunteerPage() {
                   <label className="block text-xs font-bold uppercase text-slate-600 mb-2">Phone Number</label>
                   <input type="tel" required className="w-full border border-slate-300 p-3 outline-none focus:border-red-600 transition-colors bg-white" placeholder="+234..." />
                 </div>
-              </div>
-              
+              </div>              
               <div>
                 <label className="block text-xs font-bold uppercase text-slate-600 mb-2">Email Address</label>
                 <input type="email" required className="w-full border border-slate-300 p-3 outline-none focus:border-red-600 transition-colors bg-white" placeholder="john@example.com" />
               </div>
-
               <div>
                 <label className="block text-xs font-bold uppercase text-slate-600 mb-2">Area of Interest</label>
                 <select className="w-full border border-slate-300 p-3 outline-none focus:border-red-600 transition-colors bg-white text-slate-700">
@@ -79,12 +69,10 @@ export default function VolunteerPage() {
                   <option>General Support</option>
                 </select>
               </div>
-
               <div>
                 <label className="block text-xs font-bold uppercase text-slate-600 mb-2">Why do you want to join HMSI?</label>
                 <textarea rows={3} required className="w-full border border-slate-300 p-3 outline-none focus:border-red-600 transition-colors bg-white" placeholder="Tell us about your passion..."></textarea>
               </div>
-
               <button type="submit" className="bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-8 w-full uppercase tracking-widest text-sm transition-colors mt-4">
                 Submit Application
               </button>

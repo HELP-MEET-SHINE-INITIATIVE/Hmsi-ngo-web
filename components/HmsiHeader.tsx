@@ -1,10 +1,8 @@
 import Link from 'next/link';
-
 export default function HmsiHeader() {
   return (
     <header className="w-full bg-white border-b border-slate-200 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-        
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">       
         {/* NGO Brand / Logo Text */}
         <Link href="/" className="flex items-center gap-3">
           <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center text-white font-black text-xl">
@@ -19,7 +17,6 @@ export default function HmsiHeader() {
             </span>
           </div>
         </Link>
-
         {/* Action Buttons */}
         <div className="flex items-center gap-4">
           <Link 
@@ -34,7 +31,6 @@ export default function HmsiHeader() {
             </svg>
           </button>
         </div>
-
       </div>
     </header>
   );

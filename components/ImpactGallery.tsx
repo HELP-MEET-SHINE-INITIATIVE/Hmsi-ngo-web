@@ -1,5 +1,4 @@
 import Image from 'next/image';
-
 const outreachMoments = [
   { src: '/images/outreach-1.png', alt: 'Community members gathered for the outreach' },
   { src: '/images/outreach-2.png', alt: 'Active food distribution and relief measurement' },
@@ -12,7 +11,6 @@ const outreachMoments = [
   { src: '/images/outreach-9.png', alt: 'Relief distribution team in action' },
   { src: '/images/outreach-10.png', alt: 'Impacting vulnerable households across Nigeria' },
 ];
-
 export default function ImpactGallery() {
   return (
     <div className="space-y-6">
@@ -25,7 +23,6 @@ export default function ImpactGallery() {
           Live Gallery
         </span>
       </div>
-
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {outreachMoments.map((img, index) => (
           <div 
