@@ -2,7 +2,7 @@ use client";
 export const metadata = {
   title: 'Support Our Cause & Donate | Help-Meet Shine Initiative',
   description: 'Partner with Help-Meet Shine Initiative (HMSI) to fund community outreaches, food distribution drives, and sustainable wealth creation programs in Nigeria.',
-};
+}
 export default function DonatePage() {
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 py-16 px-6">
@@ -56,7 +56,6 @@ export default function DonatePage() {
                 <p className="text-slate-400">Account Number: <span className="text-white">0123456789</span></p>
               </div>
             </div>
-
             {/* International / Online Gateway */}
             <div className="bg-slate-900/90 border border-slate-800 p-6 rounded-xl space-y-4 flex flex-col justify-between">
               <div>
