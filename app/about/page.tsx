@@ -1,3 +1,4 @@
+use client";
 export const metadata = {
   title: 'About Us | Help-Meet Shine Initiative (HMSI)',
   description: 'Learn about HMSI, our mission, legal compliance, and our commitment to sustainable community development and humanitarian support across Nigeria.',
