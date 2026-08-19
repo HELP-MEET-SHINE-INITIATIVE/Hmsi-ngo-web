@@ -7,14 +7,14 @@ on:
   workflow_dispatch:
     # Allow manual trigger from Actions tab
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   audit-and-update:
     runs-on: ubuntu-latest
     name: Audit Dependencies and Create PRs
-    
-    permissions:
-      contents: write
-      pull-requests: write
     
     steps:
       - name: Checkout Code
