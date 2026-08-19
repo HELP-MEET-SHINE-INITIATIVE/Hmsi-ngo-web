@@ -1,0 +1,27 @@
+[
+  {
+    "id": "a1",
+    "userId": "u1",
+    "userName": "Admin Worker",
+    "type": "post",
+    "content": "Just finished the site inspection for the Lagos Clean Water project. The community is ready!",
+    "timestamp": "2026-08-18T09:00:00Z",
+    "comments": [
+      {
+        "id": "c1",
+        "userId": "u2",
+        "userName": "John Volunteer",
+        "text": "Great work! Can't wait to join the mobilization team next week."
+      }
+    ]
+  },
+  {
+    "id": "a2",
+    "userId": "u2",
+    "userName": "John Volunteer",
+    "type": "update",
+    "content": "Signed up for the Youth Skills Workshop. Looking forward to mentoring!",
+    "timestamp": "2026-08-19T11:00:00Z",
+    "comments": []
+  }
+]
