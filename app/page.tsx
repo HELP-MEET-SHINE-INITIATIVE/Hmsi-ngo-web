@@ -50,7 +50,7 @@ export default function Home() {
         <nav className="hidden md:flex gap-6 font-semibold text-sm text-slate-700">
           <Link href="/" className="hover:text-red-600 transition">Home</Link>
           <Link href="/about" className="hover:text-red-600 transition">About</Link>
-          <Link href="/outreaches" className="hover:text-red-600 transition">Outreaches</Link>
+          <Link href="/outreach/1" className="hover:text-red-600 transition">Outreach</Link>
           <Link href="/contact" className="hover:text-red-600 transition">Contact</Link>
         </nav>
       </header>
