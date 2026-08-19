@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from 'react';
 import Image from 'next/image';
-import HmsiHeader from '../components/HmsiHeader';
+import HmsiHeader from '../../components/HmsiHeader';
 export default function VolunteerPage() {
   const [submitted, setSubmitted] = useState(false);
   const handleSubmit = (e: React.FormEvent) => {

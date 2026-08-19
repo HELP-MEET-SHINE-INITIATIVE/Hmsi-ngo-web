@@ -1,10 +1,12 @@
 # Dependencies
 /node_modules
 
-# Next.js build output
+# Next.js and Vercel build output
 /.next/
 /out/
 /build
+.vercel
+*.tsbuildinfo
 
 # Local environment variables
 .env
