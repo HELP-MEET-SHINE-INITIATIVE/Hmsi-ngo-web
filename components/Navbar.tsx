@@ -1,13 +1,14 @@
 "use client";
 
 import Link from 'next/link';
-import { ArrowUpRight, User, LayoutDashboard, LogOut, Menu, X } from 'lucide-react';
+import { ArrowUpRight, LayoutDashboard, LogOut, Menu, X, HelpCircle } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { useState } from 'react';
 
 const links = [
   { href: '/about', label: 'About us' },
   { href: '/fundraise', label: 'Help Me' },
+  { href: '/get-help', label: 'Get Help' },
   { href: '/projects', label: 'Projects' },
   { href: '/volunteer', label: 'Volunteer' },
 ];

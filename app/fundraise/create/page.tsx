@@ -2,10 +2,52 @@ import type { Metadata } from 'next';
 import CreateFundraiserContent from './CreateFundraiserContent';
 
 export const metadata: Metadata = {
-  title: 'Start a Fundraiser',
-  description: 'Submit a help request to the HMSI community. Tell your story and get the support you need.',
+  title: 'Get Financial Help | Start a Fundraiser on HMSI',
+  description: 'Need help with medical bills, school fees, or emergency housing in Nigeria? Submit your help request to the HMSI community and receive donations from caring people.',
+  keywords: ['get financial help Nigeria', 'need money for medical bills', 'school fees assistance Nigeria', 'emergency housing help', 'HMSI get help'],
+  openGraph: {
+    title: 'Get Financial Help | Start a Fundraiser on HMSI',
+    description: 'Need help with medical bills, school fees, or emergency housing in Nigeria? Submit your help request to the HMSI community.',
+    url: 'https://www.hmsi.org.ng/fundraise/create',
+  },
+  alternates: {
+    canonical: 'https://www.hmsi.org.ng/fundraise/create',
+  },
 };
 
 export default function CreateFundraiserPage() {
-  return <CreateFundraiserContent />;
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    'itemListElement': [
+      {
+        '@type': 'ListItem',
+        'position': 1,
+        'name': 'Home',
+        'item': 'https://www.hmsi.org.ng',
+      },
+      {
+        '@type': 'ListItem',
+        'position': 2,
+        'name': 'Fundraise',
+        'item': 'https://www.hmsi.org.ng/fundraise',
+      },
+      {
+        '@type': 'ListItem',
+        'position': 3,
+        'name': 'Get Help',
+        'item': 'https://www.hmsi.org.ng/fundraise/create',
+      },
+    ],
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      <CreateFundraiserContent />
+    </>
+  );
 }

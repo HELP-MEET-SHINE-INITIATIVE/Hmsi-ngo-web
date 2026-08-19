@@ -3,6 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -17,6 +19,10 @@ import {
   Sparkles,
   Users,
   X,
+  HelpCircle,
+  Info,
+  CheckCircle2,
+  Globe
 } from "lucide-react";
 
 const humanitarianBriefs = [
@@ -130,8 +136,60 @@ export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
 
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    'itemListElement': [
+      {
+        '@type': 'ListItem',
+        'position': 1,
+        'name': 'Home',
+        'item': 'https://www.hmsi.org.ng',
+      },
+    ],
+  };
+
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    'mainEntity': [
+      {
+        '@type': 'Question',
+        'name': 'How do I get financial help from HMSI?',
+        'acceptedAnswer': {
+          '@type': 'Answer',
+          'text': 'You can get help by clicking the "Get Help Now" button and submitting a fundraiser request. Our team will verify your request and once approved, it will be live for donors to support.',
+        },
+      },
+      {
+        '@type': 'Question',
+        'name': 'Is it free to post a help request?',
+        'acceptedAnswer': {
+          '@type': 'Answer',
+          'text': 'Yes, HMSI is a non-profit platform. We do not charge any fees for posting help requests or receiving donations.',
+        },
+      },
+      {
+        '@type': 'Question',
+        'name': 'How are donations processed?',
+        'acceptedAnswer': {
+          '@type': 'Answer',
+          'text': 'All donations are processed securely through Paystack. Funds are then disbursed directly to the verified cause or service provider (e.g., hospital for medical bills).',
+        },
+      },
+    ],
+  };
+
   return (
     <main className="min-h-screen bg-[#f6f4ef] text-[#17221e] selection:bg-[#e1ad45] selection:text-[#17221e]">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-[#17221e] focus:px-5 focus:py-3 focus:text-sm focus:font-bold focus:text-white"
@@ -216,8 +274,8 @@ export default function Home() {
               <Link href="/donate" className="group inline-flex items-center justify-center gap-3 rounded-full bg-[#e1ad45] px-7 py-4 text-sm font-black uppercase tracking-[0.15em] text-[#17221e] transition hover:bg-white">
                 Donate now <ArrowUpRight size={18} className="transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
               </Link>
-              <Link href="#stories" className="inline-flex items-center justify-center gap-3 rounded-full border border-white/40 px-7 py-4 text-sm font-bold text-white transition hover:border-white hover:bg-white/10">
-                See the impact <ArrowRight size={17} />
+              <Link href="/fundraise/create" className="inline-flex items-center justify-center gap-3 rounded-full border border-white/40 px-7 py-4 text-sm font-bold text-white transition hover:border-white hover:bg-white/10">
+                Get Help Now <ArrowRight size={17} />
               </Link>
             </div>
           </div>
@@ -226,7 +284,7 @@ export default function Home() {
             <div className="mb-5 flex items-center justify-between text-[10px] font-black uppercase tracking-[0.2em] text-white/70">
               <span>Field note / 01</span><span className="text-[#e1ad45]">Live</span>
             </div>
-            <p className="text-xl font-bold leading-snug">“The strongest response is one that leaves people stronger.”</p>
+            <p className="text-xl font-bold leading-snug">&ldquo;The strongest response is one that leaves people stronger.&rdquo;</p>
             <div className="mt-5 flex items-center gap-3 text-xs text-white/70">
               <span className="h-2 w-2 rounded-full bg-[#e1ad45]" /> Community-led action, Nigeria
             </div>
@@ -251,6 +309,50 @@ export default function Home() {
       </div>
 
       <div id="main-content">
+        {/* HOW IT WORKS SECTION */}
+        <section className="py-24 px-6 bg-white border-b border-[#d9d6ce]">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-20">
+              <p className="text-[#b56b3b] text-xs font-black uppercase tracking-[0.25em] mb-4">The Process</p>
+              <h2 className="text-4xl md:text-6xl font-black tracking-tight text-[#17221e]">How It Works</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+              {[
+                {
+                  step: "01",
+                  title: "Submit Your Need",
+                  desc: "Tell us your story. Whether it's medical bills, education support, or emergency housing, we are here to listen.",
+                  icon: Info
+                },
+                {
+                  step: "02",
+                  title: "Verification",
+                  desc: "Our field team verifies every request to ensure transparency and build trust with our global donor community.",
+                  icon: ShieldCheck
+                },
+                {
+                  step: "03",
+                  title: "Receive Support",
+                  desc: "Once approved, your fundraiser goes live. Donations are collected securely and disbursed directly to solve the problem.",
+                  icon: CheckCircle2
+                }
+              ].map((item, i) => (
+                <div key={i} className="relative p-10 rounded-[40px] bg-[#f6f4ef] border border-[#d9d6ce] group hover:border-[#1e5b49] transition-all">
+                  <div className="text-6xl font-black text-[#1e5b49]/10 absolute top-8 right-10 group-hover:text-[#1e5b49]/20 transition-colors">{item.step}</div>
+                  <item.icon size={40} className="text-[#e1ad45] mb-8" />
+                  <h3 className="text-2xl font-black mb-4">{item.title}</h3>
+                  <p className="text-[#66716a] leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-16 text-center">
+              <Link href="/fundraise/create" className="inline-flex items-center gap-2 text-[#1e5b49] font-black uppercase tracking-widest text-sm hover:underline">
+                Start your help request today <ArrowRight size={16} />
+              </Link>
+            </div>
+          </div>
+        </section>
+
         <section id="impact" className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 lg:px-12 lg:py-28">
           <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
             <div>
@@ -281,7 +383,7 @@ export default function Home() {
                 <p className="mb-4 text-xs font-black uppercase tracking-[0.22em] text-[#b56b3b]">The HMSI field desk</p>
                 <h2 className="text-4xl font-black tracking-[-0.04em] sm:text-6xl">Stories that move us.</h2>
               </div>
-              <Link href="/outreach/1" className="group inline-flex items-center gap-2 text-sm font-black uppercase tracking-[0.13em] text-[#1e5b49]">Explore field stories <ArrowRight size={17} className="transition-transform group-hover:translate-x-1" /></Link>
+              <Link href="/fundraise" className="group inline-flex items-center gap-2 text-sm font-black uppercase tracking-[0.13em] text-[#1e5b49]">Explore field stories <ArrowRight size={17} className="transition-transform group-hover:translate-x-1" /></Link>
             </div>
 
             <div className="mt-12 grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
@@ -302,9 +404,9 @@ export default function Home() {
                       <Image src={brief.image} alt="" fill className="object-cover transition duration-500 group-hover:scale-105" />
                     </div>
                     <div className="flex flex-col py-2 pr-2">
-                      <span className={`w-fit rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.13em] ${brief.accent}`}>{brief.category}</span>
-                      <h3 className="mt-3 text-lg font-black leading-tight tracking-[-0.02em] text-[#17221e]">{brief.title}</h3>
-                      <span className="mt-auto flex items-center gap-1 pt-4 text-xs font-black uppercase tracking-[0.1em] text-[#1e5b49]">Read brief <ChevronRight size={14} /></span>
+                      <span className="text-[9px] font-black uppercase tracking-widest text-[#b56b3b]">{brief.category}</span>
+                      <h4 className="mt-2 text-sm font-black leading-tight group-hover:text-[#1e5b49]">{brief.title}</h4>
+                      <p className="mt-3 line-clamp-2 text-[11px] leading-relaxed text-[#66716a]">{brief.excerpt}</p>
                     </div>
                   </Link>
                 ))}
@@ -313,94 +415,125 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 lg:px-12 lg:py-28">
-          <div className="grid gap-12 lg:grid-cols-[1fr_0.85fr] lg:items-center">
-            <div className="relative min-h-[520px] overflow-hidden rounded-3xl bg-[#e9f0e9]">
-              <Image src="/images/outreach-6.png" alt="A community member participating in HMSI support activities" fill className="object-cover" />
-              <div className="absolute bottom-5 left-5 rounded-2xl bg-white/90 p-5 backdrop-blur-sm sm:bottom-8 sm:left-8">
-                <p className="text-3xl font-black text-[#1e5b49]">01</p>
-                <p className="mt-1 text-[10px] font-black uppercase tracking-[0.15em] text-[#66716a]">Listen first. Act together.</p>
-              </div>
+        {/* FAQ SECTION */}
+        <section className="py-24 px-6 bg-[#e9f0e9]">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-16">
+              <p className="text-[#b56b3b] text-xs font-black uppercase tracking-[0.25em] mb-4">Common Questions</p>
+              <h2 className="text-4xl md:text-5xl font-black tracking-tight text-[#17221e]">Frequently Asked Questions</h2>
             </div>
-            <div className="lg:pl-8">
-              <p className="mb-5 text-xs font-black uppercase tracking-[0.22em] text-[#b56b3b]">Our way of working</p>
-              <h2 className="text-4xl font-black leading-[1.03] tracking-[-0.045em] sm:text-6xl">Local knowledge is the beginning of lasting change.</h2>
-              <p className="mt-7 text-lg leading-8 text-[#66716a]">The people closest to a challenge are closest to the answer. HMSI partners with communities to respond to immediate needs while creating pathways to health, skills, education and sustainable livelihoods.</p>
-              <div className="mt-9 space-y-4 border-t border-[#d9d6ce] pt-7">
-                {["Community leadership at every stage", "Open, accountable use of every gift", "Practical support designed to last"].map((item) => (
-                  <div key={item} className="flex items-center gap-3 text-sm font-bold text-[#17221e]"><span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#e1ad45] text-[#17221e]"><Check size={14} strokeWidth={3} /></span>{item}</div>
-                ))}
-              </div>
-              <Link href="/about" className="mt-10 inline-flex items-center gap-3 rounded-full bg-[#17221e] px-6 py-4 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:bg-[#1e5b49]">How we work <ArrowRight size={17} /></Link>
-            </div>
-          </div>
-        </section>
-
-        <section className="bg-[#e9f0e9]">
-          <div className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 lg:px-12 lg:py-28">
-            <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
-              <div>
-                <p className="mb-4 text-xs font-black uppercase tracking-[0.22em] text-[#b56b3b]">Voices from the movement</p>
-                <h2 className="text-4xl font-black tracking-[-0.04em] sm:text-6xl">Change sounds like this.</h2>
-              </div>
-              <div className="hidden items-center gap-2 text-xs font-black uppercase tracking-[0.13em] text-[#66716a] sm:flex"><Play size={14} fill="currentColor" /> Stories from the field</div>
-            </div>
-            <div className="mt-12 grid gap-6 md:grid-cols-2">
-              {storyCards.map((story) => (
-                <article key={story.name} className="grid overflow-hidden rounded-3xl bg-white shadow-sm sm:grid-cols-[0.75fr_1.25fr]">
-                  <div className="relative min-h-[250px] sm:min-h-full"><Image src={story.image} alt="" fill className="object-cover" /></div>
-                  <div className="flex flex-col justify-between p-7 sm:p-9">
-                    <div><p className="text-4xl font-serif leading-none text-[#e1ad45]">“</p><blockquote className="mt-2 text-xl font-bold leading-snug text-[#17221e]">{story.quote}</blockquote></div>
-                    <div className="mt-8 border-t border-[#deded7] pt-4"><p className="text-sm font-black text-[#1e5b49]">{story.name}</p><p className="mt-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#7a847c]">{story.place}</p></div>
-                  </div>
-                </article>
+            <div className="space-y-6">
+              {[
+                {
+                  q: "How do I get financial help from HMSI?",
+                  a: "You can get help by clicking the 'Get Help Now' button and submitting a fundraiser request. Our team will verify your request and once approved, it will be live for donors to support."
+                },
+                {
+                  q: "Is it free to post a help request?",
+                  a: "Yes, HMSI is a non-profit platform. We do not charge any fees for posting help requests or receiving donations. We are committed to ensuring 100% of donations reach the intended cause."
+                },
+                {
+                  q: "How are donations processed?",
+                  a: "All donations are processed securely through Paystack. Funds are then disbursed directly to the verified cause or service provider (e.g., hospital for medical bills) to ensure proper usage."
+                },
+                {
+                  q: "Can I volunteer for HMSI?",
+                  a: "Absolutely! We are always looking for passionate individuals to join our field teams. Visit our Volunteer page to apply and become a force for good."
+                }
+              ].map((faq, i) => (
+                <div key={i} className="bg-white p-8 rounded-[32px] border border-[#d9d6ce]">
+                  <h3 className="text-lg font-black mb-4 flex items-center gap-3">
+                    <HelpCircle size={20} className="text-[#e1ad45]" /> {faq.q}
+                  </h3>
+                  <p className="text-[#66716a] leading-relaxed pl-8">{faq.a}</p>
+                </div>
               ))}
             </div>
           </div>
         </section>
 
-        <section id="ways-to-help" className="bg-[#17221e] text-white">
-          <div className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 lg:px-12 lg:py-28">
-            <div className="max-w-2xl"><p className="mb-5 text-xs font-black uppercase tracking-[0.22em] text-[#e1ad45]">There is a place for you here</p><h2 className="text-4xl font-black leading-[1.03] tracking-[-0.045em] sm:text-6xl">Ways to turn care into action.</h2></div>
-            <div className="mt-14 grid border-l border-white/20 sm:grid-cols-2 lg:grid-cols-4">
-              {waysToHelp.map(({ icon: Icon, number, title, text, href }) => (
-                <Link key={title} href={href} className="group border-b border-r border-t border-white/20 p-6 transition hover:bg-white/10 sm:p-8 lg:border-b-0">
-                  <div className="flex items-center justify-between"><Icon size={25} strokeWidth={1.5} className="text-[#e1ad45]" /><span className="text-xs font-black text-white/40">{number}</span></div>
-                  <h3 className="mt-16 text-2xl font-black tracking-[-0.03em]">{title}</h3>
-                  <p className="mt-4 min-h-[72px] text-sm leading-6 text-white/65">{text}</p>
-                  <span className="mt-7 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.13em] text-[#e1ad45]">Take the next step <ArrowRight size={15} className="transition-transform group-hover:translate-x-1" /></span>
+        <section id="ways-to-help" className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 lg:px-12 lg:py-28">
+          <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
+            <div>
+              <p className="mb-5 text-xs font-black uppercase tracking-[0.22em] text-[#b56b3b]">Join the movement</p>
+              <h2 className="text-4xl font-black leading-[1.02] tracking-[-0.04em] text-[#17221e] sm:text-6xl">There are many ways to stand with us.</h2>
+              <p className="mt-8 max-w-lg text-lg leading-8 text-[#66716a]">Whether you give, volunteer or partner, your involvement helps communities move from crisis to possibility.</p>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {waysToHelp.map((way) => (
+                <Link key={way.title} href={way.href} className="group relative overflow-hidden rounded-[32px] border border-[#d9d6ce] bg-white p-8 transition hover:border-[#1e5b49] hover:shadow-xl hover:shadow-[#1e5b49]/5">
+                  <div className="mb-6 flex items-center justify-between">
+                    <div className="rounded-2xl bg-[#f6f4ef] p-3 text-[#1e5b49] transition group-hover:bg-[#1e5b49] group-hover:text-white">
+                      <way.icon size={24} />
+                    </div>
+                    <span className="text-xs font-black text-[#d9d6ce]">{way.number}</span>
+                  </div>
+                  <h3 className="text-xl font-black tracking-tight">{way.title}</h3>
+                  <p className="mt-3 text-sm leading-relaxed text-[#66716a]">{way.text}</p>
+                  <div className="mt-8 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[#1e5b49]">
+                    Learn more <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
+                  </div>
                 </Link>
               ))}
             </div>
           </div>
         </section>
 
-        <section className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 lg:px-12 lg:py-28">
-          <div className="grid gap-10 rounded-3xl bg-[#e1ad45] p-7 sm:p-12 lg:grid-cols-[1fr_0.9fr] lg:items-center lg:p-16">
-            <div><p className="mb-4 text-xs font-black uppercase tracking-[0.22em] text-[#6f4c13]">Every gift is a vote for possibility</p><h2 className="max-w-xl text-4xl font-black leading-[1.03] tracking-[-0.045em] text-[#17221e] sm:text-6xl">Give a little. Change what comes next.</h2><p className="mt-6 max-w-lg text-base leading-7 text-[#4f421f]">We make every contribution count—towards essentials today, opportunity tomorrow, and communities equipped to lead their own way forward.</p><div className="mt-8 flex flex-wrap gap-3 text-xs font-black uppercase tracking-[0.1em] text-[#4f421f]"><span className="inline-flex items-center gap-2 rounded-full bg-white/40 px-4 py-2"><ShieldCheck size={15} /> Transparent</span><span className="inline-flex items-center gap-2 rounded-full bg-white/40 px-4 py-2"><Check size={15} /> Accountable</span><span className="inline-flex items-center gap-2 rounded-full bg-white/40 px-4 py-2"><Users size={15} /> Community-led</span></div></div>
-            <div className="rounded-2xl bg-[#17221e] p-7 text-white sm:p-9"><p className="text-xs font-black uppercase tracking-[0.18em] text-[#e1ad45]">Where your Paystack gift goes</p><div className="mt-7 space-y-5">{[["94%", "Programmes & direct support", "bg-[#e1ad45]"], ["4%", "Community accountability", "bg-[#6aa58c]"], ["2%", "Operations & learning", "bg-white/50"]].map(([value, label, color]) => <div key={label}><div className="flex justify-between text-sm font-bold"><span>{label}</span><span className="text-[#e1ad45]">{value}</span></div><div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10"><div className={`h-full rounded-full ${color}`} style={{ width: value }} /></div></div>)}</div><Link href="/donate" className="mt-8 flex items-center justify-center gap-2 rounded-full bg-[#e1ad45] px-5 py-4 text-sm font-black uppercase tracking-[0.13em] text-[#17221e] transition hover:bg-white">Give securely with Paystack <ArrowUpRight size={17} /></Link></div>
+        <section className="bg-[#17221e] py-20 text-white">
+          <div className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
+            <div className="flex flex-col items-center justify-between gap-10 rounded-[48px] bg-[#1e5b49] p-10 sm:p-16 lg:flex-row lg:p-20">
+              <div className="max-w-xl text-center lg:text-left">
+                <h2 className="text-4xl font-black leading-tight tracking-[-0.03em] sm:text-5xl">Stay informed on the impact we are making.</h2>
+                <p className="mt-6 text-lg text-white/70">Join our newsletter for monthly field updates, success stories and ways to get involved.</p>
+              </div>
+              <div className="w-full max-w-md">
+                {subscribed ? (
+                  <div className="rounded-3xl bg-white/10 p-8 text-center backdrop-blur-md">
+                    <Check className="mx-auto mb-4 text-[#e1ad45]" size={40} />
+                    <p className="text-xl font-bold">Thank you for joining us!</p>
+                    <p className="mt-2 text-sm text-white/60">You are now part of the HMSI community.</p>
+                  </div>
+                ) : (
+                  <form onSubmit={(e) => { e.preventDefault(); setSubscribed(true); }} className="flex flex-col gap-3 sm:flex-row">
+                    <input
+                      type="email"
+                      required
+                      placeholder="Email address"
+                      className="flex-1 rounded-full border border-white/20 bg-white/10 px-6 py-4 text-sm font-medium text-white outline-none backdrop-blur-md transition focus:border-[#e1ad45] focus:bg-white/20"
+                    />
+                    <button type="submit" className="rounded-full bg-[#e1ad45] px-8 py-4 text-sm font-black uppercase tracking-widest text-[#17221e] transition hover:bg-white">Join</button>
+                  </form>
+                )}
+                <p className="mt-4 text-center text-[10px] font-bold uppercase tracking-widest text-white/40 lg:text-left">No spam. Just hope. Unsubscribe anytime.</p>
+              </div>
+            </div>
           </div>
         </section>
 
-        <section className="border-t border-[#d9d6ce] bg-white">
-          <div className="mx-auto flex max-w-[1440px] flex-col gap-8 px-5 py-14 sm:px-8 lg:flex-row lg:items-center lg:justify-between lg:px-12">
-            <div className="max-w-xl"><p className="text-xs font-black uppercase tracking-[0.2em] text-[#b56b3b]">Stay close to the work</p><h2 className="mt-3 text-3xl font-black tracking-[-0.035em] sm:text-4xl">Get the good news, straight from the field.</h2></div>
-            {subscribed ? <div className="flex items-center gap-3 rounded-2xl bg-[#e9f0e9] px-5 py-4 text-sm font-bold text-[#1e5b49]"><Check size={18} /> You are on the list. Thank you for standing with us.</div> : <form onSubmit={(event) => { event.preventDefault(); setSubscribed(true); }} className="flex w-full max-w-lg flex-col gap-3 sm:flex-row"><label className="sr-only" htmlFor="newsletter-email">Email address</label><div className="flex flex-1 items-center gap-3 rounded-full border border-[#cfd4ce] bg-[#f6f4ef] px-5"><Mail size={17} className="text-[#66716a]" /><input id="newsletter-email" type="email" required placeholder="Your email address" className="w-full bg-transparent py-4 text-sm outline-none placeholder:text-[#8b958d]" /></div><button type="submit" className="rounded-full bg-[#17221e] px-6 py-4 text-xs font-black uppercase tracking-[0.12em] text-white transition hover:bg-[#1e5b49]">Subscribe</button></form>}
+        <section className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 lg:px-12 lg:py-28">
+          <div className="mb-16 text-center">
+            <p className="mb-4 text-xs font-black uppercase tracking-[0.22em] text-[#b56b3b]">Radical transparency</p>
+            <h2 className="text-4xl font-black tracking-[-0.04em] sm:text-6xl">Your trust is our foundation.</h2>
+          </div>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              { title: "Where the money goes", text: "94% of all donations go directly to our humanitarian programmes and community projects.", icon: ShieldCheck },
+              { title: "Accountable to you", text: "We provide regular, detailed reports on every project, so you see the impact of your gift.", icon: Mail },
+              { title: "Community-led", text: "We work with local leaders to ensure our interventions are relevant, effective and lasting.", icon: Users },
+            ].map((item) => (
+              <div key={item.title} className="rounded-[40px] border border-[#d9d6ce] bg-white p-10 text-center">
+                <div className="mx-auto mb-8 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#e9f0e9] text-[#1e5b49]">
+                  <item.icon size={32} />
+                </div>
+                <h3 className="text-xl font-black tracking-tight">{item.title}</h3>
+                <p className="mt-4 text-sm leading-relaxed text-[#66716a]">{item.text}</p>
+              </div>
+            ))}
           </div>
         </section>
       </div>
 
-      <footer className="bg-[#102019] text-white">
-        <div className="mx-auto max-w-[1440px] px-5 py-14 sm:px-8 lg:px-12 lg:py-20">
-          <div className="grid gap-12 lg:grid-cols-[1.4fr_0.6fr_0.6fr_1fr]">
-            <div><Link href="/" className="flex items-center gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#e1ad45] text-xl font-black text-[#17221e]">H</span><span className="text-sm font-black uppercase tracking-[0.17em]">HMSI</span></Link><p className="mt-6 max-w-xs text-sm leading-6 text-white/60">A community-rooted humanitarian initiative helping people move from crisis to possibility.</p></div>
-            <div><p className="text-xs font-black uppercase tracking-[0.17em] text-[#e1ad45]">Explore</p><div className="mt-5 flex flex-col gap-3 text-sm text-white/70"><Link href="/about" className="transition hover:text-white">About us</Link><Link href="#stories" className="transition hover:text-white">Stories</Link><Link href="#impact" className="transition hover:text-white">Our impact</Link></div></div>
-            <div><p className="text-xs font-black uppercase tracking-[0.17em] text-[#e1ad45]">Join in</p><div className="mt-5 flex flex-col gap-3 text-sm text-white/70"><Link href="/donate" className="transition hover:text-white">Donate</Link><Link href="/volunteer" className="transition hover:text-white">Volunteer</Link><Link href="/contact" className="transition hover:text-white">Partner with us</Link></div></div>
-            <div><p className="text-xs font-black uppercase tracking-[0.17em] text-[#e1ad45]">Contact</p><p className="mt-5 text-sm leading-6 text-white/70">Lagos, Nigeria<br />support@helpmeetshine.org</p><Link href="/contact" className="mt-4 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.12em] text-[#e1ad45]">Start a conversation <ArrowRight size={14} /></Link></div>
-          </div>
-          <div className="mt-14 flex flex-col justify-between gap-4 border-t border-white/15 pt-6 text-[11px] font-semibold text-white/40 sm:flex-row"><span>© 2026 Help-Meet Shine Initiative. All rights reserved.</span><span>Built for dignity, action and shared possibility.</span></div>
-        </div>
-      </footer>
+      <Footer />
     </main>
   );
 }

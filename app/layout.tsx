@@ -6,21 +6,24 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://www.hmsi.org.ng'),
   title: {
     template: '%s | Help Meet Shine Initiative (HMSI)',
-    default: 'Help Meet Shine Initiative (HMSI) | Empowering Communities in Nigeria',
+    default: 'Help Meet Shine Initiative (HMSI) | Get Help & Empower Communities in Nigeria',
   },
-  description: 'HMSI provides humanitarian support, equips individuals for sustainable wealth creation, and drives community-led social growth across Nigeria.',
-  keywords: ['NGO', 'Nigeria', 'Humanitarian Aid', 'Community Empowerment', 'HMSI', 'Social Growth', 'Charity'],
+  description: 'Need help? Post your problem and receive donations from caring Nigerians. HMSI provides financial assistance for medical bills, education, and housing. Join us in restoring hope across Nigeria.',
+  keywords: ['NGO Nigeria', 'get financial help Nigeria', 'medical bill assistance', 'education support Nigeria', 'humanitarian aid', 'HMSI', 'charity Nigeria', 'crowdfunding Nigeria'],
   authors: [{ name: 'HMSI' }],
   creator: 'HMSI',
   publisher: 'HMSI',
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
+  manifest: '/manifest.json',
+  verification: {
+    google: 'google-site-verification-placeholder',
+    yandex: 'yandex-verification-placeholder',
+    other: {
+      'msvalidate.01': 'bing-verification-placeholder',
+    },
   },
   openGraph: {
-    title: 'Help Meet Shine Initiative (HMSI)',
-    description: 'Empowering Communities. Restoring Hope Across Nigeria. Join us in building a stronger tomorrow.',
+    title: 'Help Meet Shine Initiative (HMSI) | Empowering Communities',
+    description: 'Empowering Communities. Restoring Hope Across Nigeria. Post your need or support a cause today.',
     url: 'https://www.hmsi.org.ng',
     siteName: 'Help Meet Shine Initiative',
     images: [
@@ -65,8 +68,49 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  const organizationSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'NGO',
+    'name': 'Help Meet Shine Initiative',
+    'alternateName': 'HMSI',
+    'url': 'https://www.hmsi.org.ng',
+    'logo': 'https://www.hmsi.org.ng/logo.png',
+    'description': 'HMSI provides humanitarian support, equips individuals for sustainable wealth creation, and drives community-led social growth across Nigeria.',
+    'address': {
+      '@type': 'PostalAddress',
+      'addressCountry': 'Nigeria',
+    },
+    'sameAs': [
+      'https://twitter.com/hmsi_ngo',
+      'https://facebook.com/hmsi_ngo',
+      'https://instagram.com/hmsi_ngo',
+    ],
+  };
+
+  const websiteSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    'name': 'Help Meet Shine Initiative',
+    'url': 'https://www.hmsi.org.ng',
+    'potentialAction': {
+      '@type': 'SearchAction',
+      'target': 'https://www.hmsi.org.ng/fundraise?q={search_term_string}',
+      'query-input': 'required name=search_term_string',
+    },
+  };
+
   return (
     <html lang="en" className="scroll-smooth">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        />
+      </head>
       <body className="antialiased">
         <AuthProvider>
           {children}
