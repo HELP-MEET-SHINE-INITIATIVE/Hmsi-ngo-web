@@ -20,13 +20,16 @@ export async function generateMetadata(
   }
 
   return {
-    title: fundraiser.title,
-    description: fundraiser.description,
+    title: `${fundraiser.title} | Get Help on HMSI`,
+    description: `Support this cause: ${fundraiser.description}. Help us raise ₦${fundraiser.targetAmount.toLocaleString()} for ${fundraiser.category} needs in Nigeria.`,
     openGraph: {
       title: `${fundraiser.title} | HMSI Help Me`,
       description: fundraiser.description,
       images: [fundraiser.image],
       url: `https://www.hmsi.org.ng/fundraise/${id}`,
+    },
+    alternates: {
+      canonical: `https://www.hmsi.org.ng/fundraise/${id}`,
     },
   };
 }
@@ -35,26 +38,83 @@ export default async function FundraiserPage({ params }: Props) {
   const id = (await params).id;
   const fundraiser = fundraisersData.find((f: any) => f.id === id);
 
-  const jsonLd = fundraiser ? {
+  if (!fundraiser) {
+    return <FundraiserContent />;
+  }
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    'itemListElement': [
+      {
+        '@type': 'ListItem',
+        'position': 1,
+        'name': 'Home',
+        'item': 'https://www.hmsi.org.ng',
+      },
+      {
+        '@type': 'ListItem',
+        'position': 2,
+        'name': 'Fundraise',
+        'item': 'https://www.hmsi.org.ng/fundraise',
+      },
+      {
+        '@type': 'ListItem',
+        'position': 3,
+        'name': fundraiser.title,
+        'item': `https://www.hmsi.org.ng/fundraise/${id}`,
+      },
+    ],
+  };
+
+  const donateActionSchema = {
     '@context': 'https://schema.org',
     '@type': 'DonateAction',
-    'name': fundraiser.title,
+    'name': `Donate to ${fundraiser.title}`,
     'description': fundraiser.description,
-    'image': fundraiser.image,
+    'image': `https://www.hmsi.org.ng${fundraiser.image}`,
     'recipient': {
       '@type': 'NGO',
       'name': 'Help Meet Shine Initiative',
+      'url': 'https://www.hmsi.org.ng',
     },
-  } : null;
+    'target': {
+      '@type': 'EntryPoint',
+      'urlTemplate': `https://www.hmsi.org.ng/fundraise/${id}`,
+      'actionPlatform': [
+        'http://schema.org/DesktopWebPlatform',
+        'http://schema.org/MobileWebPlatform',
+      ],
+    },
+  };
+
+  const articleSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    'headline': fundraiser.title,
+    'description': fundraiser.description,
+    'image': `https://www.hmsi.org.ng${fundraiser.image}`,
+    'datePublished': fundraiser.createdAt,
+    'author': {
+      '@type': 'Organization',
+      'name': 'HMSI',
+    },
+  };
 
   return (
     <>
-      {jsonLd && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
-      )}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(donateActionSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+      />
       <FundraiserContent />
     </>
   );

@@ -2,20 +2,65 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import HmsiHeader from '../../components/HmsiHeader';
 import Link from 'next/link';
+import Footer from '../../components/Footer';
 
 export const metadata: Metadata = {
-  title: 'Our Story & Mission',
-  description: 'Learn about the Help Meet Shine Initiative (HMSI) story, our mission to restore hope, and how we empower communities across Nigeria.',
+  title: 'Our Story & Mission | About HMSI',
+  description: 'Learn about the Help Meet Shine Initiative (HMSI) story, our mission to restore hope, and how we empower communities across Nigeria through humanitarian aid and sustainable wealth creation.',
   openGraph: {
     title: 'Our Story & Mission | HMSI',
     description: 'Learn about the Help Meet Shine Initiative (HMSI) story, our mission to restore hope, and how we empower communities across Nigeria.',
     url: 'https://www.hmsi.org.ng/about',
   },
+  alternates: {
+    canonical: 'https://www.hmsi.org.ng/about',
+  },
 };
 
 export default function AboutPage() {
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    'itemListElement': [
+      {
+        '@type': 'ListItem',
+        'position': 1,
+        'name': 'Home',
+        'item': 'https://www.hmsi.org.ng',
+      },
+      {
+        '@type': 'ListItem',
+        'position': 2,
+        'name': 'About Us',
+        'item': 'https://www.hmsi.org.ng/about',
+      },
+    ],
+  };
+
+  const organizationSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'NGO',
+    'name': 'Help Meet Shine Initiative',
+    'url': 'https://www.hmsi.org.ng/about',
+    'logo': 'https://www.hmsi.org.ng/logo.png',
+    'description': 'HMSI provides humanitarian support and equips individuals for sustainable wealth creation across Nigeria.',
+    'foundingDate': '2018',
+    'address': {
+      '@type': 'PostalAddress',
+      'addressCountry': 'Nigeria',
+    },
+  };
+
   return (
     <div className="bg-white min-h-screen text-slate-900 font-sans antialiased">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+      />
       <HmsiHeader />
       {/* PAGE HEADER */}
       <div className="bg-slate-50 py-16 md:py-24 border-b border-slate-200">
@@ -83,7 +128,7 @@ export default function AboutPage() {
         <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tighter mb-6 text-slate-900">Join the Movement</h2>
         <p className="text-lg text-slate-600 mb-10">We cannot do this alone. Your financial support and your time are critical to our ongoing mission.</p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link href="/" className="bg-teal-500 hover:bg-teal-600 text-white font-bold py-4 px-10 rounded-sm uppercase tracking-widest transition-colors">
+          <Link href="/donate" className="bg-teal-500 hover:bg-teal-600 text-white font-bold py-4 px-10 rounded-sm uppercase tracking-widest transition-colors">
             Make a Donation
           </Link>
           <Link href="/volunteer" className="bg-slate-900 hover:bg-slate-800 text-white font-bold py-4 px-10 rounded-sm uppercase tracking-widest transition-colors">
@@ -91,6 +136,7 @@ export default function AboutPage() {
           </Link>
         </div>
       </section>
+      <Footer />
     </div>
   );
 }
