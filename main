@@ -1,13 +1,10 @@
-# Dependencies
-/node_modules
-# Next.js build output
-/.next/
-/out/
-/build
-# Local environment variables
-.env
-.env*.local
-# Debug logs
-*.log
-# System files
-.DS_Store
+# Legacy file: this was a misnamed .gitignore
+
+This file contains content that should be in a .gitignore. A proper .gitignore has been added to the repository.
+
+Please delete this file from the repository if it is not needed:
+
+  git rm --cached main
+  git commit -m "chore: remove legacy main file"
+
+(Keeping this file temporarily to avoid accidental data loss.)
