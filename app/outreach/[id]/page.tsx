@@ -85,7 +85,7 @@ export default async function OutreachDetail({
             <p className="text-sm font-medium mb-6 leading-relaxed">
               Your donation ensures our trucks stay fueled and our volunteers can reach deeper into isolated communities.
             </p>
-            <Link href="/" className="block text-center bg-white text-red-600 font-bold py-3 uppercase rounded-xl tracking-wider hover:bg-slate-100 transition">
+            <Link href="/donate" className="block text-center bg-white text-red-600 font-bold py-3 uppercase rounded-xl tracking-wider hover:bg-slate-100 transition">
               Donate Now
             </Link>
           </div>
