@@ -1,6 +1,18 @@
+import type { Metadata } from 'next';
 import Image from 'next/image';
 import HmsiHeader from '../../components/HmsiHeader';
 import Link from 'next/link';
+
+export const metadata: Metadata = {
+  title: 'Our Story & Mission',
+  description: 'Learn about the Help Meet Shine Initiative (HMSI) story, our mission to restore hope, and how we empower communities across Nigeria.',
+  openGraph: {
+    title: 'Our Story & Mission | HMSI',
+    description: 'Learn about the Help Meet Shine Initiative (HMSI) story, our mission to restore hope, and how we empower communities across Nigeria.',
+    url: 'https://www.hmsi.org.ng/about',
+  },
+};
+
 export default function AboutPage() {
   return (
     <div className="bg-white min-h-screen text-slate-900 font-sans antialiased">
