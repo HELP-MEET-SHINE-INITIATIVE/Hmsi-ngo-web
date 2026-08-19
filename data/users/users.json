@@ -1,0 +1,20 @@
+[
+  {
+    "id": "u1",
+    "name": "Admin Worker",
+    "email": "worker@hmsi.org.ng",
+    "password": "password123",
+    "role": "worker",
+    "avatar": "/images/outreach-7.png",
+    "bio": "Senior Field Coordinator at HMSI."
+  },
+  {
+    "id": "u2",
+    "name": "John Volunteer",
+    "email": "volunteer@example.com",
+    "password": "password123",
+    "role": "volunteer",
+    "avatar": "/images/outreach-4.png",
+    "bio": "Passionate about community development."
+  }
+]

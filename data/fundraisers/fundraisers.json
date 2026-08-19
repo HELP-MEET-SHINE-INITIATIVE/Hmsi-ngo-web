@@ -1,0 +1,24 @@
+[
+  {
+    "id": "f1",
+    "title": "Emergency Medical Surgery for Baby Tobi",
+    "description": "Baby Tobi needs urgent heart surgery. Every donation counts.",
+    "category": "medical",
+    "targetAmount": 2500000,
+    "raisedAmount": 750000,
+    "image": "/images/outreach-2.png",
+    "status": "active",
+    "createdAt": "2026-08-01T10:00:00Z"
+  },
+  {
+    "id": "f2",
+    "title": "Rebuilding Makoko Primary School",
+    "description": "Help us fix the roof and provide desks for 200 students.",
+    "category": "education",
+    "targetAmount": 5000000,
+    "raisedAmount": 1200000,
+    "image": "/images/outreach-5.png",
+    "status": "active",
+    "createdAt": "2026-08-10T14:30:00Z"
+  }
+]

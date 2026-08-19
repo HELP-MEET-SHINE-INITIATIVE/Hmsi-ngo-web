@@ -1,0 +1,35 @@
+[
+  {
+    "id": "p1",
+    "title": "Lagos Clean Water Initiative",
+    "description": "Providing sustainable water filters to 500 households in Ikorodu.",
+    "status": "ongoing",
+    "lead": "Admin Worker",
+    "volunteers": [
+      "u2"
+    ],
+    "tasks": [
+      {
+        "id": "t1",
+        "title": "Procure filters",
+        "status": "completed",
+        "assignedTo": "u1"
+      },
+      {
+        "id": "t2",
+        "title": "Community mobilization",
+        "status": "ongoing",
+        "assignedTo": "u2"
+      }
+    ]
+  },
+  {
+    "id": "p2",
+    "title": "Youth Skills Workshop",
+    "description": "Vocational training for 50 youths in digital marketing and tailoring.",
+    "status": "planning",
+    "lead": "Admin Worker",
+    "volunteers": [],
+    "tasks": []
+  }
+]
