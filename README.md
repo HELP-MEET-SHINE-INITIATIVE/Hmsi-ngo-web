@@ -5,7 +5,7 @@
 Official web platform for **Help Meet Shine Initiative (HMSI)** — a registered NGO in Nigeria focused on humanitarian aid, community empowerment, and sustainable social growth.
 ---
 ## 🚀 Key Features
-- **Direct Payment Portal:** Seamless online donations via Paystack (Naira cards, bank transfers, USSD).
+- **Direct Payment Portal:** Seamless online donations through the secure Paystack checkout popup.
 - **Impact Counter:** Dynamic statistics tracking community outreach metrics.
 - **Media Gallery:** High-performance imagery showcasing field initiatives.
 - **Volunteer Onboarding:** Direct application pipeline for community partners.
