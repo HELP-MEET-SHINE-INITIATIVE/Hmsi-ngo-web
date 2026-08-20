@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import NewsPageContent from '../../components/NewsPageContent';
 
@@ -14,5 +13,5 @@ export const metadata: Metadata = {
 };
 
 export default function NewsPage() {
-  return <div className="min-h-screen bg-[#f6f4ef]"><Navbar /><NewsPageContent /><Footer /></div>;
+  return <div className="min-h-screen bg-[#f6f4ef]"><NewsPageContent /><Footer /></div>;
 }

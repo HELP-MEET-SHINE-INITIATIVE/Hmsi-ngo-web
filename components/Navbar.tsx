@@ -15,6 +15,7 @@ const links = [
   { href: '/get-help', label: 'Get Help' },
   { href: '/projects', label: 'Projects' },
   { href: '/volunteer', label: 'Volunteer' },
+  { href: '/worker-apply', label: 'Work with HMSI' },
 ];
 
 export default function Navbar() {
