@@ -84,12 +84,20 @@ export default function RootLayout({
       { '@type': 'Country', 'name': 'Nigeria' },
       { '@type': 'Continent', 'name': 'Africa' },
     ],
-    'contactPoint': {
-      '@type': 'ContactPoint',
-      'email': 'support@hmsi.org.ng',
-      'contactType': 'customer support',
-      'areaServed': ['NG', 'Africa'],
-    },
+    'contactPoint': [
+      {
+        '@type': 'ContactPoint',
+        'email': 'support@hmsi.org.ng',
+        'contactType': 'customer support',
+        'areaServed': ['NG', 'Africa'],
+      },
+      {
+        '@type': 'ContactPoint',
+        'email': 'contact@hmsi.org.ng',
+        'contactType': 'general enquiries and partnerships',
+        'areaServed': ['NG', 'Africa'],
+      },
+    ],
     'sameAs': [
       'https://twitter.com/hmsi_ngo',
       'https://facebook.com/hmsi_ngo',

@@ -6,7 +6,7 @@ export const runtime = 'nodejs';
 export async function POST(request: Request) {
   if (!hasSupabaseConfig()) {
     return NextResponse.json(
-      { error: 'Contact submissions are not configured yet. Please email support@hmsi.org.ng.' },
+      { error: 'Contact submissions are not configured yet. Please email support@hmsi.org.ng for support or contact@hmsi.org.ng for general enquiries.' },
       { status: 503 },
     );
   }

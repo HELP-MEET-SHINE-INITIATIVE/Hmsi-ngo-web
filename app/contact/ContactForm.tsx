@@ -36,7 +36,7 @@ export default function ContactForm() {
       <div className="mx-auto max-w-2xl px-6 py-16">
         <p className="mb-3 text-xs font-black uppercase tracking-[0.18em] text-red-600">Nigeria & Africa</p>
         <h1 className="mb-4 text-3xl font-black uppercase tracking-tighter">Contact HMSI</h1>
-        <p className="mb-8 max-w-xl text-slate-600">Help-Meet Shine Initiative works with communities in Nigeria and across Africa. For partnerships, support, or general enquiries, email <a href="mailto:support@hmsi.org.ng" className="font-bold text-slate-900 underline underline-offset-4">support@hmsi.org.ng</a> or send us a message below.</p>
+        <p className="mb-8 max-w-xl text-slate-600">Help-Meet Shine Initiative works with communities in Nigeria and across Africa. For support, email <a href="mailto:support@hmsi.org.ng" className="font-bold text-slate-900 underline underline-offset-4">support@hmsi.org.ng</a>. For partnerships and general enquiries, email <a href="mailto:contact@hmsi.org.ng" className="font-bold text-slate-900 underline underline-offset-4">contact@hmsi.org.ng</a>, or send us a message below.</p>
 
         {submitted ? (
           <div className="rounded-sm border border-teal-200 bg-teal-50 p-6 text-center">
@@ -67,7 +67,7 @@ export default function ContactForm() {
         <div className="mt-10 border-t border-slate-200 pt-6 text-sm text-slate-600">
           <p className="font-bold uppercase tracking-widest text-slate-900">Our base</p>
           <p className="mt-2">Lagos, Nigeria · Serving communities across Africa</p>
-          <a href="mailto:support@hmsi.org.ng" className="mt-1 inline-block font-bold text-slate-900">support@hmsi.org.ng</a>
+          <p className="mt-1"><a href="mailto:support@hmsi.org.ng" className="font-bold text-slate-900">support@hmsi.org.ng</a><br /><a href="mailto:contact@hmsi.org.ng" className="font-bold text-slate-900">contact@hmsi.org.ng</a></p>
         </div>
       </div>
     </div>

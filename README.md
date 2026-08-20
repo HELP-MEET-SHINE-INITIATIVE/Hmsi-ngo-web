@@ -32,7 +32,7 @@ Fundraiser records, contact messages, and signup requests are stored in Supabase
 3. Deploy the environment variables to the hosting provider. Without server credentials, the public fundraiser listing uses the bundled seed records, while new fundraiser and contact submissions return a clear configuration error rather than silently losing data.
 4. Fundraiser uploads accept JPG, PNG, and WEBP images up to 8 MB. The server validates type and size, stores the file in Supabase Storage with a one-year cache policy, and stores only its URL and storage path in Supabase.
 
-The public contact address is **support@hmsi.org.ng**. HMSI is presented as serving communities in **Nigeria and across Africa** throughout the contact experience and site metadata.
+The public contact addresses are **support@hmsi.org.ng** for support and **contact@hmsi.org.ng** for general enquiries and partnerships. HMSI is presented as serving communities in **Nigeria and across Africa** throughout the contact experience and site metadata.
 
 
 ## Private Admin Control Center
