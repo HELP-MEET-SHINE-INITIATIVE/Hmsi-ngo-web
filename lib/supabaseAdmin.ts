@@ -2,10 +2,16 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 let adminClient: SupabaseClient | null = null;
 
+function getSupabaseUrl() {
+  return process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+}
+
+function getSupabaseServiceKey() {
+  return process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
+}
+
 export function hasSupabaseConfig() {
-  return Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY,
-  );
+  return Boolean(getSupabaseUrl() && getSupabaseServiceKey());
 }
 
 export function getSupabaseAdmin() {
@@ -13,8 +19,8 @@ export function getSupabaseAdmin() {
 
   if (!adminClient) {
     adminClient = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL as string,
-      process.env.SUPABASE_SERVICE_ROLE_KEY as string,
+      getSupabaseUrl() as string,
+      getSupabaseServiceKey() as string,
       {
         auth: {
           autoRefreshToken: false,
