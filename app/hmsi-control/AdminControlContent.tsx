@@ -25,6 +25,7 @@ export default function AdminControlContent() {
   const [isBusy, setIsBusy] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const [configurationRequired, setConfigurationRequired] = useState(false);
 
   const pendingFundraisers = useMemo(() => data.fundraisers.filter((item) => item.status === 'pending'), [data.fundraisers]);
   const pendingVolunteers = useMemo(() => data.volunteers.filter((item) => item.status === 'pending'), [data.volunteers]);
@@ -32,7 +33,12 @@ export default function AdminControlContent() {
   const loadOverview = async () => {
     const response = await fetch('/api/admin/overview', { cache: 'no-store' });
     const result = await response.json();
-    if (!response.ok) throw new Error(result.error || 'Admin data is temporarily unavailable.');
+    if (!response.ok) {
+      const message = result.error || 'Admin data is temporarily unavailable.';
+      if (response.status === 503 && message.toLowerCase().includes('supabase')) setConfigurationRequired(true);
+      throw new Error(message);
+    }
+    setConfigurationRequired(false);
     setData(result);
   };
 
@@ -45,7 +51,11 @@ export default function AdminControlContent() {
           await loadOverview();
         }
       })
-      .catch(() => setError('Unable to check the admin session.'))
+      .catch((sessionError) => {
+        const message = sessionError instanceof Error ? sessionError.message : 'Unable to load the admin workspace.';
+        setError(message);
+        if (message.toLowerCase().includes('supabase')) setConfigurationRequired(true);
+      })
       .finally(() => setSessionChecked(true));
   }, []);
 
@@ -65,7 +75,9 @@ export default function AdminControlContent() {
       setPassword('');
       await loadOverview();
     } catch (loginError) {
-      setError(loginError instanceof Error ? loginError.message : 'Unable to sign in.');
+      const message = loginError instanceof Error ? loginError.message : 'Unable to sign in.';
+      setError(message);
+      if (message.toLowerCase().includes('supabase')) setConfigurationRequired(true);
     } finally {
       setIsBusy(false);
     }
@@ -148,6 +160,10 @@ export default function AdminControlContent() {
     );
   }
 
+  if (configurationRequired) {
+    return <ConfigurationRequired onRetry={() => { setError(''); loadOverview().catch((retryError) => setError(retryError instanceof Error ? retryError.message : 'Supabase is still unavailable.')); }} onLogout={handleLogout} />;
+  }
+
   const navItems = [
     { id: 'overview', label: 'Overview' },
     { id: 'fundraisers', label: `Fundraisers (${pendingFundraisers.length})` },
@@ -186,6 +202,20 @@ function QueueCard({ title, count, onClick }: { title: string; count: number; on
 
 function SectionHeading({ title, subtitle }: { title: string; subtitle: string }) {
   return <div><h2 className="text-2xl font-black tracking-tight">{title}</h2><p className="mt-2 text-sm text-[#66716a]">{subtitle}</p></div>;
+}
+
+function ConfigurationRequired({ onRetry, onLogout }: { onRetry: () => void; onLogout: () => void }) {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-[#f6f4ef] px-6 py-12">
+      <div className="w-full max-w-2xl rounded-[32px] border border-[#f0caca] bg-white p-8 shadow-xl md:p-10">
+        <p className="mb-3 text-xs font-black uppercase tracking-[0.18em] text-red-600">Admin connection required</p>
+        <h1 className="text-3xl font-black tracking-tight text-[#17221e]">Supabase is not configured on the server.</h1>
+        <p className="mt-4 leading-7 text-[#66716a]">Your admin login is valid, but the dashboard cannot read its fundraiser, volunteer, worker, and assignment data yet. No empty counts are being shown because they could be mistaken for real records.</p>
+        <ol className="mt-6 list-decimal space-y-3 pl-5 text-sm leading-6 text-[#17221e]"><li>Add <code className="rounded bg-[#f6f4ef] px-1.5 py-0.5">NEXT_PUBLIC_SUPABASE_URL</code> and <code className="rounded bg-[#f6f4ef] px-1.5 py-0.5">SUPABASE_SERVICE_ROLE_KEY</code> to the live hosting environment.</li><li>Run <code className="rounded bg-[#f6f4ef] px-1.5 py-0.5">supabase/schema.sql</code> in the Supabase SQL Editor.</li><li>Redeploy the website, then return to this page and try again.</li></ol>
+        <div className="mt-8 flex flex-wrap gap-3"><button onClick={onRetry} className="rounded-full bg-[#1e5b49] px-5 py-3 text-xs font-black uppercase tracking-widest text-white">Try again</button><button onClick={onLogout} className="rounded-full border border-[#d9d6ce] px-5 py-3 text-xs font-black uppercase tracking-widest text-[#66716a]">Sign out</button></div>
+      </div>
+    </main>
+  );
 }
 
 function Empty({ text }: { text: string }) {
