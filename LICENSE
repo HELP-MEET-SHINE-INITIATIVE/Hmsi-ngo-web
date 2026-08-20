@@ -1,5 +1,73 @@
-MIT License
+HMSI NGO NON-COMMERCIAL LICENSE
+Version 1.0 — 19 August 2026
+
 Copyright (c) 2026 Help Meet Shine Initiative (HMSI)
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction rights.
+
+IMPORTANT NOTICE
+This is a custom license drafted for Help Meet Shine Initiative (HMSI). It is not the MIT License and is not an OSI-approved open-source license. It should be reviewed by a qualified lawyer before being relied upon for distribution or enforcement.
+
+1. DEFINITIONS
+
+“Software” means this repository and its source code, documentation, configuration, images, and other materials distributed with it.
+
+“Nonprofit Organisation” means a legally recognised nonprofit, nongovernmental organisation, charity, public-benefit organisation, educational institution, or community group that does not distribute profits to private owners or shareholders.
+
+“Mission-Aligned Purpose” means humanitarian aid, community development, education, public health, poverty relief, disaster response, volunteer coordination, or another public-benefit purpose that is substantially consistent with the mission of Help Meet Shine Initiative.
+
+“HMSI Marks” means the name, logos, symbols, designs, and other trademarks or brand assets of Help Meet Shine Initiative.
+
+2. GRANT OF PERMISSION
+
+Subject to the conditions in this license, HMSI grants each Nonprofit Organisation a non-exclusive, worldwide, royalty-free license to use, copy, reproduce, modify, adapt, display, perform, and distribute the Software solely for a Mission-Aligned Purpose and solely on a non-commercial basis.
+
+Individuals may view, study, and modify the Software for personal learning, research, or evaluation. Distribution of modified or unmodified copies by individuals must remain non-commercial and must comply with this license.
+
+3. CONDITIONS
+
+Any distribution of the Software or a substantial portion of it must:
+
+(a) include a copy of this license;
+
+(b) retain the copyright and attribution notices;
+
+(c) clearly identify material modifications; and
+
+(d) include a reasonable attribution to Help Meet Shine Initiative, without implying endorsement, sponsorship, partnership, or approval by HMSI.
+
+4. RESTRICTIONS
+
+You may not, without separate written permission from HMSI:
+
+(a) use the Software for a commercial purpose, including sale, licensing for a fee, paid hosting, paid SaaS access, or incorporation into a product or service offered for profit;
+
+(b) sell, sublicense, rent, lease, or otherwise commercialise the Software or a derivative work;
+
+(c) use HMSI Marks or create branding that suggests an official HMSI product, service, endorsement, or partnership;
+
+(d) remove or alter copyright, license, attribution, or ownership notices; or
+
+(e) use the Software in a way that is unlawful, fraudulent, harmful, discriminatory, or inconsistent with the public-benefit purposes described in this license.
+
+5. CONTRIBUTIONS
+
+Unless a separate written agreement states otherwise, any contribution intentionally submitted to HMSI for inclusion in the Software is provided under this license, and the contributor represents that they have the necessary rights to make the contribution available under these terms.
+
+6. TERMINATION
+
+This license and the permissions granted under it terminate automatically if you materially breach its terms. Permissions may be restored if HMSI provides written reinstatement or if the breach is fully cured within thirty days after written notice, where cure is reasonably possible. Upon termination, you must stop distributing the Software and, at HMSI’s request, remove distributed copies that remain under your control.
+
+7. NO WARRANTY
+
+THE SOFTWARE IS PROVIDED “AS IS” AND “AS AVAILABLE”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT. HMSI DOES NOT WARRANT THAT THE SOFTWARE WILL BE ERROR-FREE, SECURE, OR AVAILABLE WITHOUT INTERRUPTION.
+
+8. LIMITATION OF LIABILITY
+
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, HMSI AND ITS CONTRIBUTORS WILL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, EXEMPLARY, OR LOSS-OF-PROFIT DAMAGES ARISING FROM OR RELATED TO THE SOFTWARE OR THIS LICENSE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
+9. RESERVED RIGHTS
+
+All rights not expressly granted in this license are reserved by Help Meet Shine Initiative. In particular, all rights in the HMSI Marks and branding remain with HMSI.
+
+10. CONTACT
+
+For permission outside this license, contact Help Meet Shine Initiative at support@hmsi.org.ng.
