@@ -32,9 +32,10 @@ export async function getNewsletterViewer(
 
   const volunteer = await admin
     .from('volunteer_applications')
-    .select('name,email,applicant_role')
+    .select('name,email,applicant_role,account_status')
     .ilike('email', email)
     .eq('status', 'approved')
+    .eq('account_status', 'active')
     .neq('applicant_role', 'worker')
     .order('created_at', { ascending: false })
     .limit(1)
