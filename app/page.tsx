@@ -276,6 +276,7 @@ export default function Home() {
             <Link className="transition-colors hover:text-[#e1ad45]" href="/impact">Top impact</Link>
             <Link className="transition-colors hover:text-[#e1ad45]" href="/news">News</Link>
             <Link className="transition-colors hover:text-[#e1ad45]" href="/volunteer">Volunteer</Link>
+            <Link className="transition-colors hover:text-[#e1ad45]" href="/worker-apply">Work with HMSI</Link>
             <Link className="transition-colors hover:text-[#e1ad45]" href="/opportunities">Opportunities</Link>
             <Link className="transition-colors hover:text-[#e1ad45]" href="/about">About us</Link>
           </nav>
@@ -320,6 +321,7 @@ export default function Home() {
               <Link href="/impact" onClick={() => setMenuOpen(false)}>Top impact</Link>
               <Link href="/news" onClick={() => setMenuOpen(false)}>News</Link>
               <Link href="/volunteer" onClick={() => setMenuOpen(false)}>Volunteer</Link>
+              <Link href="/worker-apply" onClick={() => setMenuOpen(false)}>Work with HMSI</Link>
               <Link href="/opportunities" onClick={() => setMenuOpen(false)}>Opportunities</Link>
               <Link href="#stories" onClick={() => setMenuOpen(false)}>Stories</Link>
               <Link href="#impact" onClick={() => setMenuOpen(false)}>Our impact</Link>

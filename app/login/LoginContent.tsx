@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Lock, Mail, ArrowRight, AlertCircle } from "lucide-react";
@@ -39,11 +40,9 @@ export default function LoginContent() {
     <main className="min-h-screen bg-[#f6f4ef] flex items-center justify-center px-6 py-12">
       <div className="w-full max-w-md">
         <div className="text-center mb-10">
-          <Link href="/" className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-[#e1ad45] text-2xl font-black text-[#17221e] mb-6">
-            H
-          </Link>
+          <Link href="/" className="mb-6 inline-flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl bg-[#272178] shadow-sm" aria-label="HMSI home"><Image src="/logo.png" alt="HMSI logo" width={56} height={56} className="h-full w-full object-cover" /></Link>
           <h1 className="text-3xl font-black tracking-tight text-[#17221e]">Welcome back</h1>
-          <p className="mt-2 text-[#66716a]">Sign in to your HMSI portal</p>
+          <p className="mt-2 text-[#66716a]">Sign in to your HMSI volunteer or approved worker portal</p>
         </div>
 
         <div className="bg-white rounded-3xl p-8 shadow-[0_24px_70px_rgba(23,34,30,0.08)] border border-[#d9d6ce]">
@@ -97,10 +96,7 @@ export default function LoginContent() {
 
           <div className="mt-8 pt-8 border-t border-[#f6f4ef] text-center">
             <p className="text-sm text-[#66716a]">
-              Don&apos;t have an account?{" "}
-              <Link href="/signup" className="font-bold text-[#1e5b49] hover:underline">
-                Create one
-              </Link>
+              Volunteer? <Link href="/signup" className="font-bold text-[#1e5b49] hover:underline">Create an account</Link><span className="mx-2 text-[#d9d6ce]">·</span>Worker? <Link href="/worker-apply" className="font-bold text-[#1e5b49] hover:underline">Apply for approval</Link>
             </p>
           </div>
         </div>

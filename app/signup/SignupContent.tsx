@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { User, Mail, Lock, ArrowRight, AlertCircle, Users, Briefcase } from "lucide-react";
+import { User, Mail, Lock, ArrowRight, AlertCircle } from "lucide-react";
 import { useAuth } from "../../lib/auth";
 
 export default function SignupContent() {
@@ -11,7 +12,6 @@ export default function SignupContent() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<"worker" | "volunteer">("volunteer");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { signup } = useAuth();
@@ -23,24 +23,22 @@ export default function SignupContent() {
     setIsLoading(true);
 
     try {
-      if (role === 'volunteer' || role === 'worker') {
-        const volunteerResponse = await fetch('/api/volunteer', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: name.trim(),
-            email: email.trim(),
-            phone: phone.trim(),
-            interest: role === 'worker' ? 'Worker support and field operations' : 'General Support',
-            message: role === 'worker' ? 'Worker account signup — please review my application for worker positions with HMSI.' : 'Volunteer account signup — please review my application for opportunities with HMSI.',
-            role,
-          }),
-        });
-        const volunteerResult = await volunteerResponse.json();
-        if (!volunteerResponse.ok) throw new Error(volunteerResult.error || 'We could not submit your volunteer application.');
-      }
+      const volunteerResponse = await fetch('/api/volunteer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name.trim(),
+          email: email.trim(),
+          phone: phone.trim(),
+          interest: 'General Support',
+          message: 'Volunteer account signup — please review my application for opportunities with HMSI.',
+          role: 'volunteer',
+        }),
+      });
+      const volunteerResult = await volunteerResponse.json();
+      if (!volunteerResponse.ok) throw new Error(volunteerResult.error || 'We could not submit your volunteer application.');
 
-      const success = await signup(name, email, password, role);
+      const success = await signup(name, email, password, 'volunteer');
       if (success) {
         router.push("/dashboard");
       } else {
@@ -57,11 +55,9 @@ export default function SignupContent() {
     <main className="min-h-screen bg-[#f6f4ef] flex items-center justify-center px-6 py-12">
       <div className="w-full max-w-md">
         <div className="text-center mb-10">
-          <Link href="/" className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-[#e1ad45] text-2xl font-black text-[#17221e] mb-6">
-            H
-          </Link>
+          <Link href="/" className="mb-6 inline-flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl bg-[#272178] shadow-sm" aria-label="HMSI home"><Image src="/logo.png" alt="HMSI logo" width={56} height={56} className="h-full w-full object-cover" /></Link>
           <h1 className="text-3xl font-black tracking-tight text-[#17221e]">Join the movement</h1>
-          <p className="mt-2 text-[#66716a]">Create your HMSI account</p>
+          <p className="mt-2 text-[#66716a]">Create your volunteer account</p>
         </div>
 
         <div className="bg-white rounded-3xl p-8 shadow-[0_24px_70px_rgba(23,34,30,0.08)] border border-[#d9d6ce]">
@@ -73,32 +69,7 @@ export default function SignupContent() {
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-4">
-              <button
-                type="button"
-                onClick={() => setRole("volunteer")}
-                className={`flex flex-col items-center gap-3 p-4 rounded-2xl border-2 transition-all ${
-                  role === "volunteer"
-                    ? "border-[#1e5b49] bg-[#e9f0e9] text-[#1e5b49]"
-                    : "border-[#d9d6ce] bg-white text-[#66716a] hover:border-[#1e5b49]/50"
-                }`}
-              >
-                <Users size={24} />
-                <span className="text-xs font-black uppercase tracking-wider">Volunteer</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setRole("worker")}
-                className={`flex flex-col items-center gap-3 p-4 rounded-2xl border-2 transition-all ${
-                  role === "worker"
-                    ? "border-[#1e5b49] bg-[#e9f0e9] text-[#1e5b49]"
-                    : "border-[#d9d6ce] bg-white text-[#66716a] hover:border-[#1e5b49]/50"
-                }`}
-              >
-                <Briefcase size={24} />
-                <span className="text-xs font-black uppercase tracking-wider">Worker</span>
-              </button>
-            </div>
+            <div className="rounded-2xl border border-[#d9d6ce] bg-[#e9f0e9] p-4 text-sm leading-6 text-[#1e5b49]">This signup is for volunteers. If you want to work with HMSI, submit a <Link href="/worker-apply" className="font-black underline">worker application for approval</Link> instead.</div>
 
             <div>
               <label className="block text-xs font-black uppercase tracking-wider text-[#17221e] mb-2">Full Name</label>
@@ -134,7 +105,7 @@ export default function SignupContent() {
               <label className="block text-xs font-black uppercase tracking-wider text-[#17221e] mb-2">Phone Number</label>
               <input
                 type="tel"
-                required={role === 'volunteer'}
+                  required
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 className="w-full px-4 py-3.5 rounded-xl border border-[#d9d6ce] bg-[#f6f4ef]/50 focus:bg-white focus:border-[#1e5b49] outline-none transition-all"
@@ -172,7 +143,7 @@ export default function SignupContent() {
               Already have an account?{" "}
               <Link href="/login" className="font-bold text-[#1e5b49] hover:underline">
                 Sign in
-              </Link>
+              </Link><span className="mx-2 text-[#d9d6ce]">·</span><Link href="/worker-apply" className="font-bold text-[#1e5b49] hover:underline">Apply as a worker</Link>
             </p>
           </div>
         </div>

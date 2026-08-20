@@ -3,7 +3,6 @@ import Link from 'next/link';
 import { ArrowRight, Sparkles, TrendingUp } from 'lucide-react';
 import Footer from '../../components/Footer';
 import FundraiserCard from '../../components/FundraiserCard';
-import Navbar from '../../components/Navbar';
 import { getFundraisers, getNewestFundraisers, getTopRaisedFundraisers } from '../../lib/fundraisers';
 
 export const revalidate = 60;
@@ -41,7 +40,6 @@ export default async function ImpactPage() {
   return (
     <div className="min-h-screen bg-[#f6f4ef] text-[#17221e]">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ '@context': 'https://schema.org', '@type': 'ItemList', name: 'HMSI approved impact fundraisers', itemListElement: itemList }) }} />
-      <Navbar />
       <main>
         <section className="bg-[#17221e] px-6 py-20 text-white sm:py-28">
           <div className="mx-auto max-w-7xl">

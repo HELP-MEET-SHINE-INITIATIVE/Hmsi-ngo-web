@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Navbar from '../../../components/Navbar';
 import Footer from '../../../components/Footer';
 import NewsArticleContent from '../../../components/NewsArticleContent';
 
@@ -15,5 +14,5 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default function NewsArticlePage() {
-  return <div className="min-h-screen bg-[#f6f4ef]"><Navbar /><NewsArticleContent /><Footer /></div>;
+  return <div className="min-h-screen bg-[#f6f4ef]"><NewsArticleContent /><Footer /></div>;
 }

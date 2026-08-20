@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
-import HmsiHeader from '../../components/HmsiHeader';
 import Link from 'next/link';
 import Footer from '../../components/Footer';
 
@@ -61,7 +60,6 @@ export default function AboutPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
       />
-      <HmsiHeader />
       {/* PAGE HEADER */}
       <div className="bg-slate-50 py-16 md:py-24 border-b border-slate-200">
         <div className="max-w-4xl mx-auto px-6 text-center">

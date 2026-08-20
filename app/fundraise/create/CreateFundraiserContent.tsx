@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import Navbar from '../../../components/Navbar';
 import Footer from '../../../components/Footer';
 import {
   AlertCircle,
@@ -104,7 +103,6 @@ export default function CreateFundraiserContent() {
   if (isSubmitted) {
     return (
       <div className="min-h-screen bg-[#f6f4ef] text-[#17221e]">
-        <Navbar />
         <main className="mx-auto max-w-2xl px-6 py-20 text-center">
           <div className="mx-auto mb-8 flex h-24 w-24 items-center justify-center rounded-full bg-[#e9f0e9] text-[#1e5b49]">
             <CheckCircle2 size={48} />
@@ -122,7 +120,6 @@ export default function CreateFundraiserContent() {
 
   return (
     <div className="min-h-screen bg-[#f6f4ef] text-[#17221e]">
-      <Navbar />
       <main className="mx-auto max-w-3xl px-6 py-12">
         <Link href="/fundraise" className="mb-8 inline-flex items-center gap-2 text-sm font-bold text-[#66716a] transition-colors hover:text-[#1e5b49]">
           <ChevronLeft size={18} /> Back to listing

@@ -1,6 +1,5 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import HmsiHeader from '../../../components/HmsiHeader';
 export default async function OutreachDetail({
   params,
 }: {
@@ -11,7 +10,6 @@ export default async function OutreachDetail({
   const outreachId = resolvedParams.id;
   return (
     <div className="bg-white min-h-screen text-slate-900 font-sans antialiased pb-20">
-      <HmsiHeader />      
       {/* IMMERSIVE HERO SECTION */}
       <div className="relative w-full h-[50vh] md:h-[65vh] bg-slate-900">
         <Image

@@ -2,7 +2,6 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
 import Image from "next/image";
 import Link from "next/link";
@@ -215,7 +214,6 @@ export default function FundraiserContent() {
   return (
     <div className="min-h-screen bg-[#f6f4ef] text-[#17221e]">
       <Script src="https://js.paystack.co/v2/inline.js" strategy="afterInteractive" />
-      <Navbar />
       
       <main className="max-w-7xl mx-auto px-6 py-12">
         <Link href="/fundraise" className="inline-flex items-center gap-2 text-sm font-bold text-[#66716a] hover:text-[#1e5b49] mb-8 transition-colors">

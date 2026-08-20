@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { MessageCircle } from 'lucide-react';
-import HmsiHeader from '../../components/HmsiHeader';
 
 export default function ContactForm() {
   const [submitted, setSubmitted] = useState(false);
@@ -33,7 +32,6 @@ export default function ContactForm() {
 
   return (
     <div className="min-h-screen bg-white font-sans text-slate-900 antialiased">
-      <HmsiHeader />
       <div className="mx-auto max-w-2xl px-6 py-16">
         <p className="mb-3 text-xs font-black uppercase tracking-[0.18em] text-red-600">Nigeria & Africa</p>
         <h1 className="mb-4 text-3xl font-black uppercase tracking-tighter">Contact HMSI</h1>

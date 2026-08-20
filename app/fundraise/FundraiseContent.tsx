@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import {
   Activity,
@@ -80,7 +79,6 @@ export default function FundraiseContent() {
 
   return (
     <div className="min-h-screen bg-[#f6f4ef] text-[#17221e]">
-      <Navbar />
       <main>
         <section className="bg-[#17221e] px-6 py-20 text-white">
           <div className="mx-auto max-w-7xl text-center">
