@@ -26,7 +26,7 @@ export default function Footer() {
             <div className="mt-5 flex flex-wrap gap-2 text-xs font-black uppercase tracking-widest">
               <a href="https://www.instagram.com/hmsinitiative/" target="_blank" rel="noopener noreferrer" aria-label="Follow HMSI on Instagram" className="inline-flex items-center gap-1 rounded-full border border-white/20 px-3 py-2 text-white/75 transition hover:border-[#e1ad45] hover:text-white">Instagram <ExternalLink size={12} aria-hidden="true" /></a>
               <a href="https://www.facebook.com/@hmsinitiative/" target="_blank" rel="noopener noreferrer" aria-label="Follow HMSI on Facebook" className="inline-flex items-center gap-1 rounded-full border border-white/20 px-3 py-2 text-white/75 transition hover:border-[#e1ad45] hover:text-white">Facebook <ExternalLink size={12} aria-hidden="true" /></a>
-              <a href="https://twitter.com/hmsi_ngo" target="_blank" rel="noopener noreferrer" aria-label="Follow HMSI on X/Twitter" className="inline-flex items-center gap-1 rounded-full border border-white/20 px-3 py-2 text-white/75 transition hover:border-[#e1ad45] hover:text-white">X / Twitter <ExternalLink size={12} aria-hidden="true" /></a>
+              <a href="https://www.linkedin.com/company/help-meet-shine-initiative/" target="_blank" rel="noopener noreferrer" aria-label="Follow HMSI on LinkedIn" className="inline-flex items-center gap-1 rounded-full border border-white/20 px-3 py-2 text-white/75 transition hover:border-[#e1ad45] hover:text-white">LinkedIn <ExternalLink size={12} aria-hidden="true" /></a>
             </div>
           </div>
           <div>

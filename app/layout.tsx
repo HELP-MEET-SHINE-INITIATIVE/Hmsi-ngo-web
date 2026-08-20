@@ -99,7 +99,7 @@ export default function RootLayout({
       },
     ],
     'sameAs': [
-      'https://twitter.com/hmsi_ngo',
+      'https://www.linkedin.com/company/help-meet-shine-initiative/',
       'https://www.facebook.com/@hmsinitiative/',
       'https://www.instagram.com/hmsinitiative/',
     ],
