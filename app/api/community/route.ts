@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../lib/supabaseAdmin';
+import { getNewsletterViewer } from '../../../lib/newsletterAccess';
 
 export const runtime = 'nodejs';
 
@@ -23,8 +24,14 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const audience = searchParams.get('audience') || 'all';
-  const actorKey = searchParams.get('actorKey') || '';
   const requestedAudience = validAudience(audience) ? audience : 'all';
+  const viewer = await getNewsletterViewer(request, admin, {
+    email: searchParams.get('email') || undefined,
+    role: searchParams.get('role') || undefined,
+  });
+  if (!viewer) return NextResponse.json({ error: 'Sign in with an approved HMSI account to access community rooms.' }, { status: 401 });
+  if (requestedAudience === 'worker' && viewer.role !== 'worker' && viewer.role !== 'admin') return NextResponse.json({ error: 'Only approved workers and administrators can access the worker room.' }, { status: 403 });
+  const actorKey = `${viewer.email}:${viewer.role}`;
 
   let query = admin
     .from('community_posts')
@@ -59,17 +66,16 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const audience = String(body.audience || '').trim().toLowerCase();
-    const authorName = String(body.authorName || '').trim();
-    const authorRole = String(body.authorRole || '').trim().toLowerCase();
     const content = String(body.content || '').trim();
     if (!validAudience(audience)) return NextResponse.json({ error: 'Choose a valid room.' }, { status: 400 });
-    if (!authorName || !content || content.length > 5000) return NextResponse.json({ error: 'A name and post up to 5,000 characters are required.' }, { status: 400 });
-    if (!['volunteer', 'worker', 'admin'].includes(authorRole)) return NextResponse.json({ error: 'Invalid author role.' }, { status: 400 });
-    if (audience === 'worker' && authorRole === 'volunteer') return NextResponse.json({ error: 'Volunteers cannot post in the worker room.' }, { status: 403 });
+    if (!content || content.length > 5000) return NextResponse.json({ error: 'A post up to 5,000 characters is required.' }, { status: 400 });
+    const viewer = await getNewsletterViewer(request, admin, { email: body.email, role: body.authorRole });
+    if (!viewer) return NextResponse.json({ error: 'Sign in with an approved HMSI account to publish community posts.' }, { status: 401 });
+    if (audience === 'worker' && viewer.role !== 'worker' && viewer.role !== 'admin') return NextResponse.json({ error: 'Volunteers cannot post in the worker room.' }, { status: 403 });
 
     const { data, error } = await admin
       .from('community_posts')
-      .insert({ audience, author_name: authorName, author_role: authorRole, content })
+      .insert({ audience, author_name: viewer.name, author_role: viewer.role, content })
       .select('id,audience,author_name,author_role,content,created_at')
       .single();
     if (error) throw error;

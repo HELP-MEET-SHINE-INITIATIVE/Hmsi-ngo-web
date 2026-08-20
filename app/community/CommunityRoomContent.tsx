@@ -18,8 +18,7 @@ export default function CommunityRoomContent({ room }: { room: Room }) {
 
   const loadPosts = useCallback(async () => {
     if (!user) return;
-    const actorKey = `${user.email}:${user.role}`;
-    const response = await fetch(`/api/community?audience=${room}&actorKey=${encodeURIComponent(actorKey)}`, { cache: 'no-store' });
+    const response = await fetch(`/api/community?audience=${room}&email=${encodeURIComponent(user.email)}&role=${encodeURIComponent(user.role)}`, { cache: 'no-store' });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Community posts are unavailable.');
     setPosts(result.posts || []);
@@ -40,7 +39,7 @@ export default function CommunityRoomContent({ room }: { room: Room }) {
     setIsBusy(true);
     setStatus('');
     try {
-      const response = await fetch('/api/community', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ audience: room, authorName: user.name, authorRole: user.role, content: draft.trim() }) });
+      const response = await fetch('/api/community', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ audience: room, authorRole: user.role, email: user.email, content: draft.trim() }) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'We could not publish your post.');
       setPosts((current) => [result.post, ...current]);
@@ -53,7 +52,7 @@ export default function CommunityRoomContent({ room }: { room: Room }) {
   };
 
   const toggleLike = async (post: any) => {
-    const response = await fetch('/api/community/likes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId: post.id, actorKey: `${user.email}:${user.role}` }) });
+    const response = await fetch('/api/community/likes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId: post.id, actorKey: `${user.email}:${user.role}`, email: user.email, role: user.role }) });
     const result = await response.json();
     if (!response.ok) return setStatus(result.error || 'We could not update the like.');
     setPosts((current) => current.map((item) => item.id === post.id ? { ...item, likedByMe: result.liked, likeCount: Math.max(0, (item.likeCount || 0) + (result.liked ? 1 : -1)) } : item));
@@ -63,7 +62,7 @@ export default function CommunityRoomContent({ room }: { room: Room }) {
     event.preventDefault();
     const content = (commentDraft[postId] || '').trim();
     if (!content) return;
-    const response = await fetch('/api/community/comments', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId, authorName: user.name, authorRole: user.role, content }) });
+    const response = await fetch('/api/community/comments', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId, authorRole: user.role, email: user.email, content }) });
     const result = await response.json();
     if (!response.ok) return setStatus(result.error || 'We could not add the comment.');
     setPosts((current) => current.map((item) => item.id === postId ? { ...item, comments: [...(item.comments || []), result.comment] } : item));
