@@ -5,6 +5,14 @@ export const runtime = 'nodejs';
 
 type Audience = 'volunteer' | 'worker' | 'all';
 
+type DatabaseError = { code?: string; message?: string };
+
+function explainDatabaseError(error: DatabaseError) {
+  if (error.code === '42P01' || error.code === '42703') return 'Community tables are not migrated yet. Run the latest supabase/schema.sql in Supabase SQL Editor.';
+  if (error.code === '42501') return 'Supabase rejected this post because the community insert policy is missing. Run the latest supabase/schema.sql in Supabase SQL Editor.';
+  return error.message || 'Supabase rejected the community post.';
+}
+
 function validAudience(value: string): value is Audience {
   return ['volunteer', 'worker', 'all'].includes(value);
 }
@@ -26,7 +34,7 @@ export async function GET(request: Request) {
   if (requestedAudience !== 'all') query = query.in('audience', [requestedAudience, 'all']);
 
   const { data: posts, error: postsError } = await query;
-  if (postsError) return NextResponse.json({ error: 'Community posts are temporarily unavailable.' }, { status: 503 });
+  if (postsError) return NextResponse.json({ error: `Community tables are unavailable: ${explainDatabaseError(postsError)}` }, { status: 503 });
 
   const ids = (posts || []).map((post) => post.id);
   if (ids.length === 0) return NextResponse.json({ posts: [] });
@@ -67,8 +75,9 @@ export async function POST(request: Request) {
     if (error) throw error;
     return NextResponse.json({ post: { ...data, comments: [], likeCount: 0, likedByMe: false } }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown database error';
-    console.error('[Community] Failed to create post:', message);
-    return NextResponse.json({ error: `We could not create the post: ${message}` }, { status: 500 });
+    const databaseError = error as DatabaseError;
+    const message = explainDatabaseError(databaseError);
+    console.error('[Community] Failed to create post:', databaseError);
+    return NextResponse.json({ error: `We could not create the post: ${message}` }, { status: databaseError.code === '42P01' || databaseError.code === '42703' || databaseError.code === '42501' ? 503 : 500 });
   }
 }
