@@ -132,3 +132,26 @@ alter table public.work_assignments enable row level security;
 alter table public.fundraisers drop constraint if exists fundraisers_status_check;
 alter table public.fundraisers add constraint fundraisers_status_check
   check (status in ('active', 'pending', 'archived', 'rejected'));
+
+
+-- Public submission policies. New records are constrained to review-safe statuses;
+-- admin-only updates, approvals, workers, and assignments remain service-role-only.
+drop policy if exists "Public can submit pending fundraisers" on public.fundraisers;
+create policy "Public can submit pending fundraisers"
+  on public.fundraisers for insert
+  with check (status = 'pending' and raised_amount = 0);
+
+drop policy if exists "Public can submit contact messages" on public.contact_messages;
+create policy "Public can submit contact messages"
+  on public.contact_messages for insert
+  with check (status = 'new');
+
+drop policy if exists "Public can submit signup requests" on public.signup_requests;
+create policy "Public can submit signup requests"
+  on public.signup_requests for insert
+  with check (true);
+
+drop policy if exists "Public can submit volunteer applications" on public.volunteer_applications;
+create policy "Public can submit volunteer applications"
+  on public.volunteer_applications for insert
+  with check (status = 'pending');
