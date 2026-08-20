@@ -80,3 +80,55 @@ on conflict (id) do update set
   image_url = excluded.image_url,
   status = excluded.status,
   updated_at = timezone('utc', now());
+
+
+-- Admin workflow tables
+create table if not exists public.volunteer_applications (
+  id uuid primary key default gen_random_uuid(),
+  name varchar(160) not null,
+  email varchar(320) not null,
+  phone varchar(64) not null,
+  interest varchar(160) not null,
+  message text not null,
+  status text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
+  reviewed_at timestamptz,
+  created_at timestamptz not null default timezone('utc', now())
+);
+
+create table if not exists public.workers (
+  id uuid primary key default gen_random_uuid(),
+  name varchar(160) not null,
+  email varchar(320) not null unique,
+  phone varchar(64) not null,
+  role text not null default 'worker' check (role in ('worker', 'coordinator')),
+  status text not null default 'active' check (status in ('active', 'inactive')),
+  created_at timestamptz not null default timezone('utc', now())
+);
+
+create table if not exists public.work_assignments (
+  id uuid primary key default gen_random_uuid(),
+  title varchar(200) not null,
+  description text not null,
+  kind text not null check (kind in ('assistance', 'job')),
+  status text not null default 'assigned' check (status in ('assigned', 'in_progress', 'completed')),
+  assigned_worker_id uuid not null references public.workers(id) on delete restrict,
+  fundraiser_id text references public.fundraisers(id) on delete set null,
+  due_at timestamptz,
+  created_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now())
+);
+
+create index if not exists volunteer_applications_status_created_at_idx
+  on public.volunteer_applications (status, created_at desc);
+create index if not exists work_assignments_worker_status_idx
+  on public.work_assignments (assigned_worker_id, status);
+
+alter table public.volunteer_applications enable row level security;
+alter table public.workers enable row level security;
+alter table public.work_assignments enable row level security;
+
+-- The server admin API uses the service-role key. No anonymous write policy is granted.
+-- Public fundraiser visibility remains limited to active records.
+alter table public.fundraisers drop constraint if exists fundraisers_status_check;
+alter table public.fundraisers add constraint fundraisers_status_check
+  check (status in ('active', 'pending', 'archived', 'rejected'));

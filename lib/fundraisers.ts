@@ -64,7 +64,7 @@ export async function getFundraisers() {
   const { data, error } = await admin
     .from('fundraisers')
     .select('id,title,description,category,target_amount,raised_amount,image_url,image_path,status,created_at')
-    .neq('status', 'archived')
+    .eq('status', 'active')
     .order('created_at', { ascending: false });
 
   if (error) throw error;
@@ -79,6 +79,7 @@ export async function getFundraiserById(id: string) {
     .from('fundraisers')
     .select('id,title,description,category,target_amount,raised_amount,image_url,image_path,status,created_at')
     .eq('id', id)
+    .eq('status', 'active')
     .maybeSingle();
 
   if (error) throw error;
@@ -108,7 +109,7 @@ export async function createFundraiser(input: {
       raised_amount: 0,
       image_url: input.imageUrl,
       image_path: input.imagePath,
-      status: 'active',
+      status: 'pending',
     })
     .select('id,title,description,category,target_amount,raised_amount,image_url,image_path,status,created_at')
     .single();

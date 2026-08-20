@@ -33,3 +33,10 @@ Fundraiser records, contact messages, and signup requests are stored in Supabase
 4. Fundraiser uploads accept JPG, PNG, and WEBP images up to 8 MB. The server validates type and size, stores the file in Supabase Storage with a one-year cache policy, and stores only its URL and storage path in Supabase.
 
 The public contact address is **support@hmsi.org.ng**. HMSI is presented as serving communities in **Nigeria and across Africa** throughout the contact experience and site metadata.
+
+
+## Private Admin Control Center
+
+The private administration workspace is available at `/hmsi-control` and is intentionally omitted from public navigation and indexing. It is not protected by obscurity alone: the server requires `HMSI_ADMIN_EMAIL`, `HMSI_ADMIN_PASSWORD`, and `HMSI_ADMIN_SESSION_SECRET`, then issues an eight-hour signed HTTP-only session cookie with strict same-site protection.
+
+The control center provides four simple areas: an overview queue, fundraiser approval, volunteer application review, and worker assignments. Administrators can approve or reject fundraising requests, approve or reject volunteer applications, add workers, and assign either assistance or job tasks with optional fundraiser links and due dates. Run the extended `supabase/schema.sql` in the Supabase SQL Editor before using these workflows.
