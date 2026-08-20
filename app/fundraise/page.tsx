@@ -5,12 +5,12 @@ import { getFundraisers } from '../../lib/fundraisers';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Get Help & Support Causes | HMSI Fundraising',
-  description: 'Need financial help for medical bills, education, or housing in Nigeria and Africa? Share your story on HMSI and receive support from caring people. Browse verified causes today.',
-  keywords: ['get help Nigeria', 'NGO Africa', 'financial assistance Nigeria', 'medical bill help', 'education support', 'crowdfunding Africa', 'HMSI help me'],
+  title: 'Support Verified NGO Causes in Nigeria | HMSI',
+  description: 'Browse verified fundraising causes and support people facing medical, education, housing, and emergency needs across Nigeria and Africa through HMSI.',
+  keywords: ['support verified causes Nigeria', 'donate to verified fundraiser Nigeria', 'charity fundraising Africa', 'medical bill fundraiser Nigeria', 'education support Nigeria', 'HMSI fundraisers'],
   openGraph: {
-    title: 'Get Help & Support Causes | HMSI Fundraising Platform',
-    description: 'Directly support individual needs and community causes across Nigeria and Africa. Transparent, verified, and impactful.',
+    title: 'Support Verified NGO Causes in Nigeria | HMSI Fundraising',
+    description: 'Directly support verified individual needs and community causes across Nigeria and Africa.',
     url: 'https://www.hmsi.org.ng/fundraise',
   },
   alternates: { canonical: 'https://www.hmsi.org.ng/fundraise' },

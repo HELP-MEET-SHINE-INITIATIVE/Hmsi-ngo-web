@@ -5,6 +5,17 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
+      disallow: [
+        '/api/',
+        '/hmsi-control',
+        '/dashboard',
+        '/worker-dashboard',
+        '/volunteer-room',
+        '/worker-room',
+        '/login',
+        '/signup',
+        '/fundraise/create',
+      ],
     },
     sitemap: 'https://www.hmsi.org.ng/sitemap.xml',
   };
