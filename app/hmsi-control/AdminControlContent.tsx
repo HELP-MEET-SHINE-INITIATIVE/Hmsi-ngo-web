@@ -45,6 +45,7 @@ export default function AdminControlContent() {
     }
     setConfigurationRequired(false);
     setData(result);
+    if (result.migrationWarnings?.length) setNotice(result.migrationWarnings.join(' '));
   };
 
   useEffect(() => {
