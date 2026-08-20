@@ -58,6 +58,8 @@ export default function FundraiserContent() {
   const [recordingWarning, setRecordingWarning] = useState("");
   const [error, setError] = useState("");
   const [loadError, setLoadError] = useState("");
+  const [shareStatus, setShareStatus] = useState("");
+  const [isFollowing, setIsFollowing] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -79,6 +81,43 @@ export default function FundraiserContent() {
       isMounted = false;
     };
   }, [id]);
+
+  useEffect(() => {
+    if (!id || typeof window === "undefined") return;
+    setIsFollowing(window.localStorage.getItem(`hmsi-follow-fundraiser-${id}`) === "true");
+  }, [id]);
+
+  const handleShare = async () => {
+    const shareUrl = window.location.href;
+    const shareData = {
+      title: fundraiser?.title || "HMSI fundraiser",
+      text: `Support this verified HMSI cause: ${fundraiser?.title || "HMSI fundraiser"}`,
+      url: shareUrl,
+    };
+    setShareStatus("");
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+        setShareStatus("Thanks for sharing this cause.");
+        return;
+      }
+    } catch (shareError) {
+      if (shareError instanceof DOMException && shareError.name === "AbortError") return;
+    }
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setShareStatus("Fundraiser link copied. You can paste it anywhere.");
+    } catch {
+      setShareStatus(`Copy this fundraiser link: ${shareUrl}`);
+    }
+  };
+
+  const handleFollow = () => {
+    const nextValue = !isFollowing;
+    setIsFollowing(nextValue);
+    window.localStorage.setItem(`hmsi-follow-fundraiser-${id}`, String(nextValue));
+    setShareStatus(nextValue ? "You are now following this fundraiser on this device." : "You stopped following this fundraiser on this device.");
+  };
 
   const handleDonate = (e: React.FormEvent) => {
     e.preventDefault();
@@ -300,15 +339,18 @@ export default function FundraiserContent() {
                   </form>
                 )}
 
-                <div className="mt-8 pt-8 border-t border-[#f6f4ef] flex items-center justify-center gap-6">
-                  <button className="flex flex-col items-center gap-2 text-[#66716a] hover:text-[#1e5b49] transition-colors">
-                    <div className="p-3 rounded-full bg-[#f6f4ef]"><Share2 size={20} /></div>
-                    <span className="text-[10px] font-black uppercase tracking-widest">Share</span>
-                  </button>
-                  <button className="flex flex-col items-center gap-2 text-[#66716a] hover:text-[#1e5b49] transition-colors">
-                    <div className="p-3 rounded-full bg-[#f6f4ef]"><Heart size={20} /></div>
-                    <span className="text-[10px] font-black uppercase tracking-widest">Follow</span>
-                  </button>
+                <div className="mt-8 border-t border-[#f6f4ef] pt-8">
+                  <div className="flex items-center justify-center gap-6">
+                    <button type="button" onClick={handleShare} aria-label="Share this fundraiser" className="flex flex-col items-center gap-2 text-[#66716a] transition-colors hover:text-[#1e5b49] focus:outline-none focus:ring-2 focus:ring-[#1e5b49] focus:ring-offset-2">
+                      <div className="rounded-full bg-[#f6f4ef] p-3"><Share2 size={20} aria-hidden="true" /></div>
+                      <span className="text-[10px] font-black uppercase tracking-widest">Share</span>
+                    </button>
+                    <button type="button" onClick={handleFollow} aria-pressed={isFollowing} aria-label={isFollowing ? "Unfollow this fundraiser" : "Follow this fundraiser"} className={`flex flex-col items-center gap-2 transition-colors focus:outline-none focus:ring-2 focus:ring-[#1e5b49] focus:ring-offset-2 ${isFollowing ? "text-[#1e5b49]" : "text-[#66716a] hover:text-[#1e5b49]"}`}>
+                      <div className="rounded-full bg-[#f6f4ef] p-3"><Heart size={20} fill={isFollowing ? "currentColor" : "none"} aria-hidden="true" /></div>
+                      <span className="text-[10px] font-black uppercase tracking-widest">{isFollowing ? "Following" : "Follow"}</span>
+                    </button>
+                  </div>
+                  {shareStatus && <p className="mt-4 text-center text-xs font-bold leading-5 text-[#1e5b49]" role="status" aria-live="polite">{shareStatus}</p>}
                 </div>
               </div>
               <div className="bg-[#f6f4ef] p-6 text-center">

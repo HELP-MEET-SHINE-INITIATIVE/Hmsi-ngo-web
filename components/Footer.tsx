@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ExternalLink } from 'lucide-react';
 
 export default function Footer() {
   return (
@@ -20,6 +20,14 @@ export default function Footer() {
           <div>
             <p className="text-xs font-black uppercase tracking-[0.17em] text-[#e1ad45]">Join in</p>
             <div className="mt-5 flex flex-col gap-3 text-sm text-white/70"><Link href="/donate" className="transition hover:text-white">Donate</Link><Link href="/volunteer" className="transition hover:text-white">Volunteer</Link><Link href="/contact" className="transition hover:text-white">Partner with us</Link></div>
+          </div>
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.17em] text-[#e1ad45]">Follow HMSI</p>
+            <div className="mt-5 flex flex-wrap gap-2 text-xs font-black uppercase tracking-widest">
+              <a href="https://instagram.com/hmsi_ngo" target="_blank" rel="noopener noreferrer" aria-label="Follow HMSI on Instagram" className="inline-flex items-center gap-1 rounded-full border border-white/20 px-3 py-2 text-white/75 transition hover:border-[#e1ad45] hover:text-white">Instagram <ExternalLink size={12} aria-hidden="true" /></a>
+              <a href="https://facebook.com/hmsi_ngo" target="_blank" rel="noopener noreferrer" aria-label="Follow HMSI on Facebook" className="inline-flex items-center gap-1 rounded-full border border-white/20 px-3 py-2 text-white/75 transition hover:border-[#e1ad45] hover:text-white">Facebook <ExternalLink size={12} aria-hidden="true" /></a>
+              <a href="https://twitter.com/hmsi_ngo" target="_blank" rel="noopener noreferrer" aria-label="Follow HMSI on X/Twitter" className="inline-flex items-center gap-1 rounded-full border border-white/20 px-3 py-2 text-white/75 transition hover:border-[#e1ad45] hover:text-white">X / Twitter <ExternalLink size={12} aria-hidden="true" /></a>
+            </div>
           </div>
           <div>
             <p className="text-xs font-black uppercase tracking-[0.17em] text-[#e1ad45]">Contact</p>
