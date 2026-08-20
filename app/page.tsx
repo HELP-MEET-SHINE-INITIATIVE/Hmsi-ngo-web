@@ -91,17 +91,6 @@ const waysToHelp = [
   },
 ];
 
-type FeaturedHomepageStory = {
-  id: string;
-  title: string;
-  excerpt: string;
-  body: string;
-  category: string;
-  image_url: string | null;
-  author_name: string;
-  published_at: string | null;
-};
-
 const storyCards = [
   {
     quote:
@@ -155,7 +144,6 @@ export default function Home() {
   const [newsletterError, setNewsletterError] = useState('');
   const [newsletterBusy, setNewsletterBusy] = useState(false);
   const [approvedFundraisers, setApprovedFundraisers] = useState<Fundraiser[]>([]);
-  const [featuredStories, setFeaturedStories] = useState<FeaturedHomepageStory[]>([]);
 
   useEffect(() => {
     let isMounted = true;
@@ -164,12 +152,6 @@ export default function Home() {
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || 'Fundraisers are temporarily unavailable.');
         if (isMounted) setApprovedFundraisers(result.fundraisers || []);
-      })
-      .catch(() => undefined);
-    fetch('/api/stories', { cache: 'no-store' })
-      .then(async (response) => {
-        const result = await response.json();
-        if (response.ok && isMounted) setFeaturedStories(result.stories || []);
       })
       .catch(() => undefined);
     return () => {
@@ -510,19 +492,6 @@ export default function Home() {
           </div>
         </section>}
 
-        {featuredStories.length > 0 && <section id="featured-stories" className="border-y border-[#d9d6ce] bg-[#e9f0e9]">
-          <div className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 lg:px-12 lg:py-24">
-            <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
-              <div>
-                <p className="mb-4 text-xs font-black uppercase tracking-[0.22em] text-[#b56b3b]">Approved from the field</p>
-                <h2 className="text-4xl font-black tracking-[-0.04em] sm:text-6xl">Featured stories from HMSI communities.</h2>
-                <p className="mt-4 max-w-2xl text-base leading-7 text-[#66716a]">Read the latest approved field stories, progress updates, and community outcomes from the people doing the work.</p>
-              </div>
-              <span className="text-xs font-black uppercase tracking-widest text-[#1e5b49]">{featuredStories.length} published {featuredStories.length === 1 ? 'story' : 'stories'}</span>
-            </div>
-            <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">{featuredStories.slice(0, 6).map((story) => <Link key={story.id} href={`/stories/${story.id}`} className="group block overflow-hidden rounded-3xl border border-[#cbd2ca] bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#1e5b49] focus:ring-offset-2"><div className="relative h-48 overflow-hidden bg-[#17221e]">{story.image_url ? <img src={story.image_url} alt="" className="h-full w-full object-cover" /> : <Image src="/images/outreach-10.png" alt="HMSI community field work" fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover" />}</div><div className="p-6"><p className="text-[10px] font-black uppercase tracking-widest text-[#b56b3b]">{story.category}</p><h3 className="mt-2 text-2xl font-black leading-tight">{story.title}</h3><p className="mt-3 text-sm leading-6 text-[#66716a]">{story.excerpt}</p><p className="mt-5 border-t border-[#f6f4ef] pt-4 text-[10px] font-black uppercase tracking-widest text-[#66716a]">By {story.author_name} · Approved HMSI story</p><span className="mt-4 inline-flex text-xs font-black uppercase tracking-widest text-[#1e5b49]">Read full story <ArrowRight size={14} className="ml-2 transition-transform group-hover:translate-x-1" /></span></div></Link>)}</div>
-          </div>
-        </section>}
 
         <section id="stories" className="border-y border-[#d9d6ce] bg-white">
           <div className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 lg:px-12 lg:py-28">
