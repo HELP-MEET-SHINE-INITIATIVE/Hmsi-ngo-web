@@ -9,6 +9,7 @@ import Image from "next/image";
 import MessageInbox from '../../components/MessageInbox';
 import NewsletterStudio from '../../components/NewsletterStudio';
 import FeaturedStoryStudio from '../../components/FeaturedStoryStudio';
+import NewsroomStudio from '../../components/NewsroomStudio';
 import { 
   LayoutDashboard, 
   Briefcase, 
@@ -17,6 +18,7 @@ import {
   Mail,
   Bell,
   FileText,
+  Newspaper,
   Search, 
   Plus, 
   MoreHorizontal, 
@@ -34,7 +36,7 @@ export default function DashboardContent() {
   const router = useRouter();
   const [data, setData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [activePanel, setActivePanel] = useState<'notifications' | 'messages' | 'newsletter' | 'stories' | null>(null);
+  const [activePanel, setActivePanel] = useState<'notifications' | 'messages' | 'newsletter' | 'stories' | 'news' | null>(null);
   const [selectedProfile, setSelectedProfile] = useState<any>(null);
   const [composerOpen, setComposerOpen] = useState(false);
   const [postDraft, setPostDraft] = useState('');
@@ -173,6 +175,7 @@ export default function DashboardContent() {
             </button>
             {(user.role === 'worker' || user.role === 'volunteer') && <button onClick={() => setActivePanel('newsletter')} className="p-2 rounded-full hover:bg-[#f6f4ef] text-[#66716a]" aria-label="Open newsletter studio"><Mail size={20} /></button>}
             {(user.role === 'worker' || user.role === 'volunteer') && <button onClick={() => setActivePanel('stories')} className="p-2 rounded-full hover:bg-[#f6f4ef] text-[#66716a]" aria-label="Open featured story studio"><FileText size={20} /></button>}
+            {(user.role === 'worker' || user.role === 'volunteer') && <button onClick={() => setActivePanel('news')} className="p-2 rounded-full hover:bg-[#f6f4ef] text-[#66716a]" aria-label="Open newsroom"><Newspaper size={20} /></button>}
             <div className="h-8 w-px bg-[#d9d6ce] mx-2"></div>
             <div className="flex items-center gap-3">
               <div className="text-right hidden sm:block">
@@ -192,9 +195,9 @@ export default function DashboardContent() {
 
       {activePanel && (
         <div className="fixed inset-0 z-50 flex items-start justify-end bg-[#17221e]/30 p-4 pt-20" onClick={() => setActivePanel(null)}>
-          <section onClick={(event) => event.stopPropagation()} className={`w-full rounded-3xl border border-[#d9d6ce] bg-white p-6 shadow-2xl ${activePanel === 'messages' || activePanel === 'newsletter' || activePanel === 'stories' ? 'max-w-4xl' : 'max-w-sm'}`}>
+          <section onClick={(event) => event.stopPropagation()} className={`w-full rounded-3xl border border-[#d9d6ce] bg-white p-6 shadow-2xl ${activePanel === 'messages' || activePanel === 'newsletter' || activePanel === 'stories' || activePanel === 'news' ? 'max-w-4xl' : 'max-w-sm'}`}>
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-black">{activePanel === 'notifications' ? 'Notifications' : activePanel === 'newsletter' ? 'Newsletter studio' : activePanel === 'stories' ? 'Featured story studio' : 'Messages'}</h2>
+              <h2 className="text-lg font-black">{activePanel === 'notifications' ? 'Notifications' : activePanel === 'newsletter' ? 'Newsletter studio' : activePanel === 'stories' ? 'Featured story studio' : activePanel === 'news' ? 'Newsroom' : 'Messages'}</h2>
               <button onClick={() => setActivePanel(null)} className="rounded-full p-2 text-[#66716a] hover:bg-[#f6f4ef]" aria-label="Close panel"><X size={18} /></button>
             </div>
             {activePanel === 'notifications' && (
@@ -210,6 +213,7 @@ export default function DashboardContent() {
             {activePanel === 'messages' && (user.role === 'worker' ? <MessageInbox viewer={{ email: user.email, role: 'worker' }} compact onUnreadChange={setMessageUnreadCount} /> : <p className="mt-5 text-sm text-[#66716a]">Messages are available to approved workers and administrators.</p>)}
             {activePanel === 'newsletter' && ((user.role === 'worker' || user.role === 'volunteer') ? <NewsletterStudio viewer={{ email: user.email, name: user.name, role: user.role }} compact /> : <p className="mt-5 text-sm text-[#66716a]">Newsletter drafting is available to approved volunteers and workers.</p>)}
             {activePanel === 'stories' && ((user.role === 'worker' || user.role === 'volunteer') ? <FeaturedStoryStudio viewer={{ email: user.email, name: user.name, role: user.role }} /> : <p className="mt-5 text-sm text-[#66716a]">Featured story submissions are available to approved volunteers and workers.</p>)}
+            {activePanel === 'news' && ((user.role === 'worker' || user.role === 'volunteer') ? <NewsroomStudio viewer={{ email: user.email, name: user.name, role: user.role }} /> : <p className="mt-5 text-sm text-[#66716a]">News submissions are available to approved volunteers and workers.</p>)}
           </section>
         </div>
       )}

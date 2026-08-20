@@ -8,6 +8,7 @@ import Footer from "../components/Footer";
 import FundraiserCard from "../components/FundraiserCard";
 import type { Fundraiser } from "../lib/fundraisers";
 import OpportunityFlash from "../components/OpportunityFlash";
+import NewsFlash from "../components/NewsFlash";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -274,6 +275,7 @@ export default function Home() {
             <Link className="transition-colors hover:text-[#e1ad45]" href="/donate">Donate</Link>
             <Link className="transition-colors hover:text-[#e1ad45]" href="/fundraise">Support a cause</Link>
             <Link className="transition-colors hover:text-[#e1ad45]" href="/impact">Top impact</Link>
+            <Link className="transition-colors hover:text-[#e1ad45]" href="/news">News</Link>
             <Link className="transition-colors hover:text-[#e1ad45]" href="/volunteer">Volunteer</Link>
             <Link className="transition-colors hover:text-[#e1ad45]" href="/opportunities">Opportunities</Link>
             <Link className="transition-colors hover:text-[#e1ad45]" href="/about">About us</Link>
@@ -316,6 +318,7 @@ export default function Home() {
               <Link href="/donate" onClick={() => setMenuOpen(false)}>Donate</Link>
               <Link href="/fundraise" onClick={() => setMenuOpen(false)}>Support a cause</Link>
               <Link href="/impact" onClick={() => setMenuOpen(false)}>Top impact</Link>
+              <Link href="/news" onClick={() => setMenuOpen(false)}>News</Link>
               <Link href="/volunteer" onClick={() => setMenuOpen(false)}>Volunteer</Link>
               <Link href="/opportunities" onClick={() => setMenuOpen(false)}>Opportunities</Link>
               <Link href="#stories" onClick={() => setMenuOpen(false)}>Stories</Link>
@@ -379,6 +382,7 @@ export default function Home() {
       </section>
 
       <OpportunityFlash />
+      <NewsFlash />
 
       <div className="border-b border-[#d9d6ce] bg-[#f6f4ef]">
         <div className="mx-auto grid max-w-[1440px] grid-cols-2 divide-x divide-[#d9d6ce] sm:grid-cols-4">
