@@ -112,7 +112,7 @@ export async function POST(request: Request) {
 
   if (action === 'approve_admin') {
     if (viewer.role !== 'admin') return errorResponse('Only an administrator can give final approval.');
-    if (!['pending_worker_approval', 'pending_admin_approval', 'rejected'].includes(draft.status)) return errorResponse('This newsletter is not waiting for admin approval.');
+    if (!['draft', 'pending_worker_approval', 'pending_admin_approval', 'rejected'].includes(draft.status)) return errorResponse('This newsletter is not waiting for admin approval.');
     const updated = await admin.from('newsletter_drafts').update({ status: 'approved', admin_approved_by: viewer.email, admin_approved_at: new Date().toISOString(), rejection_reason: null, updated_at: new Date().toISOString() }).eq('id', newsletterId).select('*').single();
     if (updated.error) return errorResponse('The newsletter could not be approved.', 503);
     await recordEvent(admin, newsletterId, viewer, 'admin_approved');
@@ -122,7 +122,7 @@ export async function POST(request: Request) {
   if (action === 'reject') {
     if (viewer.role !== 'admin' && viewer.role !== 'worker') return errorResponse('Only an administrator or worker can reject a newsletter.');
     if (viewer.role === 'worker' && draft.status !== 'pending_worker_approval') return errorResponse('Workers may only reject drafts awaiting worker approval.');
-    if (viewer.role === 'admin' && !['pending_worker_approval', 'pending_admin_approval', 'approved'].includes(draft.status)) return errorResponse('This newsletter cannot be rejected in its current state.');
+    if (viewer.role === 'admin' && !['draft', 'pending_worker_approval', 'pending_admin_approval', 'approved'].includes(draft.status)) return errorResponse('This newsletter cannot be rejected in its current state.');
     const reason = cleanText(body.reason, 1000) || 'Please revise this draft before resubmitting.';
     const updated = await admin.from('newsletter_drafts').update({ status: 'rejected', rejection_reason: reason, updated_at: new Date().toISOString() }).eq('id', newsletterId).select('*').single();
     if (updated.error) return errorResponse('The newsletter could not be rejected.', 503);
