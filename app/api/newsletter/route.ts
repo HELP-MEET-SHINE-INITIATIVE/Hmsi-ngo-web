@@ -16,9 +16,10 @@ function escapeHtml(value: string) {
   return value.replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character] || character);
 }
 
-function newsletterHtml(title: string, body: string, unsubscribeUrl: string) {
+function newsletterHtml(title: string, body: string, unsubscribeUrl: string, imageUrl?: string | null) {
   const paragraphs = body.split(/\n\s*\n/).map((paragraph) => `<p style="line-height:1.7;color:#33443b">${escapeHtml(paragraph).replace(/\n/g, '<br />')}</p>`).join('');
-  return `<div style="font-family:Arial,sans-serif;max-width:680px;margin:0 auto;padding:36px 22px;color:#17221e"><p style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#b56b3b;font-weight:700">Help Meet Shine Initiative</p><h1 style="font-size:34px;line-height:1.15;color:#1e5b49">${escapeHtml(title)}</h1>${paragraphs}<hr style="border:0;border-top:1px solid #e5e1d8;margin:32px 0" /><p style="font-size:12px;color:#66716a">You are receiving this because you joined the HMSI newsletter. <a href="${unsubscribeUrl}" style="color:#1e5b49">Unsubscribe</a>.</p></div>`;
+  const image = imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="" style="display:block;width:100%;max-width:640px;height:auto;border-radius:14px;margin:24px 0" />` : '';
+  return `<div style="font-family:Arial,sans-serif;max-width:680px;margin:0 auto;padding:36px 22px;color:#17221e"><p style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#b56b3b;font-weight:700">Help Meet Shine Initiative</p><h1 style="font-size:34px;line-height:1.15;color:#1e5b49">${escapeHtml(title)}</h1>${image}${paragraphs}<hr style="border:0;border-top:1px solid #e5e1d8;margin:32px 0" /><p style="font-size:12px;color:#66716a">You are receiving this because you joined the HMSI newsletter. <a href="${unsubscribeUrl}" style="color:#1e5b49">Unsubscribe</a>.</p></div>`;
 }
 
 async function recordEvent(admin: NonNullable<ReturnType<typeof getSupabaseAdmin>>, newsletterId: string, viewer: NonNullable<Awaited<ReturnType<typeof getNewsletterViewer>>>, action: string, note?: string) {
@@ -40,7 +41,7 @@ export async function GET(request: Request) {
   const viewer = await getNewsletterViewer(request, admin, getNewsletterViewerPayload(request));
   if (!viewer) return errorResponse('Admin authentication or approved volunteer/worker access is required.', 401);
 
-  const drafts = await admin.from('newsletter_drafts').select('id,title,subject,body,author_name,author_email,author_role,status,worker_approved_by,worker_approved_at,admin_approved_by,admin_approved_at,rejection_reason,sent_at,created_at,updated_at').order('created_at', { ascending: false }).limit(100);
+  const drafts = await admin.from('newsletter_drafts').select('id,title,subject,body,image_url,image_path,author_name,author_email,author_role,status,worker_approved_by,worker_approved_at,admin_approved_by,admin_approved_at,rejection_reason,sent_at,created_at,updated_at').order('created_at', { ascending: false }).limit(100);
   if (drafts.error) return errorResponse('Newsletter tables are unavailable. Run supabase/newsletter_patch.sql.', 503);
 
   const events = drafts.data && drafts.data.length > 0
@@ -74,6 +75,9 @@ export async function POST(request: Request) {
     const title = cleanText(body.title, 240);
     const subject = cleanText(body.subject, 240);
     const newsletterBody = cleanText(body.body, 20000);
+    const imageUrl = cleanText(body.image_url, 1000) || null;
+    const imagePath = cleanText(body.image_path, 500) || null;
+    if (imagePath && !imagePath.startsWith('publisher-images/')) return errorResponse('The uploaded image reference is invalid.');
     if (!title || !subject || !newsletterBody) return errorResponse('Title, subject, and newsletter content are required.');
 
     const initialStatus = viewer.role === 'admin' ? 'approved' : viewer.role === 'worker' ? 'pending_admin_approval' : 'pending_worker_approval';
@@ -81,13 +85,15 @@ export async function POST(request: Request) {
       title,
       subject,
       body: newsletterBody,
+      image_url: imageUrl,
+      image_path: imagePath,
       author_name: viewer.name,
       author_email: viewer.email,
       author_role: viewer.role,
       status: initialStatus,
       admin_approved_by: viewer.role === 'admin' ? viewer.email : null,
       admin_approved_at: viewer.role === 'admin' ? new Date().toISOString() : null,
-    }).select('id,title,subject,body,author_name,author_email,author_role,status,created_at').single();
+    }).select('id,title,subject,body,image_url,image_path,author_name,author_email,author_role,status,created_at').single();
     if (draft.error || !draft.data) return errorResponse(draft.error?.message || 'The newsletter draft could not be saved.', 503);
 
     await recordEvent(admin, draft.data.id, viewer, 'submitted');
@@ -156,7 +162,7 @@ export async function POST(request: Request) {
       from,
       to: [subscriber.email],
       subject: draft.subject,
-      html: newsletterHtml(draft.title, draft.body, `${baseUrl}/api/newsletter/unsubscribe?token=${encodeURIComponent(subscriber.unsubscribe_token)}`),
+      html: newsletterHtml(draft.title, draft.body, `${baseUrl}/api/newsletter/unsubscribe?token=${encodeURIComponent(subscriber.unsubscribe_token)}`, draft.image_url),
     }));
     const deliveryLogs: Array<Record<string, unknown>> = [];
     for (let index = 0; index < emails.length; index += 100) {

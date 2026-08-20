@@ -93,16 +93,19 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     }
     if (Object.prototype.hasOwnProperty.call(body, 'imageUrl')) {
       const imageUrl = typeof body.imageUrl === 'string' ? body.imageUrl.trim() : '';
+      const imagePath = typeof body.imagePath === 'string' ? body.imagePath.trim() : '';
       if (imageUrl.length > 1000) return NextResponse.json({ error: 'Image URL is too long.' }, { status: 400 });
+      if (imagePath && !imagePath.startsWith('publisher-images/')) return NextResponse.json({ error: 'The uploaded image reference is invalid.' }, { status: 400 });
       const existing = await getExistingFundraiser(admin, id);
       if (!existing) return NextResponse.json({ error: 'Fundraiser record was not found.' }, { status: 404 });
       const nextImageUrl = imageUrl || '/images/outreach-1.png';
-      if (existing.image_path && existing.image_url !== nextImageUrl) {
+      const nextImagePath = imagePath || null;
+      if (existing.image_path && existing.image_path !== nextImagePath) {
         const { error: storageError } = await admin.storage.from(getSupabaseStorageBucket()).remove([existing.image_path]);
         if (storageError) throw storageError;
-        updates.image_path = null;
       }
       updates.image_url = nextImageUrl;
+      updates.image_path = nextImagePath;
     }
 
     if (Object.keys(updates).length === 0) return NextResponse.json({ error: 'Add at least one fundraiser change.' }, { status: 400 });

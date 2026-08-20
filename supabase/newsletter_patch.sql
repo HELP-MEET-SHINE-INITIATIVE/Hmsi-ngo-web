@@ -15,6 +15,8 @@ create table if not exists public.newsletter_drafts (
   title varchar(240) not null,
   subject varchar(240) not null,
   body text not null,
+  image_url text,
+  image_path text,
   author_name varchar(160) not null,
   author_email varchar(320) not null,
   author_role text not null check (author_role in ('admin', 'worker', 'volunteer')),
@@ -28,6 +30,9 @@ create table if not exists public.newsletter_drafts (
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now())
 );
+
+alter table public.newsletter_drafts add column if not exists image_url text;
+alter table public.newsletter_drafts add column if not exists image_path text;
 
 create table if not exists public.newsletter_approval_events (
   id uuid primary key default gen_random_uuid(),
