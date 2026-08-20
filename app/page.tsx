@@ -7,6 +7,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import FundraiserCard from "../components/FundraiserCard";
 import type { Fundraiser } from "../lib/fundraisers";
+import OpportunityFlash from "../components/OpportunityFlash";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -358,6 +359,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <OpportunityFlash />
 
       <div className="border-b border-[#d9d6ce] bg-[#f6f4ef]">
         <div className="mx-auto grid max-w-[1440px] grid-cols-2 divide-x divide-[#d9d6ce] sm:grid-cols-4">
