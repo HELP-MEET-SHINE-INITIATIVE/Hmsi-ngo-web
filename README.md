@@ -1,8 +1,8 @@
 # Help Meet Shine Initiative (HMSI) — Web Platform
 [![Framework: Next.js](https://img.shields.io/badge/Framework-Next.js_15-black?logo=next.js)](https://nextjs.org/)
 [![Styling: Tailwind CSS](https://img.shields.io/badge/Styling-Tailwind_CSS-38B2AC?logo=tailwind-css)](https://tailwindcss.com/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-Official web platform for **Help Meet Shine Initiative (HMSI)** — a registered NGO in Nigeria focused on humanitarian aid, community empowerment, and sustainable social growth.
+[![License: HMSI NGO Non-Commercial](https://img.shields.io/badge/License-HMSI%20NGO%20Non--Commercial-b56b3b.svg)](LICENSE)
+Official web platform for **Help Meet Shine Initiative (HMSI)** — a registered NGO in Nigeria focused on humanitarian aid, community empowerment, and sustainable social growth. The repository is distributed under the custom **HMSI NGO Non-Commercial License** in `LICENSE`.
 ---
 ## 🚀 Key Features
 - **Direct Payment Portal:** Seamless online donations through the secure Paystack checkout popup.
