@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { CheckCircle2, FileText, Send, XCircle } from 'lucide-react';
+import OptionalImageUpload from './OptionalImageUpload';
 
 type StoryViewer = { email: string; name: string; role: 'admin' | 'worker' | 'volunteer' };
 type Story = { id: string; title: string; excerpt: string; body: string; category: string; image_url: string | null; author_name: string; author_email: string; author_role: string; status: string; rejection_reason: string | null; created_at: string; published_at: string | null };
@@ -78,7 +79,7 @@ export default function FeaturedStoryStudio({ viewer }: { viewer: StoryViewer })
       <input required minLength={20} placeholder="Short homepage excerpt" value={form.excerpt} onChange={(event) => setForm({ ...form, excerpt: event.target.value })} className="rounded-2xl bg-[#f6f4ef] px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#1e5b49] md:col-span-2" />
       <textarea required minLength={40} rows={6} placeholder="Write the field story, outcome, or community update" value={form.body} onChange={(event) => setForm({ ...form, body: event.target.value })} className="resize-none rounded-2xl bg-[#f6f4ef] px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#1e5b49] md:col-span-2" />
       <input placeholder="Category, e.g. Nigeria / Field desk" value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value })} className="rounded-2xl bg-[#f6f4ef] px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#1e5b49]" />
-      <input type="url" placeholder="Optional image URL" value={form.image_url} onChange={(event) => setForm({ ...form, image_url: event.target.value })} className="rounded-2xl bg-[#f6f4ef] px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#1e5b49]" />
+      <div className="md:col-span-2"><OptionalImageUpload viewer={{ email: viewer.email, role: viewer.role }} value={form.image_url} onChange={(imageUrl) => setForm({ ...form, image_url: imageUrl })} /></div>
       <button disabled={isBusy} className="inline-flex items-center justify-center gap-2 rounded-full bg-[#1e5b49] py-3 text-xs font-black uppercase tracking-widest text-white disabled:opacity-50 md:col-span-2"><Send size={15} />{viewer.role === 'admin' ? 'Publish story to homepage' : 'Submit story for approval'}</button>
     </form>
     <div className="space-y-4">

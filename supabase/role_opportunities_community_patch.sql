@@ -17,12 +17,17 @@ create table if not exists public.opportunities (
   description text not null,
   audience text not null default 'volunteer' check (audience in ('volunteer', 'worker', 'both')),
   location varchar(200) not null default 'Nigeria and Africa',
+  image_url text,
+  image_path text,
   starts_at timestamptz not null,
   ends_at timestamptz,
   status text not null default 'open' check (status in ('draft', 'open', 'closed')),
   created_by varchar(320),
   created_at timestamptz not null default timezone('utc', now())
 );
+
+alter table public.opportunities add column if not exists image_url text;
+alter table public.opportunities add column if not exists image_path text;
 
 create table if not exists public.opportunity_applications (
   id uuid primary key default gen_random_uuid(),
