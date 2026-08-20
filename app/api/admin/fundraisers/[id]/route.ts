@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getAdminEmailFromCookie } from '../../../../../lib/adminSession';
-import { getSupabaseAdmin } from '../../../../../lib/supabaseAdmin';
+import { getSupabaseAdmin, getSupabaseStorageBucket } from '../../../../../lib/supabaseAdmin';
 
 export const runtime = 'nodejs';
 const ALLOWED_STATUSES = new Set(['active', 'pending', 'archived', 'rejected']);
@@ -21,6 +21,35 @@ export async function PATCH(
     const body = await request.json();
     const status = String(body.status || '').toLowerCase();
     if (!ALLOWED_STATUSES.has(status)) return NextResponse.json({ error: 'Invalid fundraiser status.' }, { status: 400 });
+
+    const { data: existing, error: lookupError } = await admin
+      .from('fundraisers')
+      .select('id,image_path')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (lookupError) throw lookupError;
+    if (!existing) return NextResponse.json({ error: 'Fundraiser record was not found.' }, { status: 404 });
+
+    if (status === 'rejected') {
+      if (existing.image_path) {
+        const { error: storageError } = await admin.storage
+          .from(getSupabaseStorageBucket())
+          .remove([existing.image_path]);
+        if (storageError) throw storageError;
+      }
+
+      const { data: deleted, error: deleteError } = await admin
+        .from('fundraisers')
+        .delete()
+        .eq('id', id)
+        .select('id')
+        .maybeSingle();
+
+      if (deleteError) throw deleteError;
+      if (!deleted) return NextResponse.json({ error: 'Fundraiser could not be deleted.' }, { status: 409 });
+      return NextResponse.json({ deleted: true, id });
+    }
 
     const { data, error } = await admin
       .from('fundraisers')
