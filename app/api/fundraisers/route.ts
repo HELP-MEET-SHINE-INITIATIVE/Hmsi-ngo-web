@@ -3,32 +3,11 @@ import { createFundraiser, getFundraisers } from '../../../lib/fundraisers';
 import { getSupabaseAdmin, getSupabaseStorageBucket, hasSupabaseConfig } from '../../../lib/supabaseAdmin';
 
 export const runtime = 'nodejs';
+export const maxDuration = 60;
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 const ALLOWED_CATEGORIES = new Set(['medical', 'education', 'housing', 'emergency']);
-
-async function ensureStorageBucket() {
-  const admin = getSupabaseAdmin();
-  if (!admin) return null;
-
-  const bucket = getSupabaseStorageBucket();
-  const { data: buckets, error: listError } = await admin.storage.listBuckets();
-  if (listError) throw listError;
-
-  if (!buckets.some((existingBucket) => existingBucket.name === bucket)) {
-    const { error: createError } = await admin.storage.createBucket(bucket, {
-      public: true,
-      fileSizeLimit: `${MAX_IMAGE_BYTES}B`,
-      allowedMimeTypes: [...ALLOWED_IMAGE_TYPES],
-    });
-    if (createError && !createError.message.toLowerCase().includes('already exists')) {
-      throw createError;
-    }
-  }
-
-  return bucket;
-}
 
 export async function GET() {
   try {
@@ -81,8 +60,8 @@ export async function POST(request: Request) {
     }
 
     const admin = getSupabaseAdmin();
-    const bucket = await ensureStorageBucket();
-    if (!admin || !bucket) throw new Error('Supabase storage is not configured.');
+    const bucket = getSupabaseStorageBucket();
+    if (!admin) throw new Error('Supabase storage is not configured.');
 
     const id = crypto.randomUUID();
     const extension = image.type === 'image/jpeg' ? 'jpg' : image.type.split('/')[1];
@@ -115,7 +94,8 @@ export async function POST(request: Request) {
       const bucket = getSupabaseStorageBucket();
       await admin?.storage.from(bucket).remove([uploadedPath]).catch(() => undefined);
     }
-    console.error('[Fundraisers] Failed to create fundraiser:', error);
-    return NextResponse.json({ error: 'We could not submit this fundraiser. Please try again.' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Unknown storage or database error';
+    console.error('[Fundraisers] Failed to create fundraiser:', message);
+    return NextResponse.json({ error: `We could not submit this fundraiser: ${message}` }, { status: 500 });
   }
 }

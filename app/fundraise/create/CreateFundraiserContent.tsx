@@ -80,13 +80,22 @@ export default function CreateFundraiserContent() {
       body.append('targetAmount', String(targetAmount));
       body.append('image', selectedImage);
 
-      const response = await fetch('/api/fundraisers', { method: 'POST', body });
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), 60_000);
+      let response: Response;
+      try {
+        response = await fetch('/api/fundraisers', { method: 'POST', body, signal: controller.signal });
+      } finally {
+        window.clearTimeout(timeout);
+      }
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'We could not submit this fundraiser.');
 
       setIsSubmitted(true);
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : 'We could not submit this fundraiser.');
+      setError(submitError instanceof DOMException && submitError.name === 'AbortError'
+        ? 'The upload took too long. Please try a smaller image or try again.'
+        : submitError instanceof Error ? submitError.message : 'We could not submit this fundraiser.');
     } finally {
       setIsSubmitting(false);
     }
