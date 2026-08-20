@@ -71,6 +71,18 @@ export async function getFundraisers() {
   return (data as FundraiserRow[]).map(normalizeFundraiser);
 }
 
+export function getTopRaisedFundraisers(fundraisers: Fundraiser[], limit = 3) {
+  return [...fundraisers]
+    .sort((first, second) => second.raisedAmount - first.raisedAmount || new Date(second.createdAt).getTime() - new Date(first.createdAt).getTime())
+    .slice(0, limit);
+}
+
+export function getNewestFundraisers(fundraisers: Fundraiser[], limit = 6) {
+  return [...fundraisers]
+    .sort((first, second) => new Date(second.createdAt).getTime() - new Date(first.createdAt).getTime())
+    .slice(0, limit);
+}
+
 export async function getFundraiserById(id: string) {
   const admin = getSupabaseAdmin();
   if (!admin) return seedFallback().find((fundraiser) => fundraiser.id === id) ?? null;

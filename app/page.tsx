@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import FundraiserCard from "../components/FundraiserCard";
+import type { Fundraiser } from "../lib/fundraisers";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -138,6 +140,25 @@ export default function Home() {
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterError, setNewsletterError] = useState('');
   const [newsletterBusy, setNewsletterBusy] = useState(false);
+  const [approvedFundraisers, setApprovedFundraisers] = useState<Fundraiser[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    fetch('/api/fundraisers', { cache: 'no-store' })
+      .then(async (response) => {
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Fundraisers are temporarily unavailable.');
+        if (isMounted) setApprovedFundraisers(result.fundraisers || []);
+      })
+      .catch(() => undefined);
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const topImpactFundraisers = [...approvedFundraisers]
+    .sort((first, second) => second.raisedAmount - first.raisedAmount || new Date(second.createdAt).getTime() - new Date(first.createdAt).getTime())
+    .slice(0, 3);
 
   const handleNewsletterSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -233,6 +254,7 @@ export default function Home() {
           <nav className="hidden items-center gap-6 text-sm font-semibold lg:flex" aria-label="Primary navigation">
             <Link className="transition-colors hover:text-[#e1ad45]" href="/donate">Donate</Link>
             <Link className="transition-colors hover:text-[#e1ad45]" href="/fundraise">Support a cause</Link>
+            <Link className="transition-colors hover:text-[#e1ad45]" href="/impact">Top impact</Link>
             <Link className="transition-colors hover:text-[#e1ad45]" href="/volunteer">Volunteer</Link>
             <Link className="transition-colors hover:text-[#e1ad45]" href="/opportunities">Opportunities</Link>
             <Link className="transition-colors hover:text-[#e1ad45]" href="/about">About us</Link>
@@ -274,6 +296,7 @@ export default function Home() {
             <div className="flex flex-col gap-5 text-sm font-semibold">
               <Link href="/donate" onClick={() => setMenuOpen(false)}>Donate</Link>
               <Link href="/fundraise" onClick={() => setMenuOpen(false)}>Support a cause</Link>
+              <Link href="/impact" onClick={() => setMenuOpen(false)}>Top impact</Link>
               <Link href="/volunteer" onClick={() => setMenuOpen(false)}>Volunteer</Link>
               <Link href="/opportunities" onClick={() => setMenuOpen(false)}>Opportunities</Link>
               <Link href="#stories" onClick={() => setMenuOpen(false)}>Stories</Link>
@@ -443,6 +466,20 @@ export default function Home() {
             ))}
           </div>
         </section>
+
+        {topImpactFundraisers.length > 0 && <section id="top-impact-fundraisers" className="border-y border-[#d9d6ce] bg-[#f6f4ef]">
+          <div className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 lg:px-12 lg:py-24">
+            <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+              <div>
+                <p className="mb-4 text-xs font-black uppercase tracking-[0.22em] text-[#b56b3b]">Top impact fundraising</p>
+                <h2 className="text-4xl font-black tracking-[-0.04em] sm:text-6xl">The causes moving furthest, together.</h2>
+                <p className="mt-4 max-w-2xl text-base leading-7 text-[#66716a]">Support the approved fundraisers with the strongest progress and help take their work the final mile.</p>
+              </div>
+              <Link href="/impact" className="group inline-flex items-center gap-2 text-sm font-black uppercase tracking-[0.13em] text-[#1e5b49]">See top impact causes <ArrowRight size={17} className="transition-transform group-hover:translate-x-1" /></Link>
+            </div>
+            <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">{topImpactFundraisers.map((fundraiser, index) => <FundraiserCard key={fundraiser.id} fundraiser={fundraiser} rankLabel={`#${index + 1} top raised`} />)}</div>
+          </div>
+        </section>}
 
         <section id="stories" className="border-y border-[#d9d6ce] bg-white">
           <div className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 lg:px-12 lg:py-28">
