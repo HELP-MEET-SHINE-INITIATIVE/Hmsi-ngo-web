@@ -9,6 +9,8 @@ import FundraiserCard from "../components/FundraiserCard";
 import type { Fundraiser } from "../lib/fundraisers";
 import OpportunityFlash from "../components/OpportunityFlash";
 import NewsFlash from "../components/NewsFlash";
+import FundraiserFlash from "../components/FundraiserFlash";
+import FieldStoryFlash from "../components/FieldStoryFlash";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -382,6 +384,8 @@ export default function Home() {
       </section>
 
       <OpportunityFlash />
+      <FundraiserFlash />
+      <FieldStoryFlash />
       <NewsFlash />
 
       <div className="border-b border-[#d9d6ce] bg-[#f6f4ef]">
