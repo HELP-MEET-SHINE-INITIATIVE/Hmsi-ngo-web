@@ -11,15 +11,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/contact',
     '/donate',
     '/fundraise',
-    '/fundraise/create',
     '/volunteer',
-    '/login',
-    '/signup',
+    '/opportunities',
+    '/get-help',
+    '/projects',
   ].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date(),
     changeFrequency: 'daily' as const,
-    priority: route === '' ? 1 : 0.8,
+    priority: route === '' ? 1 : ['/donate', '/fundraise', '/volunteer', '/opportunities'].includes(route) ? 0.9 : 0.7,
   }));
 
   let fundraisers = [] as Awaited<ReturnType<typeof getFundraisers>>;

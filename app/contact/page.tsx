@@ -2,13 +2,14 @@ import type { Metadata } from 'next';
 import ContactForm from './ContactForm';
 
 export const metadata: Metadata = {
-  title: 'Contact Us',
-  description: 'Contact Help Meet Shine Initiative (HMSI) in Nigeria and across Africa. Email support@hmsi.org.ng for support or contact@hmsi.org.ng for general enquiries and partnerships.',
+  title: 'Partner with an NGO in Nigeria | Contact HMSI',
+  description: 'Contact Help Meet Shine Initiative (HMSI) for NGO partnerships, support, volunteering, and general enquiries across Nigeria and Africa.',
   openGraph: {
-    title: 'Contact Us | HMSI',
-    description: 'Contact Help Meet Shine Initiative (HMSI) in Nigeria and across Africa. Email support@hmsi.org.ng for support or contact@hmsi.org.ng for general enquiries and partnerships.',
+    title: 'Partner with an NGO in Nigeria | Contact HMSI',
+    description: 'Contact HMSI for NGO partnerships, support, volunteering, and general enquiries across Nigeria and Africa.',
     url: 'https://www.hmsi.org.ng/contact',
   },
+  alternates: { canonical: 'https://www.hmsi.org.ng/contact' },
 };
 
 export default function ContactPage() {

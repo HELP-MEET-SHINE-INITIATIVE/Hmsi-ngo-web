@@ -6,10 +6,10 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://www.hmsi.org.ng'),
   title: {
     template: '%s | Help Meet Shine Initiative (HMSI)',
-    default: 'Help Meet Shine Initiative (HMSI) | Supporting Communities in Nigeria and Africa',
+    default: 'Help Meet Shine Initiative (HMSI) | Donate, Volunteer & Support Communities in Nigeria',
   },
-  description: 'Need help? Share your story and connect with support from caring people. HMSI provides humanitarian assistance for medical bills, education, and housing across Nigeria and Africa.',
-  keywords: ['NGO Nigeria', 'NGO Africa', 'get financial help Nigeria', 'medical bill assistance', 'education support Africa', 'humanitarian aid', 'HMSI', 'charity Nigeria', 'crowdfunding Africa'],
+  description: 'Donate to NGO work, support verified causes, or volunteer with Help Meet Shine Initiative (HMSI). We serve communities across Nigeria and Africa through humanitarian aid, opportunity, and community-led action.',
+  keywords: ['donate to NGO Nigeria', 'donate to charity Nigeria', 'volunteer with NGO Nigeria', 'NGO work Africa', 'support verified causes Nigeria', 'humanitarian NGO Nigeria', 'charity Nigeria', 'community development Africa', 'HMSI'],
   authors: [{ name: 'HMSI' }],
   creator: 'HMSI',
   publisher: 'HMSI',
@@ -22,8 +22,8 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: 'Help Meet Shine Initiative (HMSI) | Empowering Communities',
-    description: 'Empowering communities and restoring hope across Nigeria and Africa. Post your need or support a verified cause today.',
+    title: 'Help Meet Shine Initiative (HMSI) | Donate, Volunteer & Support NGO Work',
+    description: 'Donate to HMSI NGO work, support a verified cause, or volunteer your skills across Nigeria and Africa.',
     url: 'https://www.hmsi.org.ng',
     siteName: 'Help Meet Shine Initiative',
     images: [
@@ -39,8 +39,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Help Meet Shine Initiative (HMSI)',
-    description: 'Empowering communities and restoring hope across Nigeria and Africa. Join us in building a stronger tomorrow.',
+    title: 'Help Meet Shine Initiative (HMSI) | Donate, Volunteer & Support Communities',
+    description: 'Find clear ways to donate, support verified causes, and volunteer with HMSI across Nigeria and Africa.',
     images: ['/opengraph-image.png'],
   },
   icons: {

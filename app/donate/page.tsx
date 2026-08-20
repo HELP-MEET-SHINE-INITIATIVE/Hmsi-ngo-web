@@ -2,13 +2,14 @@ import type { Metadata } from 'next';
 import DonateForm from './DonateForm';
 
 export const metadata: Metadata = {
-  title: 'Support Our Mission',
-  description: 'Make room for possibility. Your gift helps HMSI respond to urgent needs and support local solutions across Nigeria.',
+  title: 'Donate to NGO Work in Nigeria | HMSI',
+  description: 'Donate securely to Help Meet Shine Initiative (HMSI) and help fund humanitarian work, community support, and sustainable opportunity across Nigeria and Africa.',
   openGraph: {
-    title: 'Support Our Mission | HMSI',
-    description: 'Make room for possibility. Your gift helps HMSI respond to urgent needs and support local solutions across Nigeria.',
+    title: 'Donate to NGO Work in Nigeria | HMSI',
+    description: 'Give securely to HMSI humanitarian work, community support, and opportunity across Nigeria and Africa.',
     url: 'https://www.hmsi.org.ng/donate',
   },
+  alternates: { canonical: 'https://www.hmsi.org.ng/donate' },
 };
 
 export default function DonatePage() {

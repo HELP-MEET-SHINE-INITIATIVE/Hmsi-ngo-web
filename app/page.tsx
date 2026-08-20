@@ -230,10 +230,11 @@ export default function Home() {
             </span>
           </Link>
 
-          <nav className="hidden items-center gap-8 text-sm font-semibold lg:flex" aria-label="Primary navigation">
-            <Link className="transition-colors hover:text-[#e1ad45]" href="#stories">Stories</Link>
-            <Link className="transition-colors hover:text-[#e1ad45]" href="#impact">Our impact</Link>
-            <Link className="transition-colors hover:text-[#e1ad45]" href="#ways-to-help">Get involved</Link>
+          <nav className="hidden items-center gap-6 text-sm font-semibold lg:flex" aria-label="Primary navigation">
+            <Link className="transition-colors hover:text-[#e1ad45]" href="/donate">Donate</Link>
+            <Link className="transition-colors hover:text-[#e1ad45]" href="/fundraise">Support a cause</Link>
+            <Link className="transition-colors hover:text-[#e1ad45]" href="/volunteer">Volunteer</Link>
+            <Link className="transition-colors hover:text-[#e1ad45]" href="/opportunities">Opportunities</Link>
             <Link className="transition-colors hover:text-[#e1ad45]" href="/about">About us</Link>
           </nav>
 
@@ -271,9 +272,13 @@ export default function Home() {
         {menuOpen && (
           <nav className="border-t border-white/15 bg-[#17221e]/95 px-6 py-6 backdrop-blur-xl lg:hidden" aria-label="Mobile navigation">
             <div className="flex flex-col gap-5 text-sm font-semibold">
+              <Link href="/donate" onClick={() => setMenuOpen(false)}>Donate</Link>
+              <Link href="/fundraise" onClick={() => setMenuOpen(false)}>Support a cause</Link>
+              <Link href="/volunteer" onClick={() => setMenuOpen(false)}>Volunteer</Link>
+              <Link href="/opportunities" onClick={() => setMenuOpen(false)}>Opportunities</Link>
               <Link href="#stories" onClick={() => setMenuOpen(false)}>Stories</Link>
               <Link href="#impact" onClick={() => setMenuOpen(false)}>Our impact</Link>
-              <Link href="#ways-to-help" onClick={() => setMenuOpen(false)}>Get involved</Link>
+              <Link href="#start-here" onClick={() => setMenuOpen(false)}>How to help</Link>
               <Link href="/about" onClick={() => setMenuOpen(false)}>About us</Link>
               <div className="flex flex-wrap gap-3 border-t border-white/15 pt-5">
                 <Link href="/login" onClick={() => setMenuOpen(false)} className="inline-flex rounded-full border border-white/35 px-5 py-3 text-xs font-black uppercase tracking-[0.16em] text-white">Log in</Link>
@@ -301,20 +306,20 @@ export default function Home() {
               <span className="h-px w-10 bg-[#e1ad45]" /> Humanitarian news & action
             </p>
             <h1 className="max-w-4xl text-5xl font-black leading-[0.94] tracking-[-0.055em] sm:text-7xl lg:text-[6.6rem]">
-              Hope is a practice. <span className="text-[#e1ad45]">We show up.</span>
+              Donate. Volunteer. <span className="text-[#e1ad45]">Help communities thrive.</span>
             </h1>
             <p className="mt-8 max-w-xl text-lg leading-8 text-white/80 sm:text-xl">
-              HMSI stands with communities across Nigeria and beyond—responding to urgent needs, opening doors to opportunity, and helping people shape a future they can believe in.
+              Help Meet Shine Initiative (HMSI) is an NGO in Nigeria and Africa. Donate to our work, support a verified cause, volunteer your skills, or partner with us to create lasting community change.
             </p>
             <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center">
               <Link href="/donate" className="group inline-flex items-center justify-center gap-3 rounded-full bg-[#e1ad45] px-7 py-4 text-sm font-black uppercase tracking-[0.15em] text-[#17221e] transition hover:bg-white">
-                Donate now <ArrowUpRight size={18} className="transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+                Donate to HMSI <ArrowUpRight size={18} className="transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
               </Link>
-              <Link href="/fundraise/create" className="inline-flex items-center justify-center gap-3 rounded-full border border-white/40 px-7 py-4 text-sm font-bold text-white transition hover:border-white hover:bg-white/10">
-                Get Help Now <ArrowRight size={17} />
+              <Link href="/fundraise" className="inline-flex items-center justify-center gap-3 rounded-full border border-white/40 px-7 py-4 text-sm font-bold text-white transition hover:border-white hover:bg-white/10">
+                Support a verified cause <ArrowRight size={17} />
               </Link>
-              <Link href="/signup" className="inline-flex items-center justify-center gap-3 rounded-full border border-[#e1ad45]/70 px-7 py-4 text-sm font-bold text-[#e1ad45] transition hover:border-[#e1ad45] hover:bg-[#e1ad45]/10">
-                Join HMSI <Users size={17} />
+              <Link href="/volunteer" className="inline-flex items-center justify-center gap-3 rounded-full border border-[#e1ad45]/70 px-7 py-4 text-sm font-bold text-[#e1ad45] transition hover:border-[#e1ad45] hover:bg-[#e1ad45]/10">
+                Volunteer with HMSI <Users size={17} />
               </Link>
             </div>
           </div>
@@ -346,6 +351,30 @@ export default function Home() {
           ))}
         </div>
       </div>
+
+      <section id="start-here" aria-labelledby="start-here-heading" className="border-b border-[#d9d6ce] bg-white py-20 sm:py-24">
+        <div className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
+          <div className="max-w-3xl">
+            <p className="text-xs font-black uppercase tracking-[0.25em] text-[#b56b3b]">Choose your next step</p>
+            <h2 id="start-here-heading" className="mt-4 text-4xl font-black tracking-[-0.04em] text-[#17221e] sm:text-6xl">Find the clearest way to help.</h2>
+            <p className="mt-5 max-w-2xl text-lg leading-8 text-[#66716a]">Whether you want to donate to NGO work, support a verified person or cause, volunteer your skills, or partner with HMSI, start here.</p>
+          </div>
+          <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {[
+              { href: '/donate', label: 'Donate to NGO work', text: 'Give securely to HMSI’s humanitarian mission across Nigeria and Africa.', action: 'Make a donation' },
+              { href: '/fundraise', label: 'Support a verified cause', text: 'Browse fundraising requests and choose a need you want to help solve.', action: 'Browse causes' },
+              { href: '/volunteer', label: 'Volunteer with HMSI', text: 'Bring your time, skills, and local knowledge to community-led work.', action: 'Become a volunteer' },
+              { href: '/contact', label: 'Partner with HMSI', text: 'Connect your organization, network, or resources to practical NGO work.', action: 'Start a conversation' },
+            ].map((pathway) => (
+              <Link key={pathway.href} href={pathway.href} className="group rounded-[28px] border border-[#d9d6ce] bg-[#f6f4ef] p-7 transition hover:-translate-y-1 hover:border-[#1e5b49] hover:bg-[#e9f0e9] hover:shadow-xl hover:shadow-[#1e5b49]/10">
+                <h3 className="text-xl font-black tracking-tight text-[#17221e]">{pathway.label}</h3>
+                <p className="mt-3 min-h-[72px] text-sm leading-6 text-[#66716a]">{pathway.text}</p>
+                <span className="mt-6 inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[#1e5b49]">{pathway.action} <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" /></span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
 
       <div id="main-content">
         {/* HOW IT WORKS SECTION */}
