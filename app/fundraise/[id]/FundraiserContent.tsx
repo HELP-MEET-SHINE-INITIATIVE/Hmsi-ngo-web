@@ -55,6 +55,7 @@ export default function FundraiserContent() {
   const [donorEmail, setDonorEmail] = useState("");
   const [donationAmount, setDonationAmount] = useState("5000");
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [recordingWarning, setRecordingWarning] = useState("");
   const [error, setError] = useState("");
   const [loadError, setLoadError] = useState("");
 
@@ -121,7 +122,27 @@ export default function FundraiserContent() {
           }
         ],
       },
-      onSuccess: (response) => {
+      onSuccess: async (response) => {
+        const reference = response?.reference ?? "";
+        setRecordingWarning("");
+        try {
+          const ledgerResponse = await fetch("/api/donations", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              donor_name: donorName,
+              donor_email: donorEmail,
+              amount: Number(donationAmount),
+              paystack_reference: reference,
+              fundraiser_id: id,
+            }),
+          });
+          const ledgerResult = await ledgerResponse.json().catch(() => ({}));
+          if (!ledgerResponse.ok) throw new Error(ledgerResult.error || "The donation ledger could not be updated.");
+          if (ledgerResult.fundraiserTotalUpdated === false) setRecordingWarning("Your payment was recorded, but this fundraiser’s displayed total is still syncing.");
+        } catch (ledgerError) {
+          setRecordingWarning(ledgerError instanceof Error ? ledgerError.message : "Your payment succeeded, but the HMSI ledger is still syncing.");
+        }
         setIsSubmitted(true);
       },
       onCancel: () => {
@@ -228,6 +249,7 @@ export default function FundraiserContent() {
                     </div>
                     <h3 className="text-xl font-black mb-2">Thank You!</h3>
                     <p className="text-sm text-[#66716a] mb-6">Your donation has been received and will make a direct impact.</p>
+                    {recordingWarning && <p className="mb-6 rounded-2xl border border-[#e1ad45]/50 bg-[#fff8e8] p-4 text-left text-xs leading-5 text-[#7a5b16]">{recordingWarning} Keep your Paystack reference and contact <a className="font-black underline" href="mailto:support@hmsi.org.ng">support@hmsi.org.ng</a> if the admin ledger does not update.</p>}
                     <button onClick={() => setIsSubmitted(false)} className="text-xs font-black uppercase tracking-widest text-[#1e5b49] hover:underline">Donate again</button>
                   </div>
                 ) : (

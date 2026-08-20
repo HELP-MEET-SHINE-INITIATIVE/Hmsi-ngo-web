@@ -44,14 +44,36 @@ export default function DonateForm() {
   const [error, setError] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [paymentReference, setPaymentReference] = useState("");
+  const [recordingWarning, setRecordingWarning] = useState("");
 
   const amountInNaira = selectedAmount ?? Number(customAmount);
   const amountInKobo = Math.round(amountInNaira * 100);
 
-  const handleSuccess = (response?: PaymentResponse) => {
-    setPaymentReference(response?.reference ?? "");
-    setIsSubmitted(true);
+  const handleSuccess = async (response?: PaymentResponse) => {
+    const reference = response?.reference ?? "";
+    setPaymentReference(reference);
     setError("");
+    setRecordingWarning("");
+
+    try {
+      const ledgerResponse = await fetch("/api/donations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          donor_name: donorName,
+          donor_email: donorEmail,
+          amount: amountInNaira,
+          paystack_reference: reference,
+        }),
+      });
+      const ledgerResult = await ledgerResponse.json().catch(() => ({}));
+      if (!ledgerResponse.ok) throw new Error(ledgerResult.error || "The donation ledger could not be updated.");
+      setPaymentReference(ledgerResult.donation?.paystack_reference || reference);
+    } catch (ledgerError) {
+      setRecordingWarning(ledgerError instanceof Error ? ledgerError.message : "Your payment succeeded, but the HMSI ledger is still syncing.");
+    }
+
+    setIsSubmitted(true);
   };
 
   const handleClose = () => {
@@ -119,6 +141,7 @@ export default function DonateForm() {
             <h1 className="mt-4 text-4xl font-black leading-tight tracking-[-0.04em] sm:text-5xl">Your generosity is already moving hope forward.</h1>
             <p className="mx-auto mt-6 max-w-lg text-base leading-7 text-[#66716a]">We appreciate your gift, {donorName.split(" ")[0] || "friend"}. Your support helps communities access practical relief, opportunity and a stronger tomorrow.</p>
             {paymentReference && <p className="mt-7 rounded-2xl bg-[#f6f4ef] px-4 py-3 text-xs font-semibold text-[#66716a]">Payment reference: <span className="font-black text-[#17221e]">{paymentReference}</span></p>}
+            {recordingWarning && <p className="mt-4 rounded-2xl border border-[#e1ad45]/50 bg-[#fff8e8] px-4 py-3 text-left text-xs leading-5 text-[#7a5b16]">Your payment was successful, but HMSI could not finish updating its ledger. Please keep the reference above and contact <a className="font-black underline" href="mailto:support@hmsi.org.ng">support@hmsi.org.ng</a>.</p>}
             <Link href="/" className="mt-9 inline-flex rounded-full bg-[#17221e] px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:bg-[#1e5b49]">Return to HMSI</Link>
           </div>
         </section>
