@@ -100,7 +100,7 @@ export default function RootLayout({
     ],
     'sameAs': [
       'https://twitter.com/hmsi_ngo',
-      'https://facebook.com/hmsi_ngo',
+      'https://www.facebook.com/@hmsinitiative/',
       'https://www.instagram.com/hmsinitiative/',
     ],
   };
