@@ -9,6 +9,7 @@ import { useAuth } from "../../lib/auth";
 export default function SignupContent() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<"worker" | "volunteer">("volunteer");
   const [error, setError] = useState("");
@@ -22,6 +23,22 @@ export default function SignupContent() {
     setIsLoading(true);
 
     try {
+      if (role === 'volunteer') {
+        const volunteerResponse = await fetch('/api/volunteer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: name.trim(),
+            email: email.trim(),
+            phone: phone.trim(),
+            interest: 'General Support',
+            message: 'Volunteer account signup — please review my application for opportunities with HMSI.',
+          }),
+        });
+        const volunteerResult = await volunteerResponse.json();
+        if (!volunteerResponse.ok) throw new Error(volunteerResult.error || 'We could not submit your volunteer application.');
+      }
+
       const success = await signup(name, email, password, role);
       if (success) {
         router.push("/dashboard");
@@ -110,6 +127,18 @@ export default function SignupContent() {
                   placeholder="amina@example.com"
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-black uppercase tracking-wider text-[#17221e] mb-2">Phone Number</label>
+              <input
+                type="tel"
+                required={role === 'volunteer'}
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="w-full px-4 py-3.5 rounded-xl border border-[#d9d6ce] bg-[#f6f4ef]/50 focus:bg-white focus:border-[#1e5b49] outline-none transition-all"
+                placeholder="+234..."
+              />
             </div>
 
             <div>
