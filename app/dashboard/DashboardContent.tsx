@@ -1,9 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../../lib/auth";
-import { loadData } from "../../lib/data";
+import { loadData, saveData } from "../../lib/data";
 import Link from "next/link";
 import Image from "next/image";
 import { 
@@ -20,7 +20,8 @@ import {
   Calendar,
   CheckCircle2,
   Clock,
-  LogOut
+  LogOut,
+  X
 } from "lucide-react";
 
 export default function DashboardContent() {
@@ -28,6 +29,15 @@ export default function DashboardContent() {
   const router = useRouter();
   const [data, setData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [activePanel, setActivePanel] = useState<'notifications' | 'messages' | null>(null);
+  const [composerOpen, setComposerOpen] = useState(false);
+  const [postDraft, setPostDraft] = useState('');
+  const [commentDraft, setCommentDraft] = useState<Record<string, string>>({});
+  const [likedActivities, setLikedActivities] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [mediaFileName, setMediaFileName] = useState('');
+  const [notice, setNotice] = useState('');
+  const mediaInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -51,9 +61,58 @@ export default function DashboardContent() {
     new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
   );
 
-  const userProjects = data.projects.filter((p: any) => 
+  const userProjects = data.projects.filter((p: any) =>
     p.lead === user.name || p.volunteers.includes(user.id)
   );
+
+  const handleCreatePost = (event: React.FormEvent) => {
+    event.preventDefault();
+    const content = postDraft.trim();
+    if (!content) return;
+    const nextData = {
+      ...data,
+      activities: [{ id: `post-${Date.now()}`, userId: user.id, userName: user.name, type: 'update', content, timestamp: new Date().toISOString(), comments: [], likes: 0 }, ...data.activities],
+    };
+    saveData(nextData);
+    setData(nextData);
+    setPostDraft('');
+    setMediaFileName('');
+    setComposerOpen(false);
+    setNotice('Your update was posted to the community feed.');
+  };
+
+  const handleLike = (activityId: string) => {
+    const hasLiked = likedActivities.includes(activityId);
+    const nextData = { ...data, activities: data.activities.map((activity: any) => activity.id === activityId ? { ...activity, likes: Math.max(0, (activity.likes || 0) + (hasLiked ? -1 : 1)) } : activity) };
+    saveData(nextData);
+    setData(nextData);
+    setLikedActivities(hasLiked ? likedActivities.filter((id) => id !== activityId) : [...likedActivities, activityId]);
+  };
+
+  const handleComment = (event: React.FormEvent, activityId: string) => {
+    event.preventDefault();
+    const text = (commentDraft[activityId] || '').trim();
+    if (!text) return;
+    const nextData = { ...data, activities: data.activities.map((activity: any) => activity.id === activityId ? { ...activity, comments: [...(activity.comments || []), { id: `comment-${Date.now()}`, userName: user.name, text }] } : activity) };
+    saveData(nextData);
+    setData(nextData);
+    setCommentDraft({ ...commentDraft, [activityId]: '' });
+  };
+
+  const handleShare = async (activity: any) => {
+    const shareText = `${activity.userName}: ${activity.content}`;
+    try {
+      if (navigator.share) await navigator.share({ title: 'HMSI community update', text: shareText, url: window.location.href });
+      else await navigator.clipboard.writeText(shareText);
+      setNotice('Update shared successfully.');
+    } catch {
+      setNotice('Sharing was cancelled.');
+    }
+  };
+
+  const handleSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter' && searchQuery.trim()) router.push(`/projects?search=${encodeURIComponent(searchQuery.trim())}`);
+  };
 
   return (
     <div className="min-h-screen bg-[#f6f4ef] text-[#17221e]">
@@ -68,18 +127,22 @@ export default function DashboardContent() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#66716a]" size={18} />
               <input 
                 type="text" 
-                placeholder="Search projects, people..." 
+                                placeholder="Search projects, people..."
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                onKeyDown={handleSearch}
                 className="pl-10 pr-4 py-2 rounded-full bg-[#f6f4ef] border-none focus:ring-2 focus:ring-[#1e5b49] outline-none w-64 text-sm"
+
               />
             </div>
           </div>
           
           <div className="flex items-center gap-4">
-            <button className="p-2 rounded-full hover:bg-[#f6f4ef] text-[#66716a] relative">
+            <button onClick={() => setActivePanel('notifications')} className="p-2 rounded-full hover:bg-[#f6f4ef] text-[#66716a] relative" aria-label="Open notifications">
               <Bell size={20} />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
             </button>
-            <button className="p-2 rounded-full hover:bg-[#f6f4ef] text-[#66716a]">
+            <button onClick={() => setActivePanel('messages')} className="p-2 rounded-full hover:bg-[#f6f4ef] text-[#66716a]" aria-label="Open messages">
               <MessageSquare size={20} />
             </button>
             <div className="h-8 w-px bg-[#d9d6ce] mx-2"></div>
@@ -99,7 +162,10 @@ export default function DashboardContent() {
         </div>
       </header>
 
+      {activePanel && <div className="fixed inset-0 z-50 flex items-start justify-end bg-[#17221e]/30 p-4 pt-20" onClick={() => setActivePanel(null)}><section onClick={(event) => event.stopPropagation()} className="w-full max-w-sm rounded-3xl border border-[#d9d6ce] bg-white p-6 shadow-2xl"><div className="flex items-center justify-between"><h2 className="text-lg font-black">{activePanel === 'notifications' ? 'Notifications' : 'Messages'}</h2><button onClick={() => setActivePanel(null)} className="rounded-full p-2 text-[#66716a] hover:bg-[#f6f4ef]" aria-label="Close panel"><X size={18} /></button></div>{activePanel === 'notifications' ? <div className="mt-5 space-y-3"><button onClick={() => { setActivePanel(null); setNotice('You are up to date with the HMSI community feed.'); }} className="w-full rounded-2xl bg-[#f6f4ef] p-4 text-left text-sm hover:bg-[#e9f0e9]">Community updates are available in your feed.</button><Link href="/volunteer" onClick={() => setActivePanel(null)} className="block rounded-2xl bg-[#f6f4ef] p-4 text-sm hover:bg-[#e9f0e9]">View volunteer opportunities</Link></div> : <div className="mt-5 space-y-3"><button onClick={() => { setActivePanel(null); setNotice('No new direct messages yet.'); }} className="w-full rounded-2xl bg-[#f6f4ef] p-4 text-left text-sm hover:bg-[#e9f0e9]">No new direct messages. Tap to refresh.</button><Link href="/contact" onClick={() => setActivePanel(null)} className="block rounded-2xl bg-[#f6f4ef] p-4 text-sm hover:bg-[#e9f0e9]">Contact the HMSI coordination team</Link></div>}</section></div>}
+
       <main className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-[280px_1fr_320px] gap-8">
+        {notice && <div className="lg:col-span-3 rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-700" role="status">{notice}</div>}
         {/* Left Sidebar */}
         <aside className="hidden lg:block space-y-6">
           <nav className="bg-white rounded-3xl p-4 border border-[#d9d6ce] shadow-sm">
@@ -148,21 +214,23 @@ export default function DashboardContent() {
               <div className="relative h-12 w-12 rounded-full overflow-hidden flex-shrink-0">
                 <Image src={user.avatar} alt={user.name} fill className="object-cover" />
               </div>
-              <button className="flex-1 text-left px-6 py-3 rounded-full bg-[#f6f4ef] text-[#66716a] text-sm hover:bg-[#e9f0e9] transition-colors">
+              <button onClick={() => setComposerOpen(true)} className="flex-1 text-left px-6 py-3 rounded-full bg-[#f6f4ef] text-[#66716a] text-sm hover:bg-[#e9f0e9] transition-colors">
                 Share an update or progress photo...
               </button>
             </div>
             <div className="flex items-center justify-between mt-6 pt-4 border-t border-[#f6f4ef]">
               <div className="flex gap-4">
-                <button className="flex items-center gap-2 text-xs font-bold text-[#66716a] hover:text-[#1e5b49]">
+                <button type="button" onClick={() => { setComposerOpen(true); mediaInputRef.current?.click(); }} className="flex items-center gap-2 text-xs font-bold text-[#66716a] hover:text-[#1e5b49]">
                   <Plus size={16} className="text-[#e1ad45]" /> Photo/Video
                 </button>
-                <button className="flex items-center gap-2 text-xs font-bold text-[#66716a] hover:text-[#1e5b49]">
+                <button type="button" onClick={() => { setPostDraft('Event: '); setComposerOpen(true); }} className="flex items-center gap-2 text-xs font-bold text-[#66716a] hover:text-[#1e5b49]">
                   <Calendar size={16} className="text-[#e1ad45]" /> Event
                 </button>
               </div>
-              <button className="px-6 py-2 rounded-full bg-[#17221e] text-white text-xs font-black uppercase tracking-widest">Post</button>
+              <button type="button" onClick={() => setComposerOpen(true)} className="px-6 py-2 rounded-full bg-[#17221e] text-white text-xs font-black uppercase tracking-widest">Post</button>
             </div>
+            <input ref={mediaInputRef} type="file" accept="image/*,video/*" className="hidden" onChange={(event) => { const file = event.target.files?.[0]; if (file) { setMediaFileName(file.name); setComposerOpen(true); } }} />
+            {composerOpen && <form onSubmit={handleCreatePost} className="mt-5 rounded-2xl border border-[#d9d6ce] bg-[#f6f4ef]/60 p-4"><textarea autoFocus required value={postDraft} onChange={(event) => setPostDraft(event.target.value)} placeholder="Write an update for the HMSI community..." rows={4} className="w-full resize-none rounded-2xl border border-[#d9d6ce] bg-white p-4 text-sm outline-none focus:border-[#1e5b49]" /><div className="mt-3 flex items-center justify-between gap-3"><span className="truncate text-xs text-[#66716a]">{mediaFileName || 'Text update'}</span><div className="flex gap-2"><button type="button" onClick={() => { setComposerOpen(false); setPostDraft(''); setMediaFileName(''); }} className="rounded-full border border-[#d9d6ce] px-4 py-2 text-xs font-black uppercase tracking-widest text-[#66716a]">Cancel</button><button type="submit" className="rounded-full bg-[#1e5b49] px-4 py-2 text-xs font-black uppercase tracking-widest text-white">Publish</button></div></div></form>}
           </div>
 
           {/* Activity Feed */}
@@ -190,16 +258,18 @@ export default function DashboardContent() {
                 </div>
                 
                 <div className="px-6 py-3 bg-[#f6f4ef]/30 border-t border-[#f6f4ef] flex items-center gap-6">
-                  <button className="flex items-center gap-2 text-xs font-bold text-[#66716a] hover:text-[#1e5b49]">
-                    <ThumbsUp size={16} /> Like
+                  <button onClick={() => handleLike(activity.id)} className={`flex items-center gap-2 text-xs font-bold ${likedActivities.includes(activity.id) ? 'text-[#1e5b49]' : 'text-[#66716a]'} hover:text-[#1e5b49]`}>
+                    <ThumbsUp size={16} /> Like ({activity.likes || 0})
                   </button>
-                  <button className="flex items-center gap-2 text-xs font-bold text-[#66716a] hover:text-[#1e5b49]">
+                  <button onClick={() => setCommentDraft({ ...commentDraft, [activity.id]: commentDraft[activity.id] ?? '' })} className="flex items-center gap-2 text-xs font-bold text-[#66716a] hover:text-[#1e5b49]">
                     <MessageSquare size={16} /> Comment ({activity.comments.length})
                   </button>
-                  <button className="flex items-center gap-2 text-xs font-bold text-[#66716a] hover:text-[#1e5b49]">
+                  <button onClick={() => handleShare(activity)} className="flex items-center gap-2 text-xs font-bold text-[#66716a] hover:text-[#1e5b49]">
                     <Share2 size={16} /> Share
                   </button>
                 </div>
+
+                {commentDraft[activity.id] !== undefined && <form onSubmit={(event) => handleComment(event, activity.id)} className="flex gap-2 border-t border-[#f6f4ef] bg-white px-6 py-3"><input autoFocus value={commentDraft[activity.id]} onChange={(event) => setCommentDraft({ ...commentDraft, [activity.id]: event.target.value })} placeholder="Write a comment..." className="min-w-0 flex-1 rounded-full bg-[#f6f4ef] px-4 py-2 text-xs outline-none" /><button type="submit" className="rounded-full bg-[#17221e] px-4 py-2 text-[10px] font-black uppercase tracking-widest text-white">Send</button></form>}
 
                 {activity.comments.length > 0 && (
                   <div className="px-6 py-4 bg-[#f6f4ef]/20 space-y-4">
@@ -242,9 +312,9 @@ export default function DashboardContent() {
                 <p className="text-xs text-[#66716a] italic">No tasks assigned yet.</p>
               )}
             </div>
-            <button className="w-full mt-6 py-3 rounded-xl border border-[#d9d6ce] text-[10px] font-black uppercase tracking-widest hover:bg-[#f6f4ef] transition-colors">
+            <Link href="/projects" className="block w-full mt-6 py-3 text-center rounded-xl border border-[#d9d6ce] text-[10px] font-black uppercase tracking-widest hover:bg-[#f6f4ef] transition-colors">
               View All Tasks
-            </button>
+            </Link>
           </div>
 
           <div className="bg-[#1e5b49] rounded-3xl p-6 text-white shadow-lg">
