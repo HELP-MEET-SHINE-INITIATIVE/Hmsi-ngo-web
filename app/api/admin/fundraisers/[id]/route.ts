@@ -24,15 +24,17 @@ export async function PATCH(
 
     const { data, error } = await admin
       .from('fundraisers')
-      .update({ status, updated_at: new Date().toISOString() })
+      .update({ status })
       .eq('id', id)
       .select('id,status')
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
+    if (!data) return NextResponse.json({ error: 'Fundraiser record was not found.' }, { status: 404 });
     return NextResponse.json({ fundraiser: data });
   } catch (error) {
-    console.error('[Admin] Failed to update fundraiser:', error);
-    return NextResponse.json({ error: 'We could not update this fundraiser.' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Unknown database error';
+    console.error('[Admin] Failed to update fundraiser:', message);
+    return NextResponse.json({ error: `We could not update this fundraiser: ${message}` }, { status: 500 });
   }
 }
