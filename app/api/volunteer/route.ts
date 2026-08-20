@@ -15,12 +15,16 @@ export async function POST(request: Request) {
     const phone = String(body.phone || '').trim();
     const interest = String(body.interest || '').trim();
     const message = String(body.message || '').trim();
+    const applicantRole = String(body.role || 'volunteer').trim().toLowerCase();
 
     if (!name || !email || !phone || !interest || !message) {
       return NextResponse.json({ error: 'Please complete all volunteer application fields.' }, { status: 400 });
     }
     if (name.length > 160 || message.length > 10000) {
       return NextResponse.json({ error: 'Please shorten the name or message and try again.' }, { status: 400 });
+    }
+    if (!['volunteer', 'worker'].includes(applicantRole)) {
+      return NextResponse.json({ error: 'Choose volunteer or worker.' }, { status: 400 });
     }
 
     const admin = getSupabaseAdmin();
@@ -32,6 +36,7 @@ export async function POST(request: Request) {
       phone,
       interest,
       message,
+      applicant_role: applicantRole,
       status: 'pending',
     });
 

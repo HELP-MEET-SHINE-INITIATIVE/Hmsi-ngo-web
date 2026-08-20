@@ -40,3 +40,13 @@ The public contact address is **support@hmsi.org.ng**. HMSI is presented as serv
 The private administration workspace is available at `/hmsi-control` and is intentionally omitted from public navigation and indexing. It is not protected by obscurity alone: the server requires `HMSI_ADMIN_EMAIL`, `HMSI_ADMIN_PASSWORD`, and `HMSI_ADMIN_SESSION_SECRET`, then issues an eight-hour signed HTTP-only session cookie with strict same-site protection.
 
 The control center provides four simple areas: an overview queue, fundraiser approval, volunteer application review, and worker assignments. Administrators can approve or reject fundraising requests, approve or reject volunteer applications, add workers, and assign either assistance or job tasks with optional fundraiser links and due dates. Run the extended `supabase/schema.sql` in the Supabase SQL Editor before using these workflows.
+
+## Opportunities, Worker Approval, and Community Rooms
+
+The public `/opportunities` page displays open volunteer opportunities, worker positions, and shared roles published by an administrator. Signed-in users can apply with their role and phone number; applications are stored as `pending` records for review. The private `/hmsi-control` workspace now includes an **Opportunities** area where administrators publish positions and approve or reject applications.
+
+Volunteer and worker account signups both enter the Supabase `volunteer_applications` review queue. Approving an application marked `worker` also creates or reactivates the applicant in the `workers` directory. The worker can then use `/worker-dashboard` and `/worker-room`; a worker may also enter and post in `/volunteer-room`, while volunteers cannot enter the worker room.
+
+The `/volunteer-room` page is the shared collaboration space for volunteers and workers. The `/worker-room` page is restricted to workers and supports worker posts, comments, and likes. These pages use the `community_posts`, `community_comments`, and `community_likes` tables from the extended `supabase/schema.sql` migration.
+
+After pulling this update, run the complete extended `supabase/schema.sql` in the Supabase SQL Editor before using opportunities or community rooms. Redeploy the latest commit after the schema migration so the public routes and admin publisher use the new tables.

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Lock, Mail, ArrowRight, AlertCircle } from "lucide-react";
 import { useAuth } from "../../lib/auth";
+import { loadData } from "../../lib/data";
 
 export default function LoginContent() {
   const [email, setEmail] = useState("");
@@ -22,7 +23,8 @@ export default function LoginContent() {
     try {
       const success = await login(email, password);
       if (success) {
-        router.push("/dashboard");
+        const signedInUser = loadData().users.find((candidate: any) => candidate.email === email);
+        router.push(signedInUser?.role === 'worker' ? '/worker-dashboard' : '/dashboard');
       } else {
         setError("Invalid email or password. Please try again.");
       }

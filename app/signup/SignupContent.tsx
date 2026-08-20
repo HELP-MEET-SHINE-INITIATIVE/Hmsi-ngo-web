@@ -23,7 +23,7 @@ export default function SignupContent() {
     setIsLoading(true);
 
     try {
-      if (role === 'volunteer') {
+      if (role === 'volunteer' || role === 'worker') {
         const volunteerResponse = await fetch('/api/volunteer', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -31,8 +31,9 @@ export default function SignupContent() {
             name: name.trim(),
             email: email.trim(),
             phone: phone.trim(),
-            interest: 'General Support',
-            message: 'Volunteer account signup — please review my application for opportunities with HMSI.',
+            interest: role === 'worker' ? 'Worker support and field operations' : 'General Support',
+            message: role === 'worker' ? 'Worker account signup — please review my application for worker positions with HMSI.' : 'Volunteer account signup — please review my application for opportunities with HMSI.',
+            role,
           }),
         });
         const volunteerResult = await volunteerResponse.json();
