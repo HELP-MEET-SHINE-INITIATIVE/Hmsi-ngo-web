@@ -7,7 +7,7 @@ function getSupabaseUrl() {
 }
 
 function getSupabaseServiceKey() {
-  return process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
+  return process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 }
 
 export function hasSupabaseConfig() {
