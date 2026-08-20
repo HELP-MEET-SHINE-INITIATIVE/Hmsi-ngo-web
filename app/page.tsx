@@ -135,6 +135,26 @@ function ImpactCounter({ target, suffix = "" }: { target: number; suffix?: strin
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [newsletterError, setNewsletterError] = useState('');
+  const [newsletterBusy, setNewsletterBusy] = useState(false);
+
+  const handleNewsletterSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setNewsletterBusy(true);
+    setNewsletterError('');
+    try {
+      const response = await fetch('/api/newsletter/subscribe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: newsletterEmail }) });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Newsletter signup is temporarily unavailable.');
+      setSubscribed(true);
+      setNewsletterEmail('');
+    } catch (error) {
+      setNewsletterError(error instanceof Error ? error.message : 'Newsletter signup is temporarily unavailable.');
+    } finally {
+      setNewsletterBusy(false);
+    }
+  };
 
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
@@ -513,16 +533,19 @@ export default function Home() {
                     <p className="mt-2 text-sm text-white/60">You are now part of the HMSI community.</p>
                   </div>
                 ) : (
-                  <form onSubmit={(e) => { e.preventDefault(); setSubscribed(true); }} className="flex flex-col gap-3 sm:flex-row">
+                  <form onSubmit={handleNewsletterSubmit} className="flex flex-col gap-3 sm:flex-row">
                     <input
                       type="email"
                       required
+                      value={newsletterEmail}
+                      onChange={(event) => setNewsletterEmail(event.target.value)}
                       placeholder="Email address"
                       className="flex-1 rounded-full border border-white/20 bg-white/10 px-6 py-4 text-sm font-medium text-white outline-none backdrop-blur-md transition focus:border-[#e1ad45] focus:bg-white/20"
                     />
-                    <button type="submit" className="rounded-full bg-[#e1ad45] px-8 py-4 text-sm font-black uppercase tracking-widest text-[#17221e] transition hover:bg-white">Join</button>
+                    <button disabled={newsletterBusy} type="submit" className="rounded-full bg-[#e1ad45] px-8 py-4 text-sm font-black uppercase tracking-widest text-[#17221e] transition hover:bg-white disabled:cursor-wait disabled:opacity-60">{newsletterBusy ? 'Joining…' : 'Join'}</button>
                   </form>
                 )}
+                {newsletterError && <p className="mt-3 text-sm font-bold text-[#ffd2c8]" role="alert">{newsletterError}</p>}
                 <p className="mt-4 text-center text-[10px] font-bold uppercase tracking-widest text-white/40 lg:text-left">No spam. Just hope. Unsubscribe anytime.</p>
               </div>
             </div>
