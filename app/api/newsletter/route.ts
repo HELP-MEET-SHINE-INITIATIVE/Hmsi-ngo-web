@@ -101,6 +101,15 @@ export async function POST(request: Request) {
   if (current.error || !current.data) return errorResponse('Newsletter draft not found.', 404);
   const draft = current.data;
 
+  if (action === 'delete') {
+    if (viewer.role !== 'admin') return errorResponse('Only an administrator can delete newsletter drafts.');
+    if (draft.status === 'sent') return errorResponse('Sent newsletters cannot be deleted because their delivery record must be preserved.');
+    const deleted = await admin.from('newsletter_drafts').delete().eq('id', newsletterId).select('id').maybeSingle();
+    if (deleted.error) return errorResponse('The newsletter draft could not be deleted.', 503);
+    if (!deleted.data) return errorResponse('Newsletter draft not found.', 404);
+    return NextResponse.json({ ok: true, deletedId: newsletterId });
+  }
+
   if (action === 'approve_worker') {
     if (viewer.role !== 'worker') return errorResponse('Only an approved worker can perform worker approval.');
     if (draft.status !== 'pending_worker_approval') return errorResponse('This newsletter is not waiting for worker approval.');
