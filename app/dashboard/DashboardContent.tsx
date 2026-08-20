@@ -30,6 +30,7 @@ export default function DashboardContent() {
   const [data, setData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activePanel, setActivePanel] = useState<'notifications' | 'messages' | null>(null);
+  const [selectedProfile, setSelectedProfile] = useState<any>(null);
   const [composerOpen, setComposerOpen] = useState(false);
   const [postDraft, setPostDraft] = useState('');
   const [commentDraft, setCommentDraft] = useState<Record<string, string>>({});
@@ -64,6 +65,17 @@ export default function DashboardContent() {
   const userProjects = data.projects.filter((p: any) =>
     p.lead === user.name || p.volunteers.includes(user.id)
   );
+
+  const upcomingEvents = [
+    { id: 'event-youth-skills', title: 'Youth Skills Workshop', date: '2026-08-26T10:00:00Z', location: 'Lagos, Nigeria', description: 'Mentoring and practical skills for young people in the community.' },
+    { id: 'event-clean-water', title: 'Lagos Clean Water Mobilization', date: '2026-09-03T08:00:00Z', location: 'Makoko, Lagos', description: 'Field support and community outreach for the clean-water project.' },
+  ];
+
+  const openProfile = (profileId: string, profileName: string) => {
+    const profile = data.users.find((candidate: any) => candidate.id === profileId) || { id: profileId, name: profileName, role: 'volunteer', email: 'Registration details pending', bio: 'HMSI community volunteer.' };
+    const latestRegistration = data.activities.find((activity: any) => activity.userId === profileId);
+    setSelectedProfile({ ...profile, latestRegistration });
+  };
 
   const handleCreatePost = (event: React.FormEvent) => {
     event.preventDefault();
@@ -151,9 +163,9 @@ export default function DashboardContent() {
                 <p className="text-xs font-black uppercase tracking-wider">{user.name}</p>
                 <p className="text-[10px] font-bold text-[#66716a] uppercase">{user.role}</p>
               </div>
-              <div className="relative h-10 w-10 rounded-full overflow-hidden border-2 border-[#e1ad45]">
+              <button onClick={() => openProfile(user.id, user.name)} className="relative h-10 w-10 rounded-full overflow-hidden border-2 border-[#e1ad45]" aria-label={`Open ${user.name} profile`}>
                 <Image src={user.avatar} alt={user.name} fill className="object-cover" />
-              </div>
+              </button>
               <button onClick={logout} className="p-2 rounded-full hover:bg-red-50 text-red-600" title="Logout">
                 <LogOut size={20} />
               </button>
@@ -163,6 +175,8 @@ export default function DashboardContent() {
       </header>
 
       {activePanel && <div className="fixed inset-0 z-50 flex items-start justify-end bg-[#17221e]/30 p-4 pt-20" onClick={() => setActivePanel(null)}><section onClick={(event) => event.stopPropagation()} className="w-full max-w-sm rounded-3xl border border-[#d9d6ce] bg-white p-6 shadow-2xl"><div className="flex items-center justify-between"><h2 className="text-lg font-black">{activePanel === 'notifications' ? 'Notifications' : 'Messages'}</h2><button onClick={() => setActivePanel(null)} className="rounded-full p-2 text-[#66716a] hover:bg-[#f6f4ef]" aria-label="Close panel"><X size={18} /></button></div>{activePanel === 'notifications' ? <div className="mt-5 space-y-3"><button onClick={() => { setActivePanel(null); setNotice('You are up to date with the HMSI community feed.'); }} className="w-full rounded-2xl bg-[#f6f4ef] p-4 text-left text-sm hover:bg-[#e9f0e9]">Community updates are available in your feed.</button><Link href="/volunteer" onClick={() => setActivePanel(null)} className="block rounded-2xl bg-[#f6f4ef] p-4 text-sm hover:bg-[#e9f0e9]">View volunteer opportunities</Link></div> : <div className="mt-5 space-y-3"><button onClick={() => { setActivePanel(null); setNotice('No new direct messages yet.'); }} className="w-full rounded-2xl bg-[#f6f4ef] p-4 text-left text-sm hover:bg-[#e9f0e9]">No new direct messages. Tap to refresh.</button><Link href="/contact" onClick={() => setActivePanel(null)} className="block rounded-2xl bg-[#f6f4ef] p-4 text-sm hover:bg-[#e9f0e9]">Contact the HMSI coordination team</Link></div>}</section></div>}
+
+      {selectedProfile && <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#17221e]/40 p-4" onClick={() => setSelectedProfile(null)}><section onClick={(event) => event.stopPropagation()} className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-[#d9d6ce] bg-white p-6 shadow-2xl"><div className="flex items-start justify-between"><div className="flex items-center gap-4"><div className="relative h-16 w-16 overflow-hidden rounded-full border-2 border-[#e1ad45]"><Image src={selectedProfile.avatar || '/images/outreach-4.png'} alt={selectedProfile.name} fill className="object-cover" /></div><div><h2 className="text-xl font-black">{selectedProfile.name}</h2><p className="text-xs font-black uppercase tracking-widest text-[#b56b3b]">{selectedProfile.role}</p></div></div><button onClick={() => setSelectedProfile(null)} className="rounded-full p-2 text-[#66716a] hover:bg-[#f6f4ef]" aria-label="Close profile"><X size={18} /></button></div><div className="mt-6 rounded-2xl bg-[#f6f4ef] p-4"><h3 className="text-xs font-black uppercase tracking-widest text-[#b56b3b]">Registration details</h3><dl className="mt-3 space-y-2 text-sm"><div className="flex justify-between gap-4"><dt className="font-bold text-[#66716a]">Email</dt><dd className="text-right">{selectedProfile.email}</dd></div><div className="flex justify-between gap-4"><dt className="font-bold text-[#66716a]">Role</dt><dd className="capitalize">{selectedProfile.role}</dd></div><div><dt className="font-bold text-[#66716a]">About</dt><dd className="mt-1">{selectedProfile.bio}</dd></div>{selectedProfile.latestRegistration && <div><dt className="font-bold text-[#66716a]">Latest registration/update</dt><dd className="mt-1">{new Date(selectedProfile.latestRegistration.timestamp).toLocaleDateString()} — {selectedProfile.latestRegistration.content}</dd></div>}</dl></div><div className="mt-6"><h3 className="text-xs font-black uppercase tracking-widest text-[#b56b3b]">Upcoming events</h3><div className="mt-3 space-y-3">{upcomingEvents.map((event) => <button key={event.id} onClick={() => setNotice(`${event.title} selected — ${event.location}.`)} className="w-full rounded-2xl border border-[#d9d6ce] p-4 text-left hover:border-[#1e5b49] hover:bg-[#e9f0e9]"><div className="flex items-center justify-between gap-3"><span className="font-black">{event.title}</span><Calendar size={16} className="shrink-0 text-[#1e5b49]" /></div><p className="mt-1 text-xs font-bold text-[#b56b3b]">{new Date(event.date).toLocaleString()} · {event.location}</p><p className="mt-2 text-sm text-[#66716a]">{event.description}</p></button>)}</div></div><Link href="/volunteer" onClick={() => setSelectedProfile(null)} className="mt-6 block rounded-full bg-[#1e5b49] px-4 py-3 text-center text-xs font-black uppercase tracking-widest text-white">Volunteer opportunities</Link></section></div>}
 
       <main className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-[280px_1fr_320px] gap-8">
         {notice && <div className="lg:col-span-3 rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-700" role="status">{notice}</div>}
@@ -240,9 +254,9 @@ export default function DashboardContent() {
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className="relative h-10 w-10 rounded-full overflow-hidden">
+                      <button onClick={() => openProfile(activity.userId, activity.userName)} className="relative h-10 w-10 rounded-full overflow-hidden" aria-label={`Open ${activity.userName} profile`}>
                         <Image src={activity.userId === user.id ? user.avatar : "/images/outreach-4.png"} alt={activity.userName} fill className="object-cover" />
-                      </div>
+                      </button>
                       <div>
                         <p className="text-sm font-black">{activity.userName}</p>
                         <p className="text-[10px] font-bold text-[#66716a] uppercase flex items-center gap-1">
