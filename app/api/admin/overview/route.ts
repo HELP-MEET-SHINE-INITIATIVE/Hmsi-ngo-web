@@ -12,7 +12,7 @@ export async function GET(request: Request) {
   const admin = getSupabaseAdmin();
   if (!admin) return NextResponse.json({ error: 'Supabase is not configured on the server.' }, { status: 503 });
 
-  const [fundraisers, volunteers, workers, assignments, donations, messageNotifications, featuredStories, newsArticles] = await Promise.all([
+  const [fundraisers, volunteers, workers, assignments, donations, messageNotifications, featuredStories, newsArticles, fundraiserCampaigns] = await Promise.all([
     admin.from('fundraisers').select('id,title,description,category,target_amount,raised_amount,image_url,image_path,status,created_at').order('created_at', { ascending: false }),
     admin.from('volunteer_applications').select('id,name,email,phone,interest,message,status,created_at').order('created_at', { ascending: false }),
     admin.from('workers').select('id,name,email,phone,role,status,created_at').order('created_at', { ascending: false }),
@@ -21,6 +21,7 @@ export async function GET(request: Request) {
     admin.from('contact_message_notifications').select('id').limit(1),
     admin.from('featured_story_drafts').select('id').limit(1),
     admin.from('news_articles').select('id').limit(1),
+    admin.from('fundraisers').select('id,campaign_type,programme_name'),
   ]);
 
   const baseResults = { fundraisers, volunteers, workers, assignments };
@@ -45,6 +46,7 @@ export async function GET(request: Request) {
   if (messageNotifications.error) migrationWarnings.push('Run supabase/messaging_patch.sql to show contact messages and enable admin/worker replies.');
   if (featuredStories.error) migrationWarnings.push('Run supabase/featured_stories_patch.sql to enable homepage featured-story submissions and approvals.');
   if (newsArticles.error) migrationWarnings.push('Run supabase/newsroom_patch.sql to enable news submissions and approvals.');
+  if (fundraiserCampaigns.error) migrationWarnings.push('Run supabase/fundraiser_campaigns_patch.sql to enable organisation and programme campaign labels.');
 
   const donationRows = donations.error ? [] : donations.data || [];
   const successfulDonations = donationRows.filter((donation) => donation.status === 'success');
@@ -54,7 +56,7 @@ export async function GET(request: Request) {
   };
 
   return NextResponse.json({
-    fundraisers: fundraisers.data || [],
+    fundraisers: (fundraisers.data || []).map((fundraiser) => ({ ...fundraiser, ...(fundraiserCampaigns.data || []).find((campaign) => campaign.id === fundraiser.id) })),
     volunteers: volunteerRows,
     workers: workers.data || [],
     assignments: assignments.data || [],

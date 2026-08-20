@@ -6,6 +6,7 @@ export const runtime = 'nodejs';
 
 const ALLOWED_STATUSES = new Set(['active', 'pending', 'archived', 'rejected', 'completed']);
 const ALLOWED_CATEGORIES = new Set(['medical', 'education', 'housing', 'emergency']);
+const ALLOWED_CAMPAIGN_TYPES = new Set(['organisation', 'programme']);
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -91,6 +92,15 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       if (!Number.isFinite(raisedAmount) || raisedAmount < 0) return NextResponse.json({ error: 'Raised amount cannot be negative.' }, { status: 400 });
       updates.raised_amount = raisedAmount;
     }
+    if (Object.prototype.hasOwnProperty.call(body, 'campaignType')) {
+      const campaignType = typeof body.campaignType === 'string' ? body.campaignType.trim().toLowerCase() : '';
+      const programmeName = typeof body.programmeName === 'string' ? body.programmeName.trim() : '';
+      if (!ALLOWED_CAMPAIGN_TYPES.has(campaignType)) return NextResponse.json({ error: 'Choose organisation-wide or programme campaign.' }, { status: 400 });
+      if (campaignType === 'programme' && programmeName.length < 2) return NextResponse.json({ error: 'Add the programme name for a programme campaign.' }, { status: 400 });
+      if (programmeName.length > 160) return NextResponse.json({ error: 'Programme name is too long.' }, { status: 400 });
+      updates.campaign_type = campaignType;
+      updates.programme_name = campaignType === 'programme' ? programmeName : null;
+    }
     if (Object.prototype.hasOwnProperty.call(body, 'imageUrl')) {
       const imageUrl = typeof body.imageUrl === 'string' ? body.imageUrl.trim() : '';
       const imagePath = typeof body.imagePath === 'string' ? body.imagePath.trim() : '';
@@ -114,7 +124,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       .from('fundraisers')
       .update(updates)
       .eq('id', id)
-      .select('id,title,description,category,target_amount,raised_amount,image_url,image_path,status,created_at,updated_at')
+      .select('id,title,description,category,target_amount,raised_amount,image_url,image_path,status,campaign_type,programme_name,created_at,updated_at')
       .maybeSingle();
 
     if (error) throw error;
