@@ -42,6 +42,7 @@ export default function DashboardContent() {
   const [postDraft, setPostDraft] = useState('');
   const [commentDraft, setCommentDraft] = useState<Record<string, string>>({});
   const [likedActivities, setLikedActivities] = useState<string[]>([]);
+  const [activeActivityMenu, setActiveActivityMenu] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [mediaFileName, setMediaFileName] = useState('');
   const [notice, setNotice] = useState('');
@@ -314,10 +315,11 @@ export default function DashboardContent() {
                         </p>
                       </div>
                     </div>
-                    <button className="text-[#66716a] hover:text-[#17221e]">
+                    <button onClick={() => setActiveActivityMenu(activeActivityMenu === activity.id ? null : activity.id)} className="rounded-full p-2 text-[#66716a] hover:bg-[#f6f4ef] hover:text-[#17221e]" aria-label={`Open actions for ${activity.userName}`} aria-expanded={activeActivityMenu === activity.id}>
                       <MoreHorizontal size={20} />
                     </button>
                   </div>
+                  {activeActivityMenu === activity.id && <div className="mb-4 flex flex-wrap gap-2 rounded-2xl bg-[#f6f4ef] p-3"><button type="button" onClick={() => { openProfile(activity.userId, activity.userName); setActiveActivityMenu(null); }} className="rounded-full bg-white px-4 py-2 text-xs font-black uppercase tracking-widest text-[#17221e] hover:bg-[#e9f0e9]">View profile</button><button type="button" onClick={() => { handleShare(activity); setActiveActivityMenu(null); }} className="rounded-full bg-white px-4 py-2 text-xs font-black uppercase tracking-widest text-[#17221e] hover:bg-[#e9f0e9]">Share post</button><button type="button" onClick={() => setActiveActivityMenu(null)} className="rounded-full border border-[#d9d6ce] px-4 py-2 text-xs font-black uppercase tracking-widest text-[#66716a]">Close</button></div>}
                   <p className="text-sm leading-relaxed text-[#17221e]">{activity.content}</p>
                 </div>
                 

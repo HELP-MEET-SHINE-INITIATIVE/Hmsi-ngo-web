@@ -14,7 +14,7 @@ type PublicOpportunity = {
   ends_at: string | null;
 };
 
-const ROTATION_MS = 20 * 60 * 1000;
+const ROTATION_MS = 2 * 60 * 1000;
 
 export default function OpportunityFlash() {
   const [opportunities, setOpportunities] = useState<PublicOpportunity[]>([]);
@@ -38,10 +38,8 @@ export default function OpportunityFlash() {
   }, [loadOpportunities]);
 
   useEffect(() => {
-    if (opportunities.length < 2) {
-      setActiveIndex(0);
-      return;
-    }
+    setActiveIndex((current) => opportunities.length === 0 ? 0 : current % opportunities.length);
+    if (opportunities.length < 2) return;
     const rotationTimer = window.setInterval(() => {
       setActiveIndex((current) => (current + 1) % opportunities.length);
     }, ROTATION_MS);
@@ -59,7 +57,7 @@ export default function OpportunityFlash() {
         <div className="flex min-w-0 items-start gap-3">
           <span className="mt-0.5 inline-flex shrink-0 rounded-full bg-[#17221e] p-2 text-[#e1ad45] motion-safe:animate-pulse" aria-hidden="true"><Bell size={16} /></span>
           <div className="min-w-0">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#17221e]/70">Public opportunity · updates every 20 minutes</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#17221e]/70">Public opportunity · rotates every 2 minutes</p>
             <p className="mt-1 truncate text-base font-black sm:text-lg">Now open: {opportunity.title}</p>
             <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-bold text-[#17221e]/70"><span>{audienceLabel}</span><span className="inline-flex items-center gap-1"><MapPin size={13} aria-hidden="true" /> {opportunity.location}</span></p>
           </div>
