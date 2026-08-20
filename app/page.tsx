@@ -219,6 +219,18 @@ export default function Home() {
 
           <div className="flex items-center gap-3">
             <Link
+              href="/login"
+              className="hidden rounded-full border border-white/35 px-4 py-3 text-xs font-black uppercase tracking-[0.16em] text-white transition hover:border-white hover:bg-white/10 sm:inline-flex"
+            >
+              Log in
+            </Link>
+            <Link
+              href="/signup"
+              className="hidden rounded-full bg-white px-4 py-3 text-xs font-black uppercase tracking-[0.16em] text-[#17221e] transition hover:bg-[#e1ad45] sm:inline-flex"
+            >
+              Sign up
+            </Link>
+            <Link
               href="/donate"
               className="hidden rounded-full bg-[#e1ad45] px-5 py-3 text-xs font-black uppercase tracking-[0.16em] text-[#17221e] shadow-lg shadow-black/10 transition hover:bg-white sm:inline-flex"
             >
@@ -243,6 +255,10 @@ export default function Home() {
               <Link href="#impact" onClick={() => setMenuOpen(false)}>Our impact</Link>
               <Link href="#ways-to-help" onClick={() => setMenuOpen(false)}>Get involved</Link>
               <Link href="/about" onClick={() => setMenuOpen(false)}>About us</Link>
+              <div className="flex flex-wrap gap-3 border-t border-white/15 pt-5">
+                <Link href="/login" onClick={() => setMenuOpen(false)} className="inline-flex rounded-full border border-white/35 px-5 py-3 text-xs font-black uppercase tracking-[0.16em] text-white">Log in</Link>
+                <Link href="/signup" onClick={() => setMenuOpen(false)} className="inline-flex rounded-full bg-white px-5 py-3 text-xs font-black uppercase tracking-[0.16em] text-[#17221e]">Sign up</Link>
+              </div>
               <Link href="/donate" onClick={() => setMenuOpen(false)} className="mt-2 inline-flex w-fit rounded-full bg-[#e1ad45] px-5 py-3 text-xs font-black uppercase tracking-[0.16em] text-[#17221e]">Donate now</Link>
             </div>
           </nav>
@@ -276,6 +292,9 @@ export default function Home() {
               </Link>
               <Link href="/fundraise/create" className="inline-flex items-center justify-center gap-3 rounded-full border border-white/40 px-7 py-4 text-sm font-bold text-white transition hover:border-white hover:bg-white/10">
                 Get Help Now <ArrowRight size={17} />
+              </Link>
+              <Link href="/signup" className="inline-flex items-center justify-center gap-3 rounded-full border border-[#e1ad45]/70 px-7 py-4 text-sm font-bold text-[#e1ad45] transition hover:border-[#e1ad45] hover:bg-[#e1ad45]/10">
+                Join HMSI <Users size={17} />
               </Link>
             </div>
           </div>
