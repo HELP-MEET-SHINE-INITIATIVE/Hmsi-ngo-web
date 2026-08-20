@@ -34,14 +34,16 @@ export async function POST(request: Request) {
     return badRequest('A valid JSON donation payload is required.');
   }
 
-  const donorName = typeof body.donor_name === 'string' ? body.donor_name.trim() : '';
+  const isAnonymous = body.is_anonymous === true;
+  const submittedDonorName = typeof body.donor_name === 'string' ? body.donor_name.trim() : '';
+  const donorName = isAnonymous ? 'Anonymous donor' : submittedDonorName;
   const donorEmail = typeof body.donor_email === 'string' ? body.donor_email.trim().toLowerCase() : '';
   const reference = typeof body.paystack_reference === 'string' ? body.paystack_reference.trim() : '';
   const fundraiserId = typeof body.fundraiser_id === 'string' && body.fundraiser_id.trim() ? body.fundraiser_id.trim() : null;
   const amountInNaira = typeof body.amount === 'number' ? body.amount : Number(body.amount);
   const expectedAmountKobo = Math.round(amountInNaira * 100);
 
-  if (donorName.length < 2 || donorName.length > 160) return badRequest('Please provide a valid donor name.');
+  if (!isAnonymous && (donorName.length < 2 || donorName.length > 160)) return badRequest('Please provide a valid donor name.');
   if (!emailPattern.test(donorEmail) || donorEmail.length > 320) return badRequest('Please provide a valid donor email.');
   if (!referencePattern.test(reference)) return badRequest('Paystack returned an invalid transaction reference.');
   if (!Number.isFinite(amountInNaira) || !Number.isSafeInteger(expectedAmountKobo) || expectedAmountKobo < 10000) {
@@ -93,6 +95,7 @@ export async function POST(request: Request) {
     fundraiser_id: fundraiserId,
     donor_name: donorName,
     donor_email: donorEmail,
+    is_anonymous: isAnonymous,
     amount_ngn: payment.amount / 100,
     paystack_reference: reference,
     status: 'success',
@@ -101,10 +104,10 @@ export async function POST(request: Request) {
     paid_at: payment.paid_at || payment.created_at || null,
   };
 
-  const inserted = await admin.from('donations').insert(donationRecord).select('id,fundraiser_id,donor_name,donor_email,amount_ngn,paystack_reference,status,currency,channel,paid_at,created_at').single();
+  const inserted = await admin.from('donations').insert(donationRecord).select('id,fundraiser_id,donor_name,donor_email,is_anonymous,amount_ngn,paystack_reference,status,currency,channel,paid_at,created_at').single();
   if (inserted.error) {
     if (inserted.error.code === '23505') {
-      const existing = await admin.from('donations').select('id,fundraiser_id,donor_name,donor_email,amount_ngn,paystack_reference,status,currency,channel,paid_at,created_at').eq('paystack_reference', reference).maybeSingle();
+      const existing = await admin.from('donations').select('id,fundraiser_id,donor_name,donor_email,is_anonymous,amount_ngn,paystack_reference,status,currency,channel,paid_at,created_at').eq('paystack_reference', reference).maybeSingle();
       if (existing.data) return NextResponse.json({ donation: existing.data, duplicate: true });
     }
     console.error('[Donations] Failed to record verified donation:', inserted.error);

@@ -17,7 +17,7 @@ export async function GET(request: Request) {
     admin.from('volunteer_applications').select('id,name,email,phone,interest,message,status,created_at').order('created_at', { ascending: false }),
     admin.from('workers').select('id,name,email,phone,role,status,created_at').order('created_at', { ascending: false }),
     admin.from('work_assignments').select('id,title,description,kind,status,assigned_worker_id,fundraiser_id,due_at,created_at').order('created_at', { ascending: false }),
-    admin.from('donations').select('id,fundraiser_id,donor_name,donor_email,amount_ngn,paystack_reference,status,currency,channel,paid_at,created_at').order('created_at', { ascending: false }).limit(200),
+    admin.from('donations').select('id,fundraiser_id,donor_name,donor_email,is_anonymous,amount_ngn,paystack_reference,status,currency,channel,paid_at,created_at').order('created_at', { ascending: false }).limit(200),
     admin.from('contact_message_notifications').select('id').limit(1),
     admin.from('featured_story_drafts').select('id').limit(1),
     admin.from('news_articles').select('id').limit(1),

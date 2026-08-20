@@ -10,6 +10,7 @@ export type Fundraiser = {
   raisedAmount: number;
   image: string;
   imagePath?: string | null;
+  donorCount: number;
   status: string;
   createdAt: string;
 };
@@ -27,7 +28,24 @@ type FundraiserRow = {
   created_at: string;
 };
 
-function normalizeFundraiser(row: FundraiserRow): Fundraiser {
+async function getDonorCounts(admin: NonNullable<ReturnType<typeof getSupabaseAdmin>>, fundraiserIds: string[]) {
+  const donorEmails = new Map<string, Set<string>>();
+  if (fundraiserIds.length === 0) return new Map<string, number>();
+  const { data, error } = await admin.from('donations').select('fundraiser_id,donor_email').eq('status', 'success').in('fundraiser_id', fundraiserIds);
+  if (error) {
+    console.warn('[Fundraisers] Donor counts unavailable:', error.message);
+    return new Map<string, number>();
+  }
+  for (const donation of data || []) {
+    if (!donation.fundraiser_id) continue;
+    const email = String(donation.donor_email || '').trim().toLowerCase();
+    if (!donorEmails.has(donation.fundraiser_id)) donorEmails.set(donation.fundraiser_id, new Set());
+    if (email) donorEmails.get(donation.fundraiser_id)?.add(email);
+  }
+  return new Map(Array.from(donorEmails.entries()).map(([id, emails]) => [id, emails.size]));
+}
+
+function normalizeFundraiser(row: FundraiserRow, donorCount = 0): Fundraiser {
   return {
     id: row.id,
     title: row.title,
@@ -37,6 +55,7 @@ function normalizeFundraiser(row: FundraiserRow): Fundraiser {
     raisedAmount: Number(row.raised_amount),
     image: row.image_url,
     imagePath: row.image_path ?? null,
+    donorCount,
     status: row.status,
     createdAt: row.created_at,
   };
@@ -52,6 +71,7 @@ function seedFallback(): Fundraiser[] {
     raisedAmount: Number(row.raisedAmount),
     image: String(row.image),
     imagePath: null,
+    donorCount: 0,
     status: String(row.status || 'active'),
     createdAt: String(row.createdAt),
   }));
@@ -68,7 +88,9 @@ export async function getFundraisers() {
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return (data as FundraiserRow[]).map(normalizeFundraiser);
+  const rows = (data || []) as FundraiserRow[];
+  const donorCounts = await getDonorCounts(admin, rows.map((row) => row.id));
+  return rows.map((row) => normalizeFundraiser(row, donorCounts.get(row.id) || 0));
 }
 
 export function getTopRaisedFundraisers(fundraisers: Fundraiser[], limit = 3) {
@@ -95,7 +117,9 @@ export async function getFundraiserById(id: string) {
     .maybeSingle();
 
   if (error) throw error;
-  return data ? normalizeFundraiser(data as FundraiserRow) : null;
+  if (!data) return null;
+  const donorCounts = await getDonorCounts(admin, [id]);
+  return normalizeFundraiser(data as FundraiserRow, donorCounts.get(id) || 0);
 }
 
 export async function createFundraiser(input: {
