@@ -16,6 +16,10 @@ Official web platform for **Help Meet Shine Initiative (HMSI)** — a registered
 - **Payments:** Paystack Inline API
 - **Hosting:** Vercel
 ---
+## Canonical Domain Redirect
+
+The middleware permanently redirects `helpmeetshine.org.ng` and `www.helpmeetshine.org.ng` to `https://www.hmsi.org.ng/`, preserving the requested path and query string. To activate the redirect, add both legacy hostnames to the same Vercel project under **Settings → Domains**, then configure their DNS records at the domain registrar as Vercel instructs. The redirect cannot take effect until those hostnames resolve to Vercel.
+
 ## 💻 Local Development Setup
 1. **Clone the repository:**
    ```bash
