@@ -112,14 +112,38 @@ export async function PATCH(request: Request) {
 
   const payload = await request.json().catch(() => ({}));
   const id = cleanText(payload.id, 80);
-  const action = payload.action === 'approve' || payload.action === 'reject' || payload.action === 'publish' ? payload.action : '';
+  const action = payload.action === 'approve' || payload.action === 'reject' || payload.action === 'publish' || payload.action === 'update' ? payload.action : '';
   const reason = cleanText(payload.reason, 500);
   if (!id || !action) return NextResponse.json({ error: 'A story and review action are required.' }, { status: 400 });
   if (action === 'reject' && reason.length < 3) return NextResponse.json({ error: 'Add a short reason when requesting changes or rejecting a story.' }, { status: 400 });
 
   const { data: existing, error: lookupError } = await admin.from('featured_story_drafts').select('id,status').eq('id', id).maybeSingle();
   if (lookupError || !existing) return NextResponse.json({ error: 'Story not found.' }, { status: 404 });
-  if (existing.status === 'published') return NextResponse.json({ error: 'Published stories cannot be changed from this review action.' }, { status: 409 });
+
+  if (action === 'update') {
+    const title = cleanText(payload.title, MAX_TITLE);
+    const excerpt = cleanText(payload.excerpt, MAX_EXCERPT);
+    const body = cleanText(payload.body, MAX_BODY);
+    const category = cleanText(payload.category, 80) || 'HMSI field story';
+    const imageUrl = cleanText(payload.image_url, 500) || null;
+    if (title.length < 5 || excerpt.length < 20 || body.length < 40) {
+      return NextResponse.json({ error: 'Add a title, an excerpt of at least 20 characters, and a story of at least 40 characters.' }, { status: 400 });
+    }
+    const { data: story, error } = await admin
+      .from('featured_story_drafts')
+      .update({ title, excerpt, body, category, image_url: imageUrl })
+      .eq('id', id)
+      .select('id,title,status')
+      .single();
+    if (error || !story) {
+      console.error('[Stories] Failed to edit story:', error?.message);
+      return NextResponse.json({ error: 'Unable to edit this story.' }, { status: 500 });
+    }
+    await recordEvent(admin, id, 'updated', viewer);
+    return NextResponse.json({ story, message: 'Story changes saved.' });
+  }
+
+  if (existing.status === 'published' && action !== 'update') return NextResponse.json({ error: 'Published stories can be edited with Edit or removed with Delete.' }, { status: 409 });
 
   const isPublishing = action === 'publish';
   const nextStatus = action === 'reject' ? 'rejected' : isPublishing ? 'published' : 'approved';
@@ -145,4 +169,22 @@ export async function PATCH(request: Request) {
 
   await recordEvent(admin, id, action === 'reject' ? 'rejected' : isPublishing ? 'published' : 'approved', viewer, reason);
   return NextResponse.json({ story, message: action === 'reject' ? 'Story rejected and returned with a revision reason.' : isPublishing ? 'Story published on the homepage.' : 'Story approved. Publish it when ready.' });
+}
+
+export async function DELETE(request: Request) {
+  if (!hasSupabaseConfig()) return NextResponse.json({ error: 'Story publishing is not configured yet.' }, { status: 503 });
+  const admin = getSupabaseAdmin();
+  if (!admin) return NextResponse.json({ error: 'Story publishing is not configured yet.' }, { status: 503 });
+  const viewer = await getViewer(request, admin);
+  if (!viewer || viewer.role !== 'admin') return NextResponse.json({ error: 'Only the administrator can delete stories.' }, { status: 403 });
+  const payload = await request.json().catch(() => ({}));
+  const id = cleanText(payload.id, 80);
+  if (!id) return NextResponse.json({ error: 'A story ID is required.' }, { status: 400 });
+  const { data, error } = await admin.from('featured_story_drafts').delete().eq('id', id).select('id').maybeSingle();
+  if (error) {
+    console.error('[Stories] Failed to delete story:', error.message);
+    return NextResponse.json({ error: 'Unable to delete this story.' }, { status: 500 });
+  }
+  if (!data) return NextResponse.json({ error: 'Story not found.' }, { status: 404 });
+  return NextResponse.json({ deleted: true, id, message: 'Story permanently deleted.' });
 }
