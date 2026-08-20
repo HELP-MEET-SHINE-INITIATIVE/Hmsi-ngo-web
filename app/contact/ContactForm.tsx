@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { MessageCircle } from 'lucide-react';
 import HmsiHeader from '../../components/HmsiHeader';
 
 export default function ContactForm() {
@@ -37,6 +38,15 @@ export default function ContactForm() {
         <p className="mb-3 text-xs font-black uppercase tracking-[0.18em] text-red-600">Nigeria & Africa</p>
         <h1 className="mb-4 text-3xl font-black uppercase tracking-tighter">Contact HMSI</h1>
         <p className="mb-8 max-w-xl text-slate-600">Help-Meet Shine Initiative works with communities in Nigeria and across Africa. For support, email <a href="mailto:support@hmsi.org.ng" className="font-bold text-slate-900 underline underline-offset-4">support@hmsi.org.ng</a>. For partnerships and general enquiries, email <a href="mailto:contact@hmsi.org.ng" className="font-bold text-slate-900 underline underline-offset-4">contact@hmsi.org.ng</a>, or send us a message below.</p>
+
+        <div className="mb-8 rounded-sm border border-green-200 bg-green-50 p-5">
+          <p className="text-sm font-black uppercase tracking-widest text-green-900">Need a quick response?</p>
+          <p className="mt-2 text-sm leading-6 text-green-800">Chat directly with HMSI on WhatsApp for general enquiries, partnership questions, or help finding the right way to support our NGO work.</p>
+          <a href="https://wa.me/2348057452756?text=Hello%20HMSI%2C%20I%20would%20like%20to%20learn%20how%20to%20support%20your%20NGO%20work." target="_blank" rel="noopener noreferrer" aria-label="Chat with HMSI on WhatsApp" className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#25D366] px-5 py-3 text-sm font-black uppercase tracking-wide text-white transition hover:bg-[#1ebe5d] focus:outline-none focus:ring-2 focus:ring-green-900 focus:ring-offset-2">
+            <MessageCircle size={18} aria-hidden="true" /> Chat on WhatsApp
+          </a>
+          <p className="mt-3 text-xs font-semibold text-green-800">+234 805 745 2756</p>
+        </div>
 
         {submitted ? (
           <div className="rounded-sm border border-teal-200 bg-teal-50 p-6 text-center">
