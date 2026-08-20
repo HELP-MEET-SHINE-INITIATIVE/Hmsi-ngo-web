@@ -2,7 +2,6 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { loadData } from "../../../lib/data";
 import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
 import Image from "next/image";
@@ -57,14 +56,27 @@ export default function FundraiserContent() {
   const [donationAmount, setDonationAmount] = useState("5000");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState("");
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
-    const data = loadData();
-    const found = data.fundraisers.find((f: any) => f.id === id);
-    if (found) {
-      setFundraiser(found);
-    }
-    setIsLoading(false);
+    let isMounted = true;
+    setIsLoading(true);
+    fetch(`/api/fundraisers/${encodeURIComponent(id)}`, { cache: "no-store" })
+      .then(async (response) => {
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Fundraiser is temporarily unavailable.");
+        if (isMounted) setFundraiser(result.fundraiser);
+      })
+      .catch((fetchError) => {
+        if (isMounted) setLoadError(fetchError instanceof Error ? fetchError.message : "Fundraiser is temporarily unavailable.");
+      })
+      .finally(() => {
+        if (isMounted) setIsLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, [id]);
 
   const handleDonate = (e: React.FormEvent) => {
@@ -132,7 +144,7 @@ export default function FundraiserContent() {
   if (!fundraiser) {
     return (
       <div className="min-h-screen bg-[#f6f4ef] flex flex-col items-center justify-center p-6 text-center">
-        <h1 className="text-2xl font-black mb-4">Fundraiser not found</h1>
+        <h1 className="text-2xl font-black mb-4">{loadError || "Fundraiser not found"}</h1>
         <Link href="/fundraise" className="text-[#1e5b49] font-bold hover:underline">Back to listing</Link>
       </div>
     );
@@ -154,7 +166,7 @@ export default function FundraiserContent() {
           {/* Left: Content */}
           <section className="space-y-10">
             <div className="relative h-[500px] rounded-[40px] overflow-hidden shadow-xl">
-              <Image src={fundraiser.image} alt={fundraiser.title} fill className="object-cover" />
+              <Image src={fundraiser.image} alt={fundraiser.title} fill sizes="(max-width: 1024px) 100vw, 60vw" className="object-cover" />
               <div className="absolute top-6 left-6">
                 <span className="px-4 py-2 rounded-full bg-white/90 backdrop-blur-md text-xs font-black uppercase tracking-widest text-[#1e5b49]">
                   {fundraiser.category}

@@ -3,11 +3,11 @@ import CreateFundraiserContent from './CreateFundraiserContent';
 
 export const metadata: Metadata = {
   title: 'Get Financial Help | Start a Fundraiser on HMSI',
-  description: 'Need help with medical bills, school fees, or emergency housing in Nigeria? Submit your help request to the HMSI community and receive donations from caring people.',
-  keywords: ['get financial help Nigeria', 'need money for medical bills', 'school fees assistance Nigeria', 'emergency housing help', 'HMSI get help'],
+  description: 'Need help with medical bills, school fees, or emergency housing in Nigeria or Africa? Submit your help request with a cover image to the HMSI community and receive support from caring people.',
+  keywords: ['get financial help Nigeria', 'NGO Africa', 'need money for medical bills', 'school fees assistance Nigeria', 'emergency housing help', 'HMSI get help'],
   openGraph: {
     title: 'Get Financial Help | Start a Fundraiser on HMSI',
-    description: 'Need help with medical bills, school fees, or emergency housing in Nigeria? Submit your help request to the HMSI community.',
+    description: 'Need help with medical bills, school fees, or emergency housing in Nigeria or Africa? Submit your help request to the HMSI community with a cover image.',
     url: 'https://www.hmsi.org.ng/fundraise/create',
   },
   alternates: {

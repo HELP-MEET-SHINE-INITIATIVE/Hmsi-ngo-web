@@ -3,10 +3,10 @@ import ContactForm from './ContactForm';
 
 export const metadata: Metadata = {
   title: 'Contact Us',
-  description: 'Get in touch with the Help Meet Shine Initiative (HMSI). We are here to answer your questions and explore partnership opportunities.',
+  description: 'Contact Help Meet Shine Initiative (HMSI) in Nigeria and across Africa. Email support@hmsi.org.ng for questions, support, and partnership opportunities.',
   openGraph: {
     title: 'Contact Us | HMSI',
-    description: 'Get in touch with the Help Meet Shine Initiative (HMSI). We are here to answer your questions and explore partnership opportunities.',
+    description: 'Contact Help Meet Shine Initiative (HMSI) in Nigeria and across Africa. Email support@hmsi.org.ng for questions, support, and partnership opportunities.',
     url: 'https://www.hmsi.org.ng/contact',
   },
 };

@@ -1,60 +1,108 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { loadData, saveData } from "../../../lib/data";
-import Navbar from "../../../components/Navbar";
-import Footer from "../../../components/Footer";
-import { 
-  ChevronLeft, 
-  Plus, 
-  Image as ImageIcon, 
-  Target, 
-  Type, 
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import Navbar from '../../../components/Navbar';
+import Footer from '../../../components/Footer';
+import {
+  AlertCircle,
+  CheckCircle2,
+  ChevronLeft,
   FileText,
-  CheckCircle2
-} from "lucide-react";
-import Link from "next/link";
+  Image as ImageIcon,
+  Plus,
+  Target,
+  Type,
+} from 'lucide-react';
+import Link from 'next/link';
+
+const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+const ACCEPTED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
 export default function CreateFundraiserContent() {
   const router = useRouter();
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState('');
   const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    category: "medical",
-    targetAmount: "",
-    image: "/images/outreach-1.png"
+    title: '',
+    description: '',
+    category: 'medical',
+    targetAmount: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const data = loadData();
-    const newFundraiser = {
-      id: `f${Date.now()}`,
-      ...formData,
-      targetAmount: Number(formData.targetAmount),
-      raisedAmount: 0,
-      status: "active",
-      createdAt: new Date().toISOString()
+  useEffect(() => {
+    return () => {
+      if (imagePreview) URL.revokeObjectURL(imagePreview);
     };
-    
-    data.fundraisers.unshift(newFundraiser);
-    saveData(data);
-    setIsSubmitted(true);
+  }, [imagePreview]);
+
+  const handleImageChange = (file?: File) => {
+    setError('');
+    if (!file) return;
+    if (!ACCEPTED_IMAGE_TYPES.has(file.type)) {
+      setError('Please choose a JPG, PNG, or WEBP image.');
+      return;
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      setError('Please choose an image that is 8 MB or smaller.');
+      return;
+    }
+
+    setSelectedImage(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (!selectedImage) {
+      setError('Please add a cover image for your fundraiser.');
+      return;
+    }
+
+    const targetAmount = Number(formData.targetAmount);
+    if (!Number.isFinite(targetAmount) || targetAmount <= 0) {
+      setError('Enter a target amount greater than zero.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const body = new FormData();
+      body.append('title', formData.title.trim());
+      body.append('description', formData.description.trim());
+      body.append('category', formData.category);
+      body.append('targetAmount', String(targetAmount));
+      body.append('image', selectedImage);
+
+      const response = await fetch('/api/fundraisers', { method: 'POST', body });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'We could not submit this fundraiser.');
+
+      setIsSubmitted(true);
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : 'We could not submit this fundraiser.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isSubmitted) {
     return (
       <div className="min-h-screen bg-[#f6f4ef] text-[#17221e]">
         <Navbar />
-        <main className="max-w-2xl mx-auto px-6 py-20 text-center">
-          <div className="w-24 h-24 rounded-full bg-[#e9f0e9] flex items-center justify-center text-[#1e5b49] mx-auto mb-8">
+        <main className="mx-auto max-w-2xl px-6 py-20 text-center">
+          <div className="mx-auto mb-8 flex h-24 w-24 items-center justify-center rounded-full bg-[#e9f0e9] text-[#1e5b49]">
             <CheckCircle2 size={48} />
           </div>
-          <h1 className="text-4xl font-black tracking-tight mb-4">Request Submitted</h1>
-          <p className="text-[#66716a] text-lg mb-10">Your help request has been received and is being verified by our team. It will be live on the platform within 24 hours.</p>
-          <Link href="/fundraise" className="px-10 py-4 rounded-full bg-[#17221e] text-white font-black uppercase tracking-widest text-sm hover:bg-[#1e5b49] transition-all">
+          <h1 className="mb-4 text-4xl font-black tracking-tight">Request Submitted</h1>
+          <p className="mb-10 text-lg text-[#66716a]">Your help request has been received and is being verified by our team. It will be live on the platform within 24 hours.</p>
+          <Link href="/fundraise" className="rounded-full bg-[#17221e] px-10 py-4 text-sm font-black uppercase tracking-widest text-white transition-all hover:bg-[#1e5b49]">
             Back to Fundraisers
           </Link>
         </main>
@@ -66,43 +114,50 @@ export default function CreateFundraiserContent() {
   return (
     <div className="min-h-screen bg-[#f6f4ef] text-[#17221e]">
       <Navbar />
-      
-      <main className="max-w-3xl mx-auto px-6 py-12">
-        <Link href="/fundraise" className="inline-flex items-center gap-2 text-sm font-bold text-[#66716a] hover:text-[#1e5b49] mb-8 transition-colors">
+      <main className="mx-auto max-w-3xl px-6 py-12">
+        <Link href="/fundraise" className="mb-8 inline-flex items-center gap-2 text-sm font-bold text-[#66716a] transition-colors hover:text-[#1e5b49]">
           <ChevronLeft size={18} /> Back to listing
         </Link>
 
-        <div className="bg-white rounded-[40px] border border-[#d9d6ce] shadow-sm overflow-hidden">
-          <div className="p-8 md:p-12 border-b border-[#f6f4ef] bg-[#17221e] text-white">
-            <h1 className="text-3xl font-black tracking-tight mb-2">Start a Fundraiser</h1>
+        <div className="overflow-hidden rounded-[40px] border border-[#d9d6ce] bg-white shadow-sm">
+          <div className="border-b border-[#f6f4ef] bg-[#17221e] p-8 text-white md:p-12">
+            <h1 className="mb-2 text-3xl font-black tracking-tight">Start a Fundraiser</h1>
             <p className="text-white/60">Tell your story and get the support you need.</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-8 md:p-12 space-y-8">
+          <form onSubmit={handleSubmit} className="space-y-8 p-8 md:p-12">
+            {error && (
+              <div className="flex items-start gap-3 rounded-2xl border border-red-100 bg-red-50 p-4 text-sm text-red-700" role="alert">
+                <AlertCircle size={18} className="mt-0.5 shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
+
             <div className="space-y-6">
               <div>
-                <label className="block text-xs font-black uppercase tracking-widest text-[#17221e] mb-3 flex items-center gap-2">
+                <label className="mb-3 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[#17221e]">
                   <Type size={16} className="text-[#e1ad45]" /> Fundraiser Title
                 </label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   required
+                  maxLength={160}
                   value={formData.title}
-                  onChange={(e) => setFormData({...formData, title: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   placeholder="e.g. Help Baby Tobi's Heart Surgery"
-                  className="w-full px-6 py-4 rounded-2xl bg-[#f6f4ef] border-none focus:ring-2 focus:ring-[#1e5b49] outline-none text-sm"
+                  className="w-full rounded-2xl bg-[#f6f4ef] px-6 py-4 text-sm outline-none focus:ring-2 focus:ring-[#1e5b49]"
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div>
-                  <label className="block text-xs font-black uppercase tracking-widest text-[#17221e] mb-3 flex items-center gap-2">
+                  <label className="mb-3 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[#17221e]">
                     <Plus size={16} className="text-[#e1ad45]" /> Category
                   </label>
-                  <select 
+                  <select
                     value={formData.category}
-                    onChange={(e) => setFormData({...formData, category: e.target.value})}
-                    className="w-full px-6 py-4 rounded-2xl bg-[#f6f4ef] border-none focus:ring-2 focus:ring-[#1e5b49] outline-none text-sm appearance-none"
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    className="w-full appearance-none rounded-2xl bg-[#f6f4ef] px-6 py-4 text-sm outline-none focus:ring-2 focus:ring-[#1e5b49]"
                   >
                     <option value="medical">Medical</option>
                     <option value="education">Education</option>
@@ -111,62 +166,66 @@ export default function CreateFundraiserContent() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-black uppercase tracking-widest text-[#17221e] mb-3 flex items-center gap-2">
+                  <label className="mb-3 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[#17221e]">
                     <Target size={16} className="text-[#e1ad45]" /> Target Amount (₦)
                   </label>
-                  <input 
-                    type="number" 
+                  <input
+                    type="number"
                     required
+                    min="1"
+                    step="1"
                     value={formData.targetAmount}
-                    onChange={(e) => setFormData({...formData, targetAmount: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, targetAmount: e.target.value })}
                     placeholder="e.g. 500000"
-                    className="w-full px-6 py-4 rounded-2xl bg-[#f6f4ef] border-none focus:ring-2 focus:ring-[#1e5b49] outline-none text-sm"
+                    className="w-full rounded-2xl bg-[#f6f4ef] px-6 py-4 text-sm outline-none focus:ring-2 focus:ring-[#1e5b49]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-black uppercase tracking-widest text-[#17221e] mb-3 flex items-center gap-2">
+                <label className="mb-3 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[#17221e]">
                   <FileText size={16} className="text-[#e1ad45]" /> The Story
                 </label>
-                <textarea 
+                <textarea
                   required
+                  maxLength={10000}
                   rows={6}
                   value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Describe the situation and why you need help..."
-                  className="w-full px-6 py-4 rounded-2xl bg-[#f6f4ef] border-none focus:ring-2 focus:ring-[#1e5b49] outline-none text-sm resize-none"
+                  className="w-full resize-none rounded-2xl bg-[#f6f4ef] px-6 py-4 text-sm outline-none focus:ring-2 focus:ring-[#1e5b49]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-black uppercase tracking-widest text-[#17221e] mb-3 flex items-center gap-2">
+                <label className="mb-3 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[#17221e]">
                   <ImageIcon size={16} className="text-[#e1ad45]" /> Cover Image
                 </label>
-                <div className="flex items-center justify-center w-full">
-                  <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-[#d9d6ce] border-dashed rounded-[32px] cursor-pointer bg-[#f6f4ef] hover:bg-[#e9f0e9] transition-all">
-                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                      <ImageIcon className="w-10 h-10 mb-3 text-[#66716a]" />
-                      <p className="mb-2 text-sm text-[#66716a] font-bold">Click to upload or drag and drop</p>
-                      <p className="text-xs text-[#66716a]">PNG, JPG or WEBP (MAX. 800x400px)</p>
-                    </div>
-                    <input type="file" className="hidden" disabled />
-                  </label>
-                </div>
-                <p className="mt-2 text-[10px] text-[#66716a] italic">* For this demo, a default image will be used.</p>
+                <label className="relative flex min-h-48 cursor-pointer items-center justify-center overflow-hidden rounded-[32px] border-2 border-dashed border-[#d9d6ce] bg-[#f6f4ef] transition-all hover:bg-[#e9f0e9]">
+                  {imagePreview ? (
+                    <Image src={imagePreview} alt="Selected fundraiser cover preview" fill unoptimized sizes="100vw" className="absolute inset-0 h-full w-full object-cover" />
+                  ) : null}
+                  <div className={`relative flex flex-col items-center justify-center px-6 py-8 text-center ${imagePreview ? 'bg-[#17221e]/70 text-white' : ''}`}>
+                    <ImageIcon className="mb-3 h-10 w-10" />
+                    <p className="mb-2 text-sm font-bold">{imagePreview ? 'Choose a different image' : 'Click to upload or drag and drop'}</p>
+                    <p className="text-xs opacity-80">JPG, PNG or WEBP, up to 8 MB</p>
+                  </div>
+                  <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(e) => handleImageChange(e.target.files?.[0])} />
+                </label>
+                <p className="mt-2 text-[10px] italic text-[#66716a]">Your image is securely stored in Supabase Storage.</p>
               </div>
             </div>
 
-            <button 
+            <button
               type="submit"
-              className="w-full py-5 rounded-full bg-[#1e5b49] text-white font-black uppercase tracking-widest text-sm hover:bg-[#17221e] transition-all shadow-lg shadow-[#1e5b49]/20"
+              disabled={isSubmitting}
+              className="w-full rounded-full bg-[#1e5b49] py-5 text-sm font-black uppercase tracking-widest text-white shadow-lg shadow-[#1e5b49]/20 transition-all hover:bg-[#17221e] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Submit for Verification
+              {isSubmitting ? 'Uploading and submitting…' : 'Submit for Verification'}
             </button>
           </form>
         </div>
       </main>
-
       <Footer />
     </div>
   );

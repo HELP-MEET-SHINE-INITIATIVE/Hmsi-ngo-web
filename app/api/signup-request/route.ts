@@ -1,22 +1,37 @@
-import { NextResponse } from 'next/server'
-import { supabaseAdmin } from '../../../lib/supabaseAdmin'
+import { NextResponse } from 'next/server';
+import { getSupabaseAdmin, hasSupabaseConfig } from '../../../lib/supabaseAdmin';
 
-export async function POST(req: Request) {
+export const runtime = 'nodejs';
+
+export async function POST(request: Request) {
+  if (!hasSupabaseConfig()) {
+    return NextResponse.json({ error: 'Signup requests are not configured yet.' }, { status: 503 });
+  }
+
   try {
-    const body = await req.json()
-    const { name, email, phone, message } = body
+    const body = await request.json();
+    const name = String(body.name || '').trim();
+    const email = String(body.email || '').trim().toLowerCase();
+    const phone = String(body.phone || '').trim();
+    const message = String(body.message || '').trim();
+
     if (!name || !email) {
-      return NextResponse.json({ error: 'Name and email are required' }, { status: 400 })
+      return NextResponse.json({ error: 'Name and email are required.' }, { status: 400 });
     }
 
-    const { data, error } = await supabaseAdmin
+    const admin = getSupabaseAdmin();
+    if (!admin) throw new Error('Supabase is not configured.');
+
+    const { data, error } = await admin
       .from('signup_requests')
-      .insert([{ name, email, phone: phone ?? null, message: message ?? null }])
+      .insert([{ name, email, phone: phone || null, message: message || null }])
+      .select()
+      .single();
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-
-    return NextResponse.json({ ok: true, data }, { status: 201 })
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || String(err) }, { status: 500 })
+    if (error) throw error;
+    return NextResponse.json({ ok: true, data }, { status: 201 });
+  } catch (error) {
+    console.error('[Signup] Failed to save request:', error);
+    return NextResponse.json({ error: 'We could not save this request. Please try again.' }, { status: 500 });
   }
 }

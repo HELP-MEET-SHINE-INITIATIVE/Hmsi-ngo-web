@@ -6,10 +6,10 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://www.hmsi.org.ng'),
   title: {
     template: '%s | Help Meet Shine Initiative (HMSI)',
-    default: 'Help Meet Shine Initiative (HMSI) | Get Help & Empower Communities in Nigeria',
+    default: 'Help Meet Shine Initiative (HMSI) | Supporting Communities in Nigeria and Africa',
   },
-  description: 'Need help? Post your problem and receive donations from caring Nigerians. HMSI provides financial assistance for medical bills, education, and housing. Join us in restoring hope across Nigeria.',
-  keywords: ['NGO Nigeria', 'get financial help Nigeria', 'medical bill assistance', 'education support Nigeria', 'humanitarian aid', 'HMSI', 'charity Nigeria', 'crowdfunding Nigeria'],
+  description: 'Need help? Share your story and connect with support from caring people. HMSI provides humanitarian assistance for medical bills, education, and housing across Nigeria and Africa.',
+  keywords: ['NGO Nigeria', 'NGO Africa', 'get financial help Nigeria', 'medical bill assistance', 'education support Africa', 'humanitarian aid', 'HMSI', 'charity Nigeria', 'crowdfunding Africa'],
   authors: [{ name: 'HMSI' }],
   creator: 'HMSI',
   publisher: 'HMSI',
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'Help Meet Shine Initiative (HMSI) | Empowering Communities',
-    description: 'Empowering Communities. Restoring Hope Across Nigeria. Post your need or support a cause today.',
+    description: 'Empowering communities and restoring hope across Nigeria and Africa. Post your need or support a verified cause today.',
     url: 'https://www.hmsi.org.ng',
     siteName: 'Help Meet Shine Initiative',
     images: [
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Help Meet Shine Initiative (HMSI)',
-    description: 'Empowering Communities. Restoring Hope Across Nigeria. Join us in building a stronger tomorrow.',
+    description: 'Empowering communities and restoring hope across Nigeria and Africa. Join us in building a stronger tomorrow.',
     images: ['/opengraph-image.png'],
   },
   icons: {
@@ -75,10 +75,20 @@ export default function RootLayout({
     'alternateName': 'HMSI',
     'url': 'https://www.hmsi.org.ng',
     'logo': 'https://www.hmsi.org.ng/logo.png',
-    'description': 'HMSI provides humanitarian support, equips individuals for sustainable wealth creation, and drives community-led social growth across Nigeria.',
+    'description': 'HMSI provides humanitarian support, equips individuals for sustainable wealth creation, and drives community-led social growth across Nigeria and Africa.',
     'address': {
       '@type': 'PostalAddress',
-      'addressCountry': 'Nigeria',
+      'addressCountry': 'NG',
+    },
+    'areaServed': [
+      { '@type': 'Country', 'name': 'Nigeria' },
+      { '@type': 'Continent', 'name': 'Africa' },
+    ],
+    'contactPoint': {
+      '@type': 'ContactPoint',
+      'email': 'support@hmsi.org.ng',
+      'contactType': 'customer support',
+      'areaServed': ['NG', 'Africa'],
     },
     'sameAs': [
       'https://twitter.com/hmsi_ngo',
