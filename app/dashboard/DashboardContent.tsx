@@ -196,6 +196,7 @@ export default function DashboardContent() {
           </div>
           
           <div className="flex items-center gap-4">
+            {viewer.role === 'admin' && <Link href="/hmsi-control" className="hidden rounded-full bg-[#1e5b49] px-3 py-2 text-[10px] font-black uppercase tracking-widest text-white sm:inline-flex">Admin dashboard</Link>}
             <button onClick={() => setActivePanel('notifications')} className="p-2 rounded-full hover:bg-[#f6f4ef] text-[#66716a] relative" aria-label="Open notifications">
               <Bell size={20} />
               {viewer.role === 'worker' && messageUnreadCount > 0 && <span className="absolute -right-1 -top-1 min-w-4 rounded-full bg-red-500 px-1 text-center text-[9px] font-black leading-4 text-white">{messageUnreadCount}</span>}
