@@ -11,7 +11,7 @@ export default function Footer() {
               <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#e1ad45] text-xl font-black text-[#17221e]">H</span>
               <span className="text-sm font-black uppercase tracking-[0.17em]">HMSI</span>
             </Link>
-            <p className="mt-6 max-w-xs text-sm leading-6 text-white/60">A community-rooted humanitarian initiative helping people move from crisis to possibility.</p>
+            <p className="mt-6 max-w-xs text-sm leading-6 text-white/60">A community-rooted humanitarian initiative helping people move from crisis to possibility across Nigeria and Africa.</p>
           </div>
           <div>
             <p className="text-xs font-black uppercase tracking-[0.17em] text-[#e1ad45]">Explore</p>
@@ -23,7 +23,7 @@ export default function Footer() {
           </div>
           <div>
             <p className="text-xs font-black uppercase tracking-[0.17em] text-[#e1ad45]">Contact</p>
-            <p className="mt-5 text-sm leading-6 text-white/70">Lagos, Nigeria<br />support@helpmeetshine.org</p>
+            <p className="mt-5 text-sm leading-6 text-white/70">Lagos, Nigeria<br />Serving communities across Africa<br /><a href="mailto:support@hmsi.org.ng" className="transition hover:text-white">support@hmsi.org.ng</a></p>
             <Link href="/contact" className="mt-4 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.12em] text-[#e1ad45]">Start a conversation <ArrowRight size={14} /></Link>
           </div>
         </div>

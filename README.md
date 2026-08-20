@@ -21,3 +21,15 @@ Official web platform for **Help Meet Shine Initiative (HMSI)** — a registered
    ```bash
    git clone [https://github.com/Gpowerluv/Hmsi-ngo-web.git](https://github.com/Gpowerluv/Hmsi-ngo-web.git)
    cd Hmsi-ngo-web
+
+
+## Supabase Configuration
+
+Fundraiser records, contact messages, and signup requests are stored in Supabase. Fundraiser cover images are stored in the `fundraiser-images` Supabase Storage bucket; only image metadata and the public image URL are stored in the database. The server uses the Supabase service-role key exclusively in route handlers, while browser-safe configuration uses the public anon key.
+
+1. Copy `.env.example` to `.env.local` and add the Supabase project URL, anon key, and service-role key. Never commit the service-role key.
+2. Run `supabase/schema.sql` in the Supabase SQL Editor. This creates the fundraiser, contact-message, and signup-request tables, enables row-level security, creates the storage bucket, and preserves the two existing seed fundraisers.
+3. Deploy the environment variables to the hosting provider. Without server credentials, the public fundraiser listing uses the bundled seed records, while new fundraiser and contact submissions return a clear configuration error rather than silently losing data.
+4. Fundraiser uploads accept JPG, PNG, and WEBP images up to 8 MB. The server validates type and size, stores the file in Supabase Storage with a one-year cache policy, and stores only its URL and storage path in Supabase.
+
+The public contact address is **support@hmsi.org.ng**. HMSI is presented as serving communities in **Nigeria and across Africa** throughout the contact experience and site metadata.
