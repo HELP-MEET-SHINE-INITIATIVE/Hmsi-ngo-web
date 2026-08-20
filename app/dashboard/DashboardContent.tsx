@@ -6,6 +6,7 @@ import { useAuth } from "../../lib/auth";
 import { loadData, saveData } from "../../lib/data";
 import Link from "next/link";
 import Image from "next/image";
+import MessageInbox from '../../components/MessageInbox';
 import { 
   LayoutDashboard, 
   Briefcase, 
@@ -38,6 +39,7 @@ export default function DashboardContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [mediaFileName, setMediaFileName] = useState('');
   const [notice, setNotice] = useState('');
+  const [messageUnreadCount, setMessageUnreadCount] = useState(0);
   const mediaInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -49,6 +51,14 @@ export default function DashboardContent() {
       setIsLoading(false);
     }
   }, [user, authLoading, router]);
+
+  useEffect(() => {
+    if (!user || user.role !== 'worker') return;
+    fetch(`/api/messages?email=${encodeURIComponent(user.email)}&role=worker`, { cache: 'no-store' })
+      .then((response) => response.json())
+      .then((result) => setMessageUnreadCount(Number(result.unreadCount || 0)))
+      .catch(() => setMessageUnreadCount(0));
+  }, [user]);
 
   if (authLoading || isLoading || !user) {
     return (
@@ -152,9 +162,9 @@ export default function DashboardContent() {
           <div className="flex items-center gap-4">
             <button onClick={() => setActivePanel('notifications')} className="p-2 rounded-full hover:bg-[#f6f4ef] text-[#66716a] relative" aria-label="Open notifications">
               <Bell size={20} />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+              {user.role === 'worker' && messageUnreadCount > 0 && <span className="absolute -right-1 -top-1 min-w-4 rounded-full bg-red-500 px-1 text-center text-[9px] font-black leading-4 text-white">{messageUnreadCount}</span>}
             </button>
-            <button onClick={() => router.push(user.role === 'worker' ? '/worker-room' : '/volunteer-room')} className="p-2 rounded-full hover:bg-[#f6f4ef] text-[#66716a]" aria-label={user.role === 'worker' ? 'Open worker room' : 'Open volunteer room'}>
+            <button onClick={() => user.role === 'worker' ? setActivePanel('messages') : router.push('/volunteer-room')} className="p-2 rounded-full hover:bg-[#f6f4ef] text-[#66716a]" aria-label={user.role === 'worker' ? 'Open messages' : 'Open volunteer room'}>
               <MessageSquare size={20} />
             </button>
             <div className="h-8 w-px bg-[#d9d6ce] mx-2"></div>
@@ -174,7 +184,7 @@ export default function DashboardContent() {
         </div>
       </header>
 
-      {activePanel && <div className="fixed inset-0 z-50 flex items-start justify-end bg-[#17221e]/30 p-4 pt-20" onClick={() => setActivePanel(null)}><section onClick={(event) => event.stopPropagation()} className="w-full max-w-sm rounded-3xl border border-[#d9d6ce] bg-white p-6 shadow-2xl"><div className="flex items-center justify-between"><h2 className="text-lg font-black">{activePanel === 'notifications' ? 'Notifications' : 'Messages'}</h2><button onClick={() => setActivePanel(null)} className="rounded-full p-2 text-[#66716a] hover:bg-[#f6f4ef]" aria-label="Close panel"><X size={18} /></button></div>{activePanel === 'notifications' ? <div className="mt-5 space-y-3"><button onClick={() => { setActivePanel(null); setNotice('You are up to date with the HMSI community feed.'); }} className="w-full rounded-2xl bg-[#f6f4ef] p-4 text-left text-sm hover:bg-[#e9f0e9]">Community updates are available in your feed.</button><Link href="/opportunities" onClick={() => setActivePanel(null)} className="block rounded-2xl bg-[#f6f4ef] p-4 text-sm hover:bg-[#e9f0e9]">View volunteer opportunities</Link></div> : <div className="mt-5 space-y-3"><button onClick={() => { setActivePanel(null); setNotice('No new direct messages yet.'); }} className="w-full rounded-2xl bg-[#f6f4ef] p-4 text-left text-sm hover:bg-[#e9f0e9]">No new direct messages. Tap to refresh.</button><Link href="/contact" onClick={() => setActivePanel(null)} className="block rounded-2xl bg-[#f6f4ef] p-4 text-sm hover:bg-[#e9f0e9]">Contact the HMSI coordination team</Link></div>}</section></div>}
+      {activePanel && <div className="fixed inset-0 z-50 flex items-start justify-end bg-[#17221e]/30 p-4 pt-20" onClick={() => setActivePanel(null)}><section onClick={(event) => event.stopPropagation()} className={`w-full rounded-3xl border border-[#d9d6ce] bg-white p-6 shadow-2xl ${activePanel === 'messages' ? 'max-w-4xl' : 'max-w-sm'}`}><div className="flex items-center justify-between"><h2 className="text-lg font-black">{activePanel === 'notifications' ? 'Notifications' : 'Messages'}</h2><button onClick={() => setActivePanel(null)} className="rounded-full p-2 text-[#66716a] hover:bg-[#f6f4ef]" aria-label="Close panel"><X size={18} /></button></div>{activePanel === 'notifications' ? <div className="mt-5 space-y-3">{user.role === 'worker' && messageUnreadCount > 0 ? <button onClick={() => setActivePanel('messages')} className="w-full rounded-2xl border border-[#e1ad45]/40 bg-[#fff8e8] p-4 text-left text-sm font-bold text-[#7a5b16] hover:bg-[#fff2cf]">You have {messageUnreadCount} unread contact message{messageUnreadCount === 1 ? '' : 's'}. Tap to read and reply.</button> : <button onClick={() => { setActivePanel(null); setNotice('You are up to date with the HMSI community feed.'); }} className="w-full rounded-2xl bg-[#f6f4ef] p-4 text-left text-sm hover:bg-[#e9f0e9]">You are up to date with the HMSI community feed.</button>}<Link href="/opportunities" onClick={() => setActivePanel(null)} className="block rounded-2xl bg-[#f6f4ef] p-4 text-sm hover:bg-[#e9f0e9]">View volunteer opportunities</Link></div> : user.role === 'worker' ? <MessageInbox viewer={{ email: user.email, role: 'worker' }} compact onUnreadChange={setMessageUnreadCount} /> : <p className="mt-5 text-sm text-[#66716a]">Messages are available to approved workers and administrators.</p>}</section></div>}
 
       {selectedProfile && <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#17221e]/40 p-4" onClick={() => setSelectedProfile(null)}><section onClick={(event) => event.stopPropagation()} className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-[#d9d6ce] bg-white p-6 shadow-2xl"><div className="flex items-start justify-between"><div className="flex items-center gap-4"><div className="relative h-16 w-16 overflow-hidden rounded-full border-2 border-[#e1ad45]"><Image src={selectedProfile.avatar || '/images/outreach-4.png'} alt={selectedProfile.name} fill className="object-cover" /></div><div><h2 className="text-xl font-black">{selectedProfile.name}</h2><p className="text-xs font-black uppercase tracking-widest text-[#b56b3b]">{selectedProfile.role}</p></div></div><button onClick={() => setSelectedProfile(null)} className="rounded-full p-2 text-[#66716a] hover:bg-[#f6f4ef]" aria-label="Close profile"><X size={18} /></button></div><div className="mt-6 rounded-2xl bg-[#f6f4ef] p-4"><h3 className="text-xs font-black uppercase tracking-widest text-[#b56b3b]">Registration details</h3><dl className="mt-3 space-y-2 text-sm"><div className="flex justify-between gap-4"><dt className="font-bold text-[#66716a]">Email</dt><dd className="text-right">{selectedProfile.email}</dd></div><div className="flex justify-between gap-4"><dt className="font-bold text-[#66716a]">Role</dt><dd className="capitalize">{selectedProfile.role}</dd></div><div><dt className="font-bold text-[#66716a]">About</dt><dd className="mt-1">{selectedProfile.bio}</dd></div>{selectedProfile.latestRegistration && <div><dt className="font-bold text-[#66716a]">Latest registration/update</dt><dd className="mt-1">{new Date(selectedProfile.latestRegistration.timestamp).toLocaleDateString()} — {selectedProfile.latestRegistration.content}</dd></div>}</dl></div><div className="mt-6"><h3 className="text-xs font-black uppercase tracking-widest text-[#b56b3b]">Upcoming events</h3><div className="mt-3 space-y-3">{upcomingEvents.map((event) => <button key={event.id} onClick={() => setNotice(`${event.title} selected — ${event.location}.`)} className="w-full rounded-2xl border border-[#d9d6ce] p-4 text-left hover:border-[#1e5b49] hover:bg-[#e9f0e9]"><div className="flex items-center justify-between gap-3"><span className="font-black">{event.title}</span><Calendar size={16} className="shrink-0 text-[#1e5b49]" /></div><p className="mt-1 text-xs font-bold text-[#b56b3b]">{new Date(event.date).toLocaleString()} · {event.location}</p><p className="mt-2 text-sm text-[#66716a]">{event.description}</p></button>)}</div></div><Link href="/opportunities" onClick={() => setSelectedProfile(null)} className="mt-6 block rounded-full bg-[#1e5b49] px-4 py-3 text-center text-xs font-black uppercase tracking-widest text-white">Volunteer opportunities</Link></section></div>}
 

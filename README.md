@@ -35,6 +35,7 @@ Fundraiser records, contact messages, and signup requests are stored in Supabase
 2. Run `supabase/schema.sql` in the Supabase SQL Editor. This creates the fundraiser, contact-message, and signup-request tables, enables row-level security, creates the storage bucket, and preserves the two existing seed fundraisers.
 3. Deploy the environment variables to the hosting provider. Without server credentials, the public fundraiser listing uses the bundled seed records, while new fundraiser and contact submissions return a clear configuration error rather than silently losing data.
 4. Fundraiser uploads accept JPG, PNG, and WEBP images up to 8 MB. The server validates type and size, stores the file in Supabase Storage with a one-year cache policy, and stores only its URL and storage path in Supabase.
+5. Run `supabase/messaging_patch.sql` after the base schema. This creates contact-message replies and per-recipient notifications. New contact-form submissions appear in the private admin inbox and in the inbox of every active worker; administrators and approved workers can mark messages read, reply by email, or add an internal HMSI reply.
 
 The public contact addresses are **support@hmsi.org.ng** for support and **contact@hmsi.org.ng** for general enquiries and partnerships. HMSI is presented as serving communities in **Nigeria and across Africa** throughout the contact experience and site metadata.
 
@@ -43,7 +44,7 @@ The public contact addresses are **support@hmsi.org.ng** for support and **conta
 
 The private administration workspace is available at `/hmsi-control` and is intentionally omitted from public navigation and indexing. It is not protected by obscurity alone: the server requires `HMSI_ADMIN_EMAIL`, `HMSI_ADMIN_PASSWORD`, and `HMSI_ADMIN_SESSION_SECRET`, then issues an eight-hour signed HTTP-only session cookie with strict same-site protection.
 
-The control center provides four simple areas: an overview queue, fundraiser approval, volunteer application review, and worker assignments. Administrators can approve or reject fundraising requests, approve or reject volunteer applications, add workers, and assign either assistance or job tasks with optional fundraiser links and due dates. Run the extended `supabase/schema.sql` in the Supabase SQL Editor before using these workflows.
+The control center provides overview, fundraiser approval, volunteer application review, donations, contact messages, and worker assignment areas. Administrators can approve or reject fundraising requests, approve or reject volunteer applications, add workers, assign either assistance or job tasks with optional fundraiser links and due dates, read contact messages, reply by email, and leave internal replies for approved workers. Run the extended `supabase/schema.sql` and `supabase/messaging_patch.sql` in the Supabase SQL Editor before using these workflows.
 
 ## Opportunities, Worker Approval, and Community Rooms
 
