@@ -22,6 +22,7 @@ type Fundraiser = {
   category: string;
   targetAmount: number;
   raisedAmount: number;
+  donorCount: number;
   image: string;
 };
 
@@ -42,21 +43,23 @@ export default function FundraiseContent() {
 
   useEffect(() => {
     let isMounted = true;
-    fetch('/api/fundraisers', { cache: 'no-store' })
-      .then(async (response) => {
+    const loadFundraisers = async () => {
+      try {
+        const response = await fetch('/api/fundraisers', { cache: 'no-store' });
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || 'Fundraisers are temporarily unavailable.');
         if (isMounted) setFundraisers(result.fundraisers || []);
-      })
-      .catch((loadError) => {
+      } catch (loadError) {
         if (isMounted) setError(loadError instanceof Error ? loadError.message : 'Fundraisers are temporarily unavailable.');
-      })
-      .finally(() => {
+      } finally {
         if (isMounted) setIsLoading(false);
-      });
-
+      }
+    };
+    loadFundraisers();
+    const refreshTimer = window.setInterval(loadFundraisers, 30 * 1000);
     return () => {
       isMounted = false;
+      window.clearInterval(refreshTimer);
     };
   }, []);
 
@@ -131,7 +134,7 @@ export default function FundraiseContent() {
                       </div>
                       <div className="h-2 w-full overflow-hidden rounded-full bg-[#f6f4ef]"><div className="h-full rounded-full bg-[#1e5b49] transition-all duration-1000" style={{ width: `${progress}%` }} /></div>
                     </div>
-                    <div className="mt-8 flex items-center justify-between border-t border-[#f6f4ef] pt-6"><span className="text-[10px] font-bold uppercase tracking-widest text-[#66716a]">Verified cause</span><span className="flex items-center gap-1 text-xs font-black uppercase tracking-widest text-[#1e5b49]">Donate Now <ArrowRight size={14} /></span></div>
+                    <div className="mt-8 flex items-center justify-between border-t border-[#f6f4ef] pt-6"><span className="text-[10px] font-bold uppercase tracking-widest text-[#66716a]">{fundraiser.donorCount.toLocaleString()} donor{fundraiser.donorCount === 1 ? '' : 's'}</span><span className="flex items-center gap-1 text-xs font-black uppercase tracking-widest text-[#1e5b49]">Donate Now <ArrowRight size={14} /></span></div>
                   </div>
                 </Link>
               );

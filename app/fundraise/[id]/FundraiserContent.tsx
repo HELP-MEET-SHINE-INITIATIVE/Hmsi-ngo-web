@@ -52,6 +52,7 @@ export default function FundraiserContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [donorName, setDonorName] = useState("");
   const [donorEmail, setDonorEmail] = useState("");
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const [donationAmount, setDonationAmount] = useState("5000");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [recordingWarning, setRecordingWarning] = useState("");
@@ -62,22 +63,24 @@ export default function FundraiserContent() {
 
   useEffect(() => {
     let isMounted = true;
-    setIsLoading(true);
-    fetch(`/api/fundraisers/${encodeURIComponent(id)}`, { cache: "no-store" })
-      .then(async (response) => {
+    const loadFundraiser = async () => {
+      try {
+        const response = await fetch(`/api/fundraisers/${encodeURIComponent(id)}`, { cache: "no-store" });
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || "Fundraiser is temporarily unavailable.");
         if (isMounted) setFundraiser(result.fundraiser);
-      })
-      .catch((fetchError) => {
+      } catch (fetchError) {
         if (isMounted) setLoadError(fetchError instanceof Error ? fetchError.message : "Fundraiser is temporarily unavailable.");
-      })
-      .finally(() => {
+      } finally {
         if (isMounted) setIsLoading(false);
-      });
-
+      }
+    };
+    setIsLoading(true);
+    loadFundraiser();
+    const refreshTimer = window.setInterval(loadFundraiser, 30 * 1000);
     return () => {
       isMounted = false;
+      window.clearInterval(refreshTimer);
     };
   }, [id]);
 
@@ -128,8 +131,8 @@ export default function FundraiserContent() {
       return;
     }
 
-    if (!donorName || !donorEmail || !donationAmount) {
-      setError("Please fill in all fields.");
+    if ((!isAnonymous && !donorName) || !donorEmail || !donationAmount) {
+      setError(isAnonymous ? "Please enter your email and donation amount." : "Please fill in all fields.");
       return;
     }
 
@@ -151,7 +154,7 @@ export default function FundraiserContent() {
           {
             display_name: "Donor Name",
             variable_name: "donor_name",
-            value: donorName,
+            value: isAnonymous ? "Anonymous donor" : donorName,
           },
           {
             display_name: "Fundraiser ID",
@@ -170,6 +173,7 @@ export default function FundraiserContent() {
             body: JSON.stringify({
               donor_name: donorName,
               donor_email: donorEmail,
+              is_anonymous: isAnonymous,
               amount: Number(donationAmount),
               paystack_reference: reference,
               fundraiser_id: id,
@@ -178,6 +182,9 @@ export default function FundraiserContent() {
           const ledgerResult = await ledgerResponse.json().catch(() => ({}));
           if (!ledgerResponse.ok) throw new Error(ledgerResult.error || "The donation ledger could not be updated.");
           if (ledgerResult.fundraiserTotalUpdated === false) setRecordingWarning("Your payment was recorded, but this fundraiser’s displayed total is still syncing.");
+          const refreshedResponse = await fetch(`/api/fundraisers/${encodeURIComponent(id)}`, { cache: "no-store" });
+          const refreshedResult = await refreshedResponse.json().catch(() => ({}));
+          if (refreshedResponse.ok && refreshedResult.fundraiser) setFundraiser(refreshedResult.fundraiser);
         } catch (ledgerError) {
           setRecordingWarning(ledgerError instanceof Error ? ledgerError.message : "Your payment succeeded, but the HMSI ledger is still syncing.");
         }
@@ -236,7 +243,7 @@ export default function FundraiserContent() {
               <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-tight">{fundraiser.title}</h1>
               <div className="flex flex-wrap items-center gap-6 text-sm font-bold text-[#66716a] uppercase tracking-widest">
                 <span className="flex items-center gap-2"><Calendar size={18} className="text-[#e1ad45]" /> {new Date(fundraiser.createdAt).toLocaleDateString()}</span>
-                <span className="flex items-center gap-2"><Users size={18} className="text-[#e1ad45]" /> 124 Donors</span>
+                <span className="flex items-center gap-2"><Users size={18} className="text-[#e1ad45]" /> {Number(fundraiser.donorCount || 0).toLocaleString()} Donor{fundraiser.donorCount === 1 ? '' : 's'}</span>
                 <span className="flex items-center gap-2"><ShieldCheck size={18} className="text-[#e1ad45]" /> Verified Request</span>
               </div>
               <div className="prose prose-lg max-w-none text-[#17221e] leading-relaxed">
@@ -312,8 +319,8 @@ export default function FundraiserContent() {
                     <div className="space-y-4">
                       <input 
                         type="text" 
-                        required
-                        placeholder="Your Name"
+                        required={!isAnonymous}
+                        placeholder={isAnonymous ? "Name hidden from public records" : "Your Name"}
                         value={donorName}
                         onChange={(e) => setDonorName(e.target.value)}
                         className="w-full px-6 py-4 rounded-2xl bg-[#f6f4ef] border-none focus:ring-2 focus:ring-[#1e5b49] outline-none text-sm"
@@ -326,7 +333,7 @@ export default function FundraiserContent() {
                         onChange={(e) => setDonorEmail(e.target.value)}
                         className="w-full px-6 py-4 rounded-2xl bg-[#f6f4ef] border-none focus:ring-2 focus:ring-[#1e5b49] outline-none text-sm"
                       />
-                    </div>
+                    </div><label className="flex cursor-pointer items-start gap-3 rounded-2xl bg-[#f6f4ef] p-4 text-sm text-[#66716a]"><input type="checkbox" checked={isAnonymous} onChange={(e) => setIsAnonymous(e.target.checked)} className="mt-0.5 h-4 w-4 accent-[#1e5b49]" /><span><strong className="font-black text-[#17221e]">Donate anonymously</strong><span className="mt-1 block text-xs leading-5">Your name will be recorded as Anonymous donor. Your email is still required for Paystack verification.</span></span></label>
 
                     <button 
                       type="submit"

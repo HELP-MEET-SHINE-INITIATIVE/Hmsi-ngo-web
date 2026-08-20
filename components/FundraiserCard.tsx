@@ -62,7 +62,7 @@ export default function FundraiserCard({ fundraiser, rankLabel }: FundraiserCard
           </div>
         </div>
         <div className="mt-6 flex items-center justify-between border-t border-[#f6f4ef] pt-5">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-[#66716a]">Verified by HMSI</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-[#66716a]">{fundraiser.donorCount.toLocaleString()} donor{fundraiser.donorCount === 1 ? '' : 's'}</span>
           <span className="inline-flex items-center gap-1 text-xs font-black uppercase tracking-widest text-[#1e5b49]">Donate <ArrowRight size={14} aria-hidden="true" /></span>
         </div>
       </div>

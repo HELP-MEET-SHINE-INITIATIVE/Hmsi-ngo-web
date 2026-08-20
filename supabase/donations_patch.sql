@@ -22,6 +22,12 @@ create index if not exists donations_fundraiser_id_idx
 create index if not exists donations_status_created_at_idx
   on public.donations (status, created_at desc);
 
+alter table public.donations
+  add column if not exists is_anonymous boolean not null default false;
+
+create index if not exists donations_fundraiser_status_idx
+  on public.donations (fundraiser_id, status, created_at desc);
+
 alter table public.donations enable row level security;
 
 drop policy if exists "Service role can insert donations" on public.donations;
