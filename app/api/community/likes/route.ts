@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../../lib/supabaseAdmin';
+import { getNewsletterViewer } from '../../../../lib/newsletterAccess';
 
 export const runtime = 'nodejs';
 
@@ -10,8 +11,13 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const postId = String(body.postId || '').trim();
-    const actorKey = String(body.actorKey || '').trim();
-    if (!postId || !actorKey) return NextResponse.json({ error: 'A post and actor are required.' }, { status: 400 });
+    if (!postId) return NextResponse.json({ error: 'A post is required.' }, { status: 400 });
+    const viewer = await getNewsletterViewer(request, admin, { email: body.email, role: body.role });
+    if (!viewer) return NextResponse.json({ error: 'Sign in with an approved HMSI account to like posts.' }, { status: 401 });
+    const { data: post } = await admin.from('community_posts').select('audience').eq('id', postId).maybeSingle();
+    if (!post) return NextResponse.json({ error: 'This post was not found.' }, { status: 404 });
+    if (post.audience === 'worker' && viewer.role !== 'worker' && viewer.role !== 'admin') return NextResponse.json({ error: 'Only approved workers and administrators can interact with worker-room posts.' }, { status: 403 });
+    const actorKey = `${viewer.email}:${viewer.role}`;
 
     const { data: existing } = await admin
       .from('community_likes')
