@@ -32,6 +32,7 @@ export async function GET(request: Request) {
   if (!admin) return NextResponse.json({ stories: [], setupRequired: true });
 
   const viewer = await getViewer(request, admin);
+  const storyId = new URL(request.url).searchParams.get('id')?.trim() || '';
   let query = admin
     .from('featured_story_drafts')
     .select('id,title,excerpt,body,category,image_url,author_name,author_email,author_role,status,rejection_reason,approved_by,approved_at,published_at,created_at,updated_at')
@@ -39,6 +40,7 @@ export async function GET(request: Request) {
 
   if (!viewer) {
     query = query.eq('status', 'published').order('published_at', { ascending: false });
+    if (storyId) query = query.eq('id', storyId);
   } else if (viewer.role !== 'admin') {
     query = query.eq('author_email', viewer.email);
   }
