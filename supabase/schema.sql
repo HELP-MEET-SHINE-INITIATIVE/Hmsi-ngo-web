@@ -12,7 +12,7 @@ create table if not exists public.fundraisers (
   raised_amount numeric(14, 2) not null default 0 check (raised_amount >= 0),
   image_url text not null,
   image_path text,
-  status text not null default 'active' check (status in ('active', 'pending', 'archived')),
+  status text not null default 'active' check (status in ('active', 'pending', 'archived', 'completed')),
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now())
 );
@@ -131,7 +131,7 @@ alter table public.work_assignments enable row level security;
 -- Public fundraiser visibility remains limited to active records.
 alter table public.fundraisers drop constraint if exists fundraisers_status_check;
 alter table public.fundraisers add constraint fundraisers_status_check
-  check (status in ('active', 'pending', 'archived', 'rejected'));
+  check (status in ('active', 'pending', 'archived', 'rejected', 'completed'));
 
 
 -- Public submission policies. New records are constrained to review-safe statuses;
