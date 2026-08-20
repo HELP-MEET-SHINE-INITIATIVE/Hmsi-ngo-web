@@ -35,8 +35,8 @@ export async function GET(request: Request) {
 
   const migrationWarnings: string[] = [];
   const volunteerRows = volunteersWithRole.error ? volunteers.data || [] : volunteersWithRole.data || [];
-  if (volunteersWithRole.error) migrationWarnings.push('Run the latest supabase/schema.sql to add applicant roles.');
-  if (opportunities.error || opportunityApplications.error) migrationWarnings.push('Run the latest supabase/schema.sql to enable opportunities and opportunity applications.');
+  if (volunteersWithRole.error) migrationWarnings.push('Run supabase/role_opportunities_community_patch.sql to add applicant roles.');
+  if (opportunities.error || opportunityApplications.error) migrationWarnings.push('Run supabase/role_opportunities_community_patch.sql to enable opportunities and opportunity applications.');
 
   return NextResponse.json({
     fundraisers: fundraisers.data || [],
