@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import FundraiserCard from "../components/FundraiserCard";
 import type { Fundraiser } from "../lib/fundraisers";
@@ -263,9 +262,7 @@ export default function Home() {
       <header className="absolute inset-x-0 top-0 z-50 border-b border-white/15 text-white">
         <div className="mx-auto flex max-w-[1440px] items-center justify-between px-5 py-5 sm:px-8 lg:px-12">
           <Link href="/" className="group flex items-center gap-3" aria-label="HMSI home">
-            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#e1ad45] text-xl font-black text-[#17221e] transition-transform duration-200 group-hover:rotate-6">
-              H
-            </span>
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#272178] shadow-sm transition-transform duration-200 group-hover:scale-105"><Image src="/logo.png" alt="HMSI logo" width={48} height={48} priority className="h-full w-full object-cover" /></span>
             <span className="hidden border-l border-white/30 pl-3 text-[11px] font-bold uppercase leading-tight tracking-[0.2em] sm:block">
               Help-Meet Shine
               <br />
@@ -306,16 +303,17 @@ export default function Home() {
               type="button"
               aria-label={menuOpen ? "Close menu" : "Open menu"}
               aria-expanded={menuOpen}
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="rounded-full border border-white/30 p-2.5 transition hover:border-white hover:bg-white/10 lg:hidden"
+              aria-controls="homepage-mobile-menu"
+              onClick={() => setMenuOpen((open) => !open)}
+              className="rounded-full border border-white/30 p-3 transition hover:border-white hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white lg:hidden"
             >
-              {menuOpen ? <X size={20} /> : <Menu size={20} />}
+              {menuOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
             </button>
           </div>
         </div>
 
         {menuOpen && (
-          <nav className="border-t border-white/15 bg-[#17221e]/95 px-6 py-6 backdrop-blur-xl lg:hidden" aria-label="Mobile navigation">
+          <nav id="homepage-mobile-menu" className="border-t border-white/15 bg-[#17221e]/95 px-6 py-6 backdrop-blur-xl lg:hidden" aria-label="Mobile navigation">
             <div className="flex flex-col gap-5 text-sm font-semibold">
               <Link href="/donate" onClick={() => setMenuOpen(false)}>Donate</Link>
               <Link href="/fundraise" onClick={() => setMenuOpen(false)}>Support a cause</Link>
