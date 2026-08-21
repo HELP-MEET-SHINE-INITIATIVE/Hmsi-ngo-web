@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import Footer from '../../components/Footer';
+import PromotedSharePanel from '../../components/PromotedSharePanel';
 import {
   Activity,
   ArrowRight,
@@ -91,9 +92,12 @@ export default function FundraiseContent() {
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Link href="/fundraise/create" className="flex items-center gap-2 rounded-full bg-[#e1ad45] px-10 py-4 text-sm font-black uppercase tracking-widest text-[#17221e] transition-all hover:bg-white"><Plus size={18} /> Start a Fundraiser</Link>
               <Link href="#causes" className="rounded-full border border-white/30 px-10 py-4 text-sm font-black uppercase tracking-widest text-white transition-all hover:bg-white/10">Browse Causes</Link>
+              <Link href="/get-help?utm_source=fundraise&utm_medium=cta&utm_campaign=get_help_requests" className="rounded-full border border-[#e1ad45]/70 px-10 py-4 text-sm font-black uppercase tracking-widest text-[#e1ad45] transition-all hover:bg-[#e1ad45] hover:text-[#17221e]">Need help? Request support</Link>
             </div>
           </div>
         </section>
+
+        <section className="mx-auto max-w-7xl px-6 pt-10"><PromotedSharePanel title="Support a verified HMSI cause" description="Discover transparent, community-led fundraising campaigns supporting individual needs across Nigeria and Africa." type="fundraiser" sharePath="/fundraise" /></section>
 
         <section id="causes" className="mx-auto max-w-7xl px-6 py-12">
           <div className="mb-12 flex flex-col items-center justify-between gap-8 lg:flex-row">
@@ -147,7 +151,7 @@ export default function FundraiseContent() {
         <section className="bg-[#e9f0e9] px-6 py-20">
           <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-16 lg:grid-cols-2">
             <div><h2 className="mb-6 text-4xl font-black tracking-tight">Safe, Secure and <br /><span className="text-[#1e5b49]">100% Transparent.</span></h2><p className="mb-10 text-lg leading-relaxed text-[#66716a]">HMSI ensures that every Naira donated goes directly to the cause. We verify every help request and provide regular updates on the progress of each fundraiser.</p><div className="grid grid-cols-2 gap-6"><div className="rounded-2xl bg-white p-6 shadow-sm"><p className="text-2xl font-black text-[#1e5b49]">0%</p><p className="text-[10px] font-black uppercase tracking-widest text-[#66716a]">Platform Fees</p></div><div className="rounded-2xl bg-white p-6 shadow-sm"><p className="text-2xl font-black text-[#1e5b49]">24h</p><p className="text-[10px] font-black uppercase tracking-widest text-[#66716a]">Verification</p></div></div></div>
-            <div className="relative h-[400px] overflow-hidden rounded-[40px] shadow-2xl"><Image src="/images/outreach-10.png" alt="HMSI community impact" fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" /></div>
+            <div className="relative h-[400px] overflow-hidden rounded-[40px] shadow-2xl"><Image src="/images/fundraise-community-hero.webp" alt="HMSI supporting children and families in a community" fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" /></div>
           </div>
         </section>
       </main>

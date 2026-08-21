@@ -9,9 +9,18 @@ export const metadata: Metadata = {
   description: 'Browse verified fundraising causes and support people facing medical, education, housing, and emergency needs across Nigeria and Africa through HMSI.',
   keywords: ['support verified causes Nigeria', 'donate to verified fundraiser Nigeria', 'charity fundraising Africa', 'medical bill fundraiser Nigeria', 'education support Nigeria', 'HMSI fundraisers'],
   openGraph: {
+    type: 'website',
     title: 'Support Verified NGO Causes in Nigeria | HMSI Fundraising',
     description: 'Directly support verified individual needs and community causes across Nigeria and Africa.',
+    siteName: 'Help Meet Shine Initiative',
+    images: [{ url: 'https://www.hmsi.org.ng/images/fundraise-community-hero.webp', alt: 'HMSI supporting children and families in a community' }],
     url: 'https://www.hmsi.org.ng/fundraise',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Support Verified NGO Causes in Nigeria | HMSI Fundraising',
+    description: 'Directly support verified individual needs and community causes across Nigeria and Africa.',
+    images: ['https://www.hmsi.org.ng/images/fundraise-community-hero.webp'],
   },
   alternates: { canonical: 'https://www.hmsi.org.ng/fundraise' },
 };
