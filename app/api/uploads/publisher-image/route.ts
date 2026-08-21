@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getNewsletterViewer, getNewsletterViewerPayload } from '../../../../lib/newsletterAccess';
+import { optimizeUploadedImage } from '../../../../lib/optimizeImage';
 import { getSupabaseAdmin, getSupabaseStorageBucket, hasSupabaseConfig } from '../../../../lib/supabaseAdmin';
 
 export const runtime = 'nodejs';
@@ -22,11 +23,18 @@ export async function POST(request: Request) {
   if (!ALLOWED_IMAGE_TYPES.has(image.type)) return NextResponse.json({ error: 'Images must be JPG, PNG, or WEBP files.' }, { status: 400 });
   if (image.size > MAX_IMAGE_BYTES) return NextResponse.json({ error: 'Images must be 8 MB or smaller.' }, { status: 413 });
 
-  const extension = image.type === 'image/jpeg' ? 'jpg' : image.type.split('/')[1];
-  const path = `publisher-images/${viewer.role}/${crypto.randomUUID()}.${extension}`;
+  let optimizedImage;
+  try {
+    optimizedImage = await optimizeUploadedImage(image);
+  } catch (optimizationError) {
+    console.error('[Publisher uploads] Failed to optimize image:', optimizationError);
+    return NextResponse.json({ error: 'The image could not be processed. Please choose a valid JPG, PNG, or WEBP image.' }, { status: 400 });
+  }
+
+  const path = `publisher-images/${viewer.role}/${crypto.randomUUID()}.${optimizedImage.extension}`;
   const bucket = getSupabaseStorageBucket();
-  const { error: uploadError } = await admin.storage.from(bucket).upload(path, await image.arrayBuffer(), {
-    contentType: image.type,
+  const { error: uploadError } = await admin.storage.from(bucket).upload(path, optimizedImage.buffer, {
+    contentType: optimizedImage.contentType,
     cacheControl: '31536000',
     upsert: false,
   });
@@ -36,5 +44,11 @@ export async function POST(request: Request) {
   }
 
   const { data: publicUrlData } = admin.storage.from(bucket).getPublicUrl(path);
-  return NextResponse.json({ imageUrl: publicUrlData.publicUrl, imagePath: path });
+  return NextResponse.json({
+    imageUrl: publicUrlData.publicUrl,
+    imagePath: path,
+    optimized: true,
+    originalBytes: optimizedImage.originalBytes,
+    optimizedBytes: optimizedImage.optimizedBytes,
+  });
 }
