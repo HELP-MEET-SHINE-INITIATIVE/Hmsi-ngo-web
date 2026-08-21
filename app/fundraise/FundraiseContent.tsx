@@ -14,6 +14,7 @@ import {
   Plus,
   Search,
   Stethoscope,
+  UsersRound,
 } from 'lucide-react';
 
 type Fundraiser = {
@@ -33,7 +34,12 @@ const categories = [
   { id: 'education', label: 'Education', icon: GraduationCap },
   { id: 'housing', label: 'Housing', icon: Home },
   { id: 'emergency', label: 'Emergency', icon: Heart },
+  { id: 'community', label: 'Community Support', icon: UsersRound },
 ];
+
+function displayCategory(category: string) {
+  return category.toLowerCase() === 'community' ? 'Community Support' : category;
+}
 
 export default function FundraiseContent() {
   const [fundraisers, setFundraisers] = useState<Fundraiser[]>([]);
@@ -126,7 +132,7 @@ export default function FundraiseContent() {
                 <Link key={fundraiser.id} href={`/fundraise/${fundraiser.id}`} className="group overflow-hidden rounded-[32px] border border-[#d9d6ce] bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl">
                   <div className="relative h-64 overflow-hidden">
                     <Image src={fundraiser.image} alt={fundraiser.title} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-cover transition-transform duration-700 group-hover:scale-110" />
-                    <div className="absolute left-4 top-4"><span className="rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-[#1e5b49]">{fundraiser.category}</span></div>
+                    <div className="absolute left-4 top-4"><span className="rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-[#1e5b49]">{displayCategory(fundraiser.category)}</span></div>
                   </div>
                   <div className="p-8">
                     <h3 className="mb-3 text-xl font-black tracking-tight transition-colors group-hover:text-[#1e5b49]">{fundraiser.title}</h3>

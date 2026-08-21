@@ -7,7 +7,7 @@ export const maxDuration = 60;
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
-const ALLOWED_CATEGORIES = new Set(['medical', 'education', 'housing', 'emergency']);
+const ALLOWED_CATEGORIES = new Set(['medical', 'education', 'housing', 'emergency', 'community']);
 
 export async function GET() {
   try {

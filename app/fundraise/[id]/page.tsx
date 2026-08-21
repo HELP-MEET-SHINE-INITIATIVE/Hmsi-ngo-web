@@ -13,6 +13,10 @@ function absoluteImageUrl(image: string) {
   return image.startsWith('http') ? image : `https://www.hmsi.org.ng${image}`;
 }
 
+function displayCategory(category: string) {
+  return category.toLowerCase() === 'community' ? 'Community Support' : category;
+}
+
 async function loadFundraiser(id: string) {
   try {
     return await getFundraiserById(id);
@@ -33,7 +37,7 @@ export async function generateMetadata(
 
   return {
     title: `${fundraiser.title} | Get Help on HMSI`,
-    description: `Support this cause: ${fundraiser.description}. Help us raise ₦${Number(fundraiser.targetAmount).toLocaleString()} for ${fundraiser.category} needs in Nigeria and Africa.`,
+    description: `Support this cause: ${fundraiser.description}. Help us raise ₦${Number(fundraiser.targetAmount).toLocaleString()} for ${displayCategory(fundraiser.category)} needs in Nigeria and Africa.`,
     openGraph: {
       type: 'website',
       title: `${fundraiser.title} | HMSI Help Me`,
