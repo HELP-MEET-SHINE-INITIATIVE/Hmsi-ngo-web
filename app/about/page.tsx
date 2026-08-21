@@ -141,6 +141,8 @@ export default function AboutPage() {
                 <div><p className="text-3xl font-black text-teal-400">SDG 1 & 2</p><p className="mt-1 text-sm text-slate-300">core development alignment</p></div>
               </div>
               <p className="mt-7 border-t border-white/15 pt-5 text-sm leading-6 text-slate-300">Our focus includes food security and zero hunger, poverty alleviation and wealth creation, crisis response, agriculture, WASH, gender equality, youth empowerment, climate resilience, and peace and conflict resolution.</p>
+              <p className="mt-5 text-sm leading-6 text-slate-300"><strong className="text-white">Registered objects include:</strong> empowerment and poverty alleviation; care for orphans, destitute and less privileged people; shelter, education, clothing and social amenities; scholarships; skills training; integrity, accountability and transparency; and fundraising through donations and contributions.</p>
+              <p className="mt-4 text-xs leading-5 text-slate-400">The object summary is transcribed from a supplied CAC application scan. It is not a substitute for the full governing document.</p>
             </div>
           </div>
           <div className="mt-8 flex flex-wrap gap-4">
