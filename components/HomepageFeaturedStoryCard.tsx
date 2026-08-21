@@ -33,6 +33,7 @@ function newestFirst(items: HomepageStory[]) {
 export default function HomepageFeaturedStoryCard() {
   const [stories, setStories] = useState<HomepageStory[]>([fallbackStory]);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [hasLoadedLiveStories, setHasLoadedLiveStories] = useState(false);
   const storyIdsRef = useRef<string[]>([]);
 
   const loadStories = useCallback(async () => {
@@ -43,6 +44,7 @@ export default function HomepageFeaturedStoryCard() {
       const nextStories = newestFirst(result.stories);
       const newStoryArrived = nextStories.some((story) => !storyIdsRef.current.includes(story.id));
       storyIdsRef.current = nextStories.map((story) => story.id);
+      setHasLoadedLiveStories(true);
       setStories(nextStories);
       if (newStoryArrived) setActiveIndex(0);
     } catch {
@@ -65,7 +67,7 @@ export default function HomepageFeaturedStoryCard() {
 
   const story = stories[activeIndex] || fallbackStory;
   const image = story.image_url || '/images/outreach-10.png';
-  const isFallback = story.id === fallbackStory.id && storyIdsRef.current.length === 0;
+  const isFallback = story.id === fallbackStory.id && !hasLoadedLiveStories;
   const storyHref = isFallback ? '/outreach/10' : `/stories/${story.id}`;
 
   return <Link id="featured-stories" href={storyHref} aria-label={`Read full featured story: ${story.title}`} className="group relative block min-h-[520px] scroll-mt-24 overflow-hidden rounded-3xl bg-[#17221e] text-white focus:outline-none focus:ring-2 focus:ring-[#e1ad45] focus:ring-offset-4 focus:ring-offset-white"><img src={image} alt="" className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" /><span className="absolute inset-0 bg-gradient-to-t from-[#17221e] via-[#17221e]/45 to-transparent" aria-hidden="true" /><span className="absolute inset-x-0 bottom-0 z-10 block p-7 sm:p-10"><span className="inline-block rounded-full bg-[#e1ad45] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.15em] text-[#17221e]">Featured story</span><span className="mt-4 block text-[10px] font-black uppercase tracking-[0.18em] text-white/65">{story.category}</span><span className="mt-3 block max-w-2xl text-3xl font-black leading-tight tracking-[-0.03em] sm:text-5xl">{story.title}</span><span className="mt-4 block max-w-xl text-sm leading-6 text-white/75">{story.excerpt}</span><span className="mt-5 inline-flex text-xs font-black uppercase tracking-widest text-[#e1ad45]">Read full story <span className="ml-2" aria-hidden="true">→</span></span></span></Link>;
