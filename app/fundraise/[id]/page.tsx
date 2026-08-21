@@ -35,10 +35,18 @@ export async function generateMetadata(
     title: `${fundraiser.title} | Get Help on HMSI`,
     description: `Support this cause: ${fundraiser.description}. Help us raise ₦${Number(fundraiser.targetAmount).toLocaleString()} for ${fundraiser.category} needs in Nigeria and Africa.`,
     openGraph: {
+      type: 'website',
+      title: `${fundraiser.title} | HMSI Help Me`,
+      description: fundraiser.description,
+      siteName: 'Help Meet Shine Initiative',
+      images: [{ url: absoluteImageUrl(fundraiser.image), alt: fundraiser.title }],
+      url: `https://www.hmsi.org.ng/fundraise/${id}`,
+    },
+    twitter: {
+      card: 'summary_large_image',
       title: `${fundraiser.title} | HMSI Help Me`,
       description: fundraiser.description,
       images: [absoluteImageUrl(fundraiser.image)],
-      url: `https://www.hmsi.org.ng/fundraise/${id}`,
     },
     alternates: { canonical: `https://www.hmsi.org.ng/fundraise/${id}` },
   };
