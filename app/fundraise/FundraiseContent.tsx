@@ -151,7 +151,7 @@ export default function FundraiseContent() {
         <section className="bg-[#e9f0e9] px-6 py-20">
           <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-16 lg:grid-cols-2">
             <div><h2 className="mb-6 text-4xl font-black tracking-tight">Safe, Secure and <br /><span className="text-[#1e5b49]">100% Transparent.</span></h2><p className="mb-10 text-lg leading-relaxed text-[#66716a]">HMSI ensures that every Naira donated goes directly to the cause. We verify every help request and provide regular updates on the progress of each fundraiser.</p><div className="grid grid-cols-2 gap-6"><div className="rounded-2xl bg-white p-6 shadow-sm"><p className="text-2xl font-black text-[#1e5b49]">0%</p><p className="text-[10px] font-black uppercase tracking-widest text-[#66716a]">Platform Fees</p></div><div className="rounded-2xl bg-white p-6 shadow-sm"><p className="text-2xl font-black text-[#1e5b49]">24h</p><p className="text-[10px] font-black uppercase tracking-widest text-[#66716a]">Verification</p></div></div></div>
-            <div className="relative h-[400px] overflow-hidden rounded-[40px] shadow-2xl"><Image src="/images/fundraise-community-hero.webp" alt="HMSI supporting children and families in a community" fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" /></div>
+            <div className="relative h-[400px] overflow-hidden rounded-[40px] shadow-2xl"><Image src="/images/fundraise-community-hero.webp" alt="HMSI period hygiene outreach supporting young girls with menstrual health kits" fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" /></div>
           </div>
         </section>
       </main>

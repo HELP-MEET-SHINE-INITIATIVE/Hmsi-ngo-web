@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     title: 'Support Verified NGO Causes in Nigeria | HMSI Fundraising',
     description: 'Directly support verified individual needs and community causes across Nigeria and Africa.',
     siteName: 'Help Meet Shine Initiative',
-    images: [{ url: 'https://www.hmsi.org.ng/images/fundraise-community-hero.webp', alt: 'HMSI supporting children and families in a community' }],
+    images: [{ url: 'https://www.hmsi.org.ng/images/fundraise-community-hero.webp', alt: 'HMSI period hygiene outreach supporting young girls with menstrual health kits' }],
     url: 'https://www.hmsi.org.ng/fundraise',
   },
   twitter: {
