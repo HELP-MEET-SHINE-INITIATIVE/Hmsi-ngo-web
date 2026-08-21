@@ -11,6 +11,7 @@ import OptionalImageUpload from '../../components/OptionalImageUpload';
 import ModerationPanel from '../../components/ModerationPanel';
 import AdminPromotionLinks from '../../components/AdminPromotionLinks';
 import AdminCampaignLinks from '../../components/AdminCampaignLinks';
+import TrafficAnalyticsPanel from '../../components/TrafficAnalyticsPanel';
 import { AlertCircle, Calendar, CircleDollarSign, ClipboardList, LogOut, ShieldCheck, UserPlus, Users } from 'lucide-react';
 
 type AdminData = {
@@ -30,7 +31,7 @@ export default function AdminControlContent() {
   const [sessionChecked, setSessionChecked] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
   const [data, setData] = useState<AdminData>(emptyData);
-  const [activeView, setActiveView] = useState<'overview' | 'fundraisers' | 'volunteers' | 'opportunities' | 'donations' | 'messages' | 'newsletter' | 'stories' | 'news' | 'moderation' | 'assignments'>('overview');
+  const [activeView, setActiveView] = useState<'overview' | 'analytics' | 'fundraisers' | 'volunteers' | 'opportunities' | 'donations' | 'messages' | 'newsletter' | 'stories' | 'news' | 'moderation' | 'assignments'>('overview');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [workerForm, setWorkerForm] = useState({ name: '', email: '', phone: '' });
@@ -226,6 +227,7 @@ export default function AdminControlContent() {
 
   const navItems = [
     { id: 'overview', label: 'Overview' },
+    { id: 'analytics', label: 'Traffic analytics' },
     { id: 'fundraisers', label: `Fundraisers & campaigns (${pendingFundraisers.length})` },
     { id: 'volunteers', label: `Applications (${pendingVolunteers.length})` },
     { id: 'opportunities', label: `Opportunities (${pendingOpportunityApplications.length})` },
@@ -250,6 +252,8 @@ export default function AdminControlContent() {
           <AdminPromotionLinks />
 
           {activeView === 'overview' && <div className="space-y-6"><div className="grid grid-cols-2 gap-4 lg:grid-cols-5"><StatCard label="Pending fundraisers" value={pendingFundraisers.length} /><StatCard label="Pending volunteers" value={pendingVolunteerApplications.length} /><StatCard label="Pending workers" value={pendingWorkerApplications.length} /><StatCard label="Opportunity applications" value={pendingOpportunityApplications.length} /><StatCard label="Active workers" value={data.workers.filter((worker) => worker.status === 'active').length} /><StatCard label="Open assignments" value={data.assignments.filter((assignment) => assignment.status !== 'completed').length} /></div><div className="rounded-3xl border border-[#d9d6ce] bg-white p-6"><h2 className="mb-2 text-xl font-black">Today’s queue</h2><p className="mb-6 text-sm text-[#66716a]">Review new help requests and volunteer applications, then assign clear next steps to a worker.</p><div className="grid gap-4 md:grid-cols-2"><QueueCard title="Fundraising approvals" count={pendingFundraisers.length} onClick={() => setActiveView('fundraisers')} /><QueueCard title="Volunteer applications" count={pendingVolunteerApplications.length} onClick={() => setActiveView('volunteers')} /><QueueCard title="Worker applications" count={pendingWorkerApplications.length} onClick={() => setActiveView('volunteers')} /><QueueCard title="Opportunity applications" count={pendingOpportunityApplications.length} onClick={() => setActiveView('opportunities')} /></div></div><AdminCampaignLinks campaigns={data.fundraisers.filter((fundraiser) => fundraiser.status === 'active')} /></div>}
+
+          {activeView === 'analytics' && <TrafficAnalyticsPanel />}
 
           {activeView === 'fundraisers' && <FundraiserAdminManager fundraisers={data.fundraisers} onRefresh={loadOverview} />}
 

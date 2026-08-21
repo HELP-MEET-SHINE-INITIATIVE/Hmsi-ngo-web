@@ -62,3 +62,4 @@
 | [`hmsi-production-deployment-readiness-checklist.md`](./hmsi-production-deployment-readiness-checklist.md) | Pre-flight launch gates, environment variable setup (`NEXT_PUBLIC_GTM_ID`), and Vercel configuration steps. |
 | [`hmsi-post-launch-monitoring-and-alerts-guide.md`](./hmsi-post-launch-monitoring-and-alerts-guide.md) | Gateway incident response, webhook monitoring, and copy-ready automated JavaScript spend control scripts (₦1,000/day). |
 | [Live Debugger Console (`/gtm-preview`)](https://www.hmsi.org.ng/gtm-preview) | Interactive browser testing tool for live Paystack modal simulations and real-time DataLayer JSON payloads. |
+| [`hmsi-traffic-analytics.md`](./hmsi-traffic-analytics.md) | First-party Supabase traffic analytics implementation: privacy-safe page views, internal link clicks, traffic origins, migration, and admin reporting. |
