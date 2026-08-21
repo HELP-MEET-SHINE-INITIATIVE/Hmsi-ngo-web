@@ -3,6 +3,7 @@
 **Organisation:** The Incorporated Trustees of HELP-MEET SHINE INITIATIVE (CAC/IT/NO 125103)  
 **Primary Domain:** `https://www.hmsi.org.ng`  
 **Official LinkedIn:** `https://www.linkedin.com/company/help-meet-shine-initiative/`  
+**Official Instagram:** `https://www.instagram.com/hmsinitiative/`  
 **Target Account ID:** Google Ads Customer `811-374-9631` (AW-8113749631)  
 **Date Updated:** 21 August 2026  
 
@@ -22,6 +23,9 @@
 | Document | Purpose & Scope |
 |---|---|
 | `hmsi_linkedin_optimization_package.md` | Master LinkedIn Company Page overhaul, Executive Trustee bios (Godspower Adebusoye), 4-pillar content calendar, and CSR partnership copy templates. |
+| `hmsi_linkedin_live_page_audit_and_corrections.md` | Live LinkedIn page audit report and immediate 5-minute admin update checklist. |
+| `hmsi_linkedin_campaign_manager_setup_guide.md` | LinkedIn Campaign Manager ad account creation guide and corporate CSR targeting framework. |
+| `hmsi_instagram_optimization_package.md` | Master Instagram profile bio overhaul (148 chars), Story Highlights taxonomy, Reels templates, and localized hashtag strategy. |
 
 ---
 
