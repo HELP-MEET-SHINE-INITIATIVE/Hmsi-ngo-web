@@ -1,75 +1,38 @@
-name: Dependency Audit & Update
+name: Dependency audit
 
 on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
   schedule:
-    # Run daily at 3 AM UTC
-    - cron: '0 3 * * *'
+    - cron: "0 3 * * 1"
   workflow_dispatch:
-    # Allow manual trigger from Actions tab
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
+
+concurrency:
+  group: dependency-audit-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  audit-and-update:
+  audit:
+    name: Audit production dependencies
     runs-on: ubuntu-latest
-    name: Audit Dependencies and Create PRs
-    
+    timeout-minutes: 15
     steps:
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
-          cache: 'npm'
+          node-version: 20.x
+          cache: npm
 
-      - name: Install Dependencies
-        run: npm install --legacy-peer-deps
+      - name: Install dependencies from lockfile
+        run: npm ci --legacy-peer-deps
 
-      - name: Run NPM Audit Fix
-        run: |
-          npm audit fix --legacy-peer-deps || true
-          npm audit fix --legacy-peer-deps --force || true
-        continue-on-error: true
-
-      - name: Check for Changes
-        id: check_changes
-        run: |
-          if git diff --quiet; then
-            echo "has_changes=false" >> $GITHUB_OUTPUT
-          else
-            echo "has_changes=true" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Create Pull Request
-        if: steps.check_changes.outputs.has_changes == 'true'
-        uses: peter-evans/create-pull-request@v5
-        with:
-          commit-message: 'chore(deps): audit and update dependencies'
-          title: '[Automated] Dependency audit and security updates'
-          body: |
-            # Automated Dependency Audit
-
-            This PR contains security updates and vulnerability fixes for npm dependencies.
-
-            ## Changes
-            - Ran `npm audit fix` to address known vulnerabilities
-            - Updated package-lock.json
-
-            ## Instructions
-            - Review the dependency changes
-            - Verify build passes all CI checks
-            - Test locally if needed
-            - Merge if safe, or request manual review
-
-            **Note:** This is an automated PR from the dependency audit workflow.
-          branch: automated/dependency-audit
-          delete-branch: true
-          labels: 'dependencies, security, automated'
-          assignees: '${{ github.repository_owner }}'
-          reviewers: '${{ github.repository_owner }}'
+      - name: Run production dependency audit
+        run: npm audit --omit=dev --audit-level=high
