@@ -10,6 +10,7 @@ import OpportunityFlash from "../components/OpportunityFlash";
 import NewsFlash from "../components/NewsFlash";
 import FundraiserFlash from "../components/FundraiserFlash";
 import FieldStoryFlash from "../components/FieldStoryFlash";
+import HomepageHelpCta from "../components/HomepageHelpCta";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -365,6 +366,7 @@ export default function Home() {
         </div>
       </section>
 
+      <HomepageHelpCta />
       <OpportunityFlash />
       <FundraiserFlash />
       <FieldStoryFlash />
