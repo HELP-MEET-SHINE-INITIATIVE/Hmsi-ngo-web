@@ -14,6 +14,8 @@ The public site now has the following donor-facing routes:
 |---|---|
 | [`/about`](../app/about/page.tsx) | Mission, vision, values, organization story, leadership, and capability context |
 | [`/transparency`](../app/transparency/page.tsx) | Legal identity, governance roles, safeguarding, privacy, complaints, financial-control expectations, MEL, and responsible claims |
+| [`/safeguarding`](../app/safeguarding/page.tsx) | Public safeguarding, child-protection, dignity, consent, conduct, and concern-reporting commitment |
+| [`/privacy`](../app/privacy/page.tsx) | Working privacy notice, data purposes, rights, security, retention, and data-protection enquiries |
 | [`/partnerships`](../app/partnerships/page.tsx) | Institutional audiences, focus areas, proposal framework, due diligence, and partnership CTA |
 | [`/terms`](../app/terms/page.tsx) | Website use, Nigerian governing law, intellectual property, content liability, and authorized linking |
 | [`/contact`](../app/contact/ContactForm.tsx) | Support, general enquiries, and partnership contact route |
@@ -34,6 +36,10 @@ HMSI should maintain a controlled institutional evidence folder with access limi
 | Recognition | MEA Award certificate, awarding organization, official announcement, category, and year | Award named as HMSI-reported; supporting certificate or announcement not yet supplied |
 | Partnerships | Partnership agreements, references, institutional collaborator records, delivery responsibilities | Partner audiences and proposal framework published; agreements not publicly listed |
 | Data protection | Data-protection practices, retention schedule, access controls, breach/incident procedure | Public privacy commitment published; formal privacy policy not yet supplied; uploaded scans with signatures and private contacts are intentionally excluded from publication |
+
+## Standards alignment
+
+The website uses the 2024 Core Humanitarian Standard as a practical accountability reference for dignity, participation, do-no-harm, feedback and complaints, learning, competent people, and ethical resource management. WCAG 2.2 is the accessibility baseline for text alternatives, keyboard access, focus visibility, contrast, reflow, forms, and target sizes. This is an implementation baseline and not a certification claim.
 
 ## Public-claims register
 

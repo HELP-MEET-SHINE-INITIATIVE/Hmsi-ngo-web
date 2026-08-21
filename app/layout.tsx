@@ -15,13 +15,6 @@ export const metadata: Metadata = {
   creator: 'HMSI',
   publisher: 'HMSI',
   manifest: '/manifest.json',
-  verification: {
-    google: 'google-site-verification-placeholder',
-    yandex: 'yandex-verification-placeholder',
-    other: {
-      'msvalidate.01': 'bing-verification-placeholder',
-    },
-  },
   openGraph: {
     title: 'Help Meet Shine Initiative (HMSI) | Donate, Volunteer & Support NGO Work',
     description: 'Donate to HMSI NGO work, support a verified cause, or volunteer your skills across Nigeria and Africa.',
@@ -73,12 +66,18 @@ export default function RootLayout({
     '@context': 'https://schema.org',
     '@type': 'NGO',
     'name': 'Help Meet Shine Initiative',
+    'legalName': 'The Incorporated Trustees of HELP-MEET SHINE INITIATIVE',
     'alternateName': 'HMSI',
     'url': 'https://www.hmsi.org.ng',
     'logo': 'https://www.hmsi.org.ng/logo.png',
-    'description': 'HMSI provides humanitarian support, equips individuals for sustainable wealth creation, and drives community-led social growth across Nigeria and Africa.',
+    'description': 'HMSI provides humanitarian assistance, education, empowerment, livelihoods, and sustainable community development across Nigeria and Africa.',
+    'foundingDate': '2019-02-21',
+    'identifier': 'CAC/IT/NO 125103',
+    'taxID': '21249981',
     'address': {
       '@type': 'PostalAddress',
+      'addressLocality': 'Benin City',
+      'addressRegion': 'Edo State',
       'addressCountry': 'NG',
     },
     'areaServed': [
@@ -132,8 +131,9 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <AuthProvider>
+          <a href="#main-content" className="sr-only z-[100] bg-[#e1ad45] px-4 py-3 text-sm font-black text-[#17221e] focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:rounded-full focus:outline-none focus:ring-2 focus:ring-[#17221e]">Skip to main content</a>
           <Navbar />
-          {children}
+          <div id="main-content">{children}</div>
         </AuthProvider>
       </body>
     </html>

@@ -42,7 +42,7 @@ export default function Navbar() {
 
         <nav className="hidden items-center gap-8 text-sm font-bold lg:flex" aria-label="Primary navigation">
           {links.map((link) => (
-            <Link key={link.href} href={link.href} className="transition-colors hover:text-[#1e5b49]">
+            <Link key={link.href} href={link.href} aria-current={pathname === link.href ? 'page' : undefined} className={`transition-colors hover:text-[#1e5b49] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e5b49] focus-visible:ring-offset-2 ${pathname === link.href ? 'text-[#1e5b49]' : ''}`}>
               {link.label}
             </Link>
           ))}
@@ -59,10 +59,11 @@ export default function Navbar() {
               </Link>
               <button 
                 onClick={logout}
-                className="p-2 rounded-full hover:bg-red-50 text-red-600 transition-colors"
+                className="rounded-full p-2 text-red-600 transition-colors hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2"
                 title="Logout"
+                aria-label="Log out"
               >
-                <LogOut size={18} />
+                <LogOut size={18} aria-hidden="true" />
               </button>
             </div>
           ) : (
@@ -97,8 +98,9 @@ export default function Navbar() {
               <Link 
                 key={link.href} 
                 href={link.href} 
+                aria-current={pathname === link.href ? 'page' : undefined}
                 onClick={() => setMenuOpen(false)}
-                className="text-sm font-bold hover:text-[#1e5b49]"
+                className={`text-sm font-bold hover:text-[#1e5b49] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e5b49] focus-visible:ring-offset-2 ${pathname === link.href ? 'text-[#1e5b49]' : ''}`}
               >
                 {link.label}
               </Link>

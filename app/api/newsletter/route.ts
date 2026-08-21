@@ -18,7 +18,7 @@ function escapeHtml(value: string) {
 
 function newsletterHtml(title: string, body: string, unsubscribeUrl: string, imageUrl?: string | null) {
   const paragraphs = body.split(/\n\s*\n/).map((paragraph) => `<p style="line-height:1.7;color:#33443b">${escapeHtml(paragraph).replace(/\n/g, '<br />')}</p>`).join('');
-  const image = imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="" style="display:block;width:100%;max-width:640px;height:auto;border-radius:14px;margin:24px 0" />` : '';
+  const image = imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(title)}" style="display:block;width:100%;max-width:640px;height:auto;border-radius:14px;margin:24px 0" />` : '';
   return `<div style="font-family:Arial,sans-serif;max-width:680px;margin:0 auto;padding:36px 22px;color:#17221e"><p style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#b56b3b;font-weight:700">Help Meet Shine Initiative</p><h1 style="font-size:34px;line-height:1.15;color:#1e5b49">${escapeHtml(title)}</h1>${image}${paragraphs}<hr style="border:0;border-top:1px solid #e5e1d8;margin:32px 0" /><p style="font-size:12px;color:#66716a">You are receiving this because you joined the HMSI newsletter. <a href="${unsubscribeUrl}" style="color:#1e5b49">Unsubscribe</a>.</p></div>`;
 }
 

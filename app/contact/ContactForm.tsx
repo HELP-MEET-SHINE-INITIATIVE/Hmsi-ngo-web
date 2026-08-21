@@ -7,7 +7,7 @@ export default function ContactForm() {
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  const [formData, setFormData] = useState({ name: '', email: '', message: '', privacyAcknowledged: false });
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -66,6 +66,7 @@ export default function ContactForm() {
               <label htmlFor="contact-message" className="mb-1 block text-sm font-bold uppercase text-slate-700">Message</label>
               <textarea id="contact-message" rows={4} placeholder="How can we help you?" required maxLength={10000} value={formData.message} onChange={(event) => setFormData({ ...formData, message: event.target.value })} className="w-full resize-y rounded-sm border-2 border-slate-300 p-3 font-medium outline-none focus:border-slate-900" />
             </div>
+            <label htmlFor="contact-privacy" className="flex items-start gap-3 text-sm leading-6 text-slate-600"><input id="contact-privacy" type="checkbox" required checked={formData.privacyAcknowledged} onChange={(event) => setFormData({ ...formData, privacyAcknowledged: event.target.checked })} className="mt-1 h-4 w-4 shrink-0 accent-slate-900" /> <span>I have read the <a href="/privacy" className="font-bold text-slate-900 underline underline-offset-4">Privacy notice</a> and understand that sensitive safeguarding information should be shared through the appropriate route, not in a public message.</span></label>
             <button type="submit" disabled={isSubmitting} className="w-full rounded-sm bg-red-600 px-6 py-3 font-bold uppercase tracking-tight text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60">
               {isSubmitting ? 'Sending…' : 'Send Message'}
             </button>

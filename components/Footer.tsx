@@ -5,7 +5,7 @@ export default function Footer() {
   return (
     <footer className="bg-[#102019] text-white">
       <div className="mx-auto max-w-[1440px] px-5 py-14 sm:px-8 lg:px-12 lg:py-20">
-        <div className="grid gap-12 lg:grid-cols-[1.4fr_0.6fr_0.6fr_1fr]">
+        <div className="grid gap-12 lg:grid-cols-[1.25fr_0.7fr_0.7fr_1fr_1fr]">
           <div>
             <Link href="/" className="flex items-center gap-3" aria-label="HMSI home">
               <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#e1ad45] text-xl font-black text-[#17221e]">H</span>
@@ -19,7 +19,7 @@ export default function Footer() {
           </div>
           <div>
             <p className="text-xs font-black uppercase tracking-[0.17em] text-[#e1ad45]">Join in</p>
-            <div className="mt-5 flex flex-col gap-3 text-sm text-white/70"><Link href="/donate" className="transition hover:text-white">Donate</Link><Link href="/volunteer" className="transition hover:text-white">Volunteer</Link><Link href="/partnerships" className="transition hover:text-white">Partner with us</Link><Link href="/terms" className="transition hover:text-white">Terms & conditions</Link></div>
+            <div className="mt-5 flex flex-col gap-3 text-sm text-white/70"><Link href="/donate" className="transition hover:text-white">Donate</Link><Link href="/volunteer" className="transition hover:text-white">Volunteer</Link><Link href="/partnerships" className="transition hover:text-white">Partner with us</Link><Link href="/transparency" className="transition hover:text-white">Transparency</Link><Link href="/safeguarding" className="transition hover:text-white">Safeguarding</Link><Link href="/privacy" className="transition hover:text-white">Privacy notice</Link><Link href="/terms" className="transition hover:text-white">Terms & conditions</Link></div>
           </div>
           <div>
             <p className="text-xs font-black uppercase tracking-[0.17em] text-[#e1ad45]">Follow HMSI</p>

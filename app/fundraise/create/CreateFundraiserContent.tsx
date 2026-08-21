@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Footer from '../../../components/Footer';
 import {
@@ -19,8 +18,10 @@ import Link from 'next/link';
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
-export default function CreateFundraiserContent() {
-  const router = useRouter();
+type IntakeMode = 'fundraise' | 'help';
+
+export default function CreateFundraiserContent({ mode = 'fundraise' }: { mode?: IntakeMode }) {
+  const isHelpRequest = mode === 'help';
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -31,6 +32,7 @@ export default function CreateFundraiserContent() {
     description: '',
     category: 'medical',
     targetAmount: '',
+    privacyAcknowledged: false,
   });
 
   useEffect(() => {
@@ -58,6 +60,11 @@ export default function CreateFundraiserContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (!formData.privacyAcknowledged) {
+      setError('Please acknowledge the privacy and safeguarding guidance before submitting.');
+      return;
+    }
 
     if (!selectedImage) {
       setError('Please add a cover image for your fundraiser.');
@@ -108,9 +115,9 @@ export default function CreateFundraiserContent() {
             <CheckCircle2 size={48} />
           </div>
           <h1 className="mb-4 text-4xl font-black tracking-tight">Request Submitted</h1>
-          <p className="mb-10 text-lg text-[#66716a]">Your help request has been received and is being verified by our team. It will be live on the platform within 24 hours.</p>
-          <Link href="/fundraise" className="rounded-full bg-[#17221e] px-10 py-4 text-sm font-black uppercase tracking-widest text-white transition-all hover:bg-[#1e5b49]">
-            Back to Fundraisers
+          <p className="mb-10 text-lg text-[#66716a]">Your request has been received and queued for HMSI review. Publication is subject to verification, safeguarding, and available programme capacity; our team may contact you for clarification.</p>
+          <Link href={isHelpRequest ? '/' : '/fundraise'} className="rounded-full bg-[#17221e] px-10 py-4 text-sm font-black uppercase tracking-widest text-white transition-all hover:bg-[#1e5b49]">
+            {isHelpRequest ? 'Back to HMSI home' : 'Back to Fundraisers'}
           </Link>
         </main>
         <Footer />
@@ -121,14 +128,14 @@ export default function CreateFundraiserContent() {
   return (
     <div className="min-h-screen bg-[#f6f4ef] text-[#17221e]">
       <main className="mx-auto max-w-3xl px-6 py-12">
-        <Link href="/fundraise" className="mb-8 inline-flex items-center gap-2 text-sm font-bold text-[#66716a] transition-colors hover:text-[#1e5b49]">
-          <ChevronLeft size={18} /> Back to listing
+        <Link href={isHelpRequest ? '/' : '/fundraise'} className="mb-8 inline-flex items-center gap-2 text-sm font-bold text-[#66716a] transition-colors hover:text-[#1e5b49]">
+          <ChevronLeft size={18} /> {isHelpRequest ? 'Back to support options' : 'Back to listing'}
         </Link>
 
         <div className="overflow-hidden rounded-[40px] border border-[#d9d6ce] bg-white shadow-sm">
           <div className="border-b border-[#f6f4ef] bg-[#17221e] p-8 text-white md:p-12">
-            <h1 className="mb-2 text-3xl font-black tracking-tight">Start a Fundraiser</h1>
-            <p className="text-white/60">Tell your story and get the support you need.</p>
+            <h1 className="mb-2 text-3xl font-black tracking-tight">{isHelpRequest ? 'Request Help' : 'Start a Fundraiser'}</h1>
+            <p className="text-white/60">{isHelpRequest ? 'Share the need so HMSI can review the right support route.' : 'Tell your story and get the support you need.'}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8 p-8 md:p-12">
@@ -141,10 +148,11 @@ export default function CreateFundraiserContent() {
 
             <div className="space-y-6">
               <div>
-                <label className="mb-3 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[#17221e]">
-                  <Type size={16} className="text-[#e1ad45]" /> Fundraiser Title
+                <label htmlFor="fundraiser-title" className="mb-3 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[#17221e]">
+                  <Type size={16} className="text-[#e1ad45]" /> {isHelpRequest ? 'Request title' : 'Fundraiser title'}
                 </label>
                 <input
+                  id="fundraiser-title"
                   type="text"
                   required
                   maxLength={160}
@@ -190,10 +198,11 @@ export default function CreateFundraiserContent() {
               </div>
 
               <div>
-                <label className="mb-3 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[#17221e]">
-                  <FileText size={16} className="text-[#e1ad45]" /> The Story
-                </label>
+<label htmlFor="fundraiser-description" className="mb-3 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[#17221e]">
+                    <FileText size={16} className="text-[#e1ad45]" /> {isHelpRequest ? 'Describe the situation' : 'The story'}
+                  </label>
                 <textarea
+                  id="fundraiser-description"
                   required
                   maxLength={10000}
                   rows={6}
@@ -223,12 +232,14 @@ export default function CreateFundraiserContent() {
               </div>
             </div>
 
+            <label htmlFor="fundraiser-privacy" className="flex items-start gap-3 text-sm leading-6 text-[#66716a]"><input id="fundraiser-privacy" type="checkbox" required checked={formData.privacyAcknowledged} onChange={(event) => setFormData({ ...formData, privacyAcknowledged: event.target.checked })} className="mt-1 h-4 w-4 shrink-0 accent-[#1e5b49]" /> <span>I have read the <Link href="/privacy" className="font-bold text-[#1e5b49] underline">Privacy notice</Link> and <Link href="/safeguarding" className="font-bold text-[#1e5b49] underline">Safeguarding commitment</Link>. I will share only information needed for review and understand that publication is subject to verification.</span></label>
+
             <button
               type="submit"
               disabled={isSubmitting}
               className="w-full rounded-full bg-[#1e5b49] py-5 text-sm font-black uppercase tracking-widest text-white shadow-lg shadow-[#1e5b49]/20 transition-all hover:bg-[#17221e] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isSubmitting ? 'Uploading and submitting…' : 'Submit for Verification'}
+              {isSubmitting ? 'Uploading and submitting…' : isHelpRequest ? 'Submit Help Request' : 'Submit for Verification'}
             </button>
           </form>
         </div>

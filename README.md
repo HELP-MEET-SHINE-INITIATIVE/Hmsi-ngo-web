@@ -89,6 +89,8 @@ The homepage includes an approved fundraiser flash, an approved featured-story f
 | `/contact` | Contact form, support contacts, and direct WhatsApp access |
 | `/partnerships` | Institutional partnership profile, capability statement, focus areas, and donor CTA |
 | `/transparency` | Legal identity, leadership, accountability, safeguarding, privacy, and complaints information |
+| `/safeguarding` | Public safeguarding, child-protection, dignity, consent, conduct, and concern-reporting commitment |
+| `/privacy` | Working privacy notice covering data purposes, rights, safeguards, retention, and data-protection enquiries |
 | `/terms` | Website terms, governing law, intellectual property, content liability, and authorized linking |
 | `/about`, `/projects` | HMSI organisation and programme information |
 
@@ -277,7 +279,11 @@ Administrators can publish official content directly. Volunteer and worker submi
 
 The homepage featured-story section links to the live [`/stories`](app/stories/page.tsx) archive. Both **Explore field stories** and the featured card’s **Read full story** prompt are clickable. The archive includes both newly approved and previously approved stories, with every item linking to `/stories/[id]`.
 
-The public trust and partnership pages are [`/transparency`](app/transparency/page.tsx) and [`/partnerships`](app/partnerships/page.tsx). The website terms are published at [`/terms`](app/terms/page.tsx). The homepage and shared contact surfaces use the verified Benin City headquarters and 21 February 2019 incorporation date. The uploaded CAC and FIRS scans have strengthened the internal evidence base, but public legal, registration, compliance, award, financial, and safeguarding statements should still be reviewed against current official documents before any change is published.
+The public trust, safeguarding, privacy, and partnership pages are [`/transparency`](app/transparency/page.tsx), [`/safeguarding`](app/safeguarding/page.tsx), [`/privacy`](app/privacy/page.tsx), and [`/partnerships`](app/partnerships/page.tsx). The website terms are published at [`/terms`](app/terms/page.tsx). The homepage and shared contact surfaces use the verified Benin City headquarters and 21 February 2019 incorporation date. The uploaded CAC and FIRS scans have strengthened the internal evidence base, but public legal, registration, compliance, award, financial, and safeguarding statements should still be reviewed against current official documents before any change is published.
+
+## NGO standards audit
+
+The public site is structured around the Core Humanitarian Standard’s principles of dignity, participation, do-no-harm, complaints, learning, competent people, and ethical resource management, alongside WCAG 2.2 accessibility criteria. The site now provides direct public routes for Trust, Safeguarding, Privacy, and Terms. Claims about impact, income, field personnel, awards, registration, and tax status are labelled according to their evidence status. Formal safeguarding, privacy, financial, and monitoring documents remain subject to HMSI approval and professional review. The detailed implementation matrix is maintained in [`docs/hmsi-ngo-standards-audit.md`](docs/hmsi-ngo-standards-audit.md).
 
 ## GitHub and deployment
 

@@ -15,5 +15,5 @@ export const metadata: Metadata = {
 };
 
 export default function GetHelpPage() {
-  return <CreateFundraiserContent />;
+  return <CreateFundraiserContent mode="help" />;
 }

@@ -32,9 +32,13 @@ The following values are server-side secrets and must never be committed to GitH
 | `RESEND_API_KEY` | Use only from server-side email and newsletter routes. |
 | `HMSI_ADMIN_PASSWORD` | Store only in the deployment environment; never hard-code it. |
 | `HMSI_ADMIN_SESSION_SECRET` | Use only for signing and verifying the admin session. |
-| `.env.local` and deployment secrets | Keep out of commits, screenshots, logs, and support messages. |
+| `.env.local` and deployment secrets | Keep out of commits, screenshots, logs, and support messages. `.env.local` is ignored and must remain untracked. |
 
-The public Supabase URL, anon key, Paystack public key, and site URL may be exposed where required by the browser, but database policies and server authorization must not rely on secrecy of public values.
+The public Supabase URL, anon key, Paystack public key, and site URL may be exposed where required by the browser, but database policies and server authorization must not rely on secrecy of public values. A previously tracked `.env.local` file containing a browser Paystack key was removed from the repository index during the full-site audit. If that historical value was ever treated as a secret or if any other secret was present in the file, rotate it and review repository history before production use.
+
+## Browser and HTTP protections
+
+The application applies baseline response headers through `next.config.mjs`: HSTS, MIME-sniffing protection, clickjacking protection, strict-origin referrer policy, and a restrictive permissions policy. These headers complement, but do not replace, secure cookies, server-side authorization, Supabase row-level security, payment verification, and provider-side controls.
 
 ## Authentication and authorization
 
@@ -74,6 +78,10 @@ npm run lint
 npm audit --omit=dev --audit-level=high
 npm run build
 ```
+
+## Public privacy and safeguarding
+
+The public [`/privacy`](app/privacy/page.tsx) and [`/safeguarding`](app/safeguarding/page.tsx) pages provide working notices and concern-reporting routes. They are not a claim that HMSI has completed formal policy approval, training, data-protection registration, or independent compliance certification. HMSI should approve and maintain formal policies, retention schedules, incident procedures, and safeguarding referral arrangements.
 
 ## Scope exclusions
 

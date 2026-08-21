@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -17,10 +18,10 @@ type HomepageStory = {
 const ROTATION_MS = 2 * 60 * 1000;
 const REFRESH_MS = 30 * 1000;
 const fallbackStory: HomepageStory = {
-  id: '10',
-  title: 'When a community leads, relief becomes resilience.',
-  excerpt: 'From urgent essentials to skills that last, our teams work alongside local leaders to build the next chapter together.',
-  category: 'Featured story',
+  id: 'editorial-fallback',
+  title: 'Explore HMSI field stories.',
+  excerpt: 'Read approved stories from HMSI teams, volunteers, and community partners. New stories appear here after review.',
+  category: 'Field desk',
   image_url: '/images/outreach-10.png',
   author_name: 'HMSI field team',
   published_at: null,
@@ -68,7 +69,7 @@ export default function HomepageFeaturedStoryCard() {
   const story = stories[activeIndex] || fallbackStory;
   const image = story.image_url || '/images/outreach-10.png';
   const isFallback = story.id === fallbackStory.id && !hasLoadedLiveStories;
-  const storyHref = isFallback ? '/outreach/10' : `/stories/${story.id}`;
+  const storyHref = isFallback ? '/stories' : `/stories/${story.id}`;
 
-  return <Link id="featured-stories" href={storyHref} aria-label={`Read full featured story: ${story.title}`} className="group relative block min-h-[520px] scroll-mt-24 overflow-hidden rounded-3xl bg-[#17221e] text-white focus:outline-none focus:ring-2 focus:ring-[#e1ad45] focus:ring-offset-4 focus:ring-offset-white"><img src={image} alt="" className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" /><span className="absolute inset-0 bg-gradient-to-t from-[#17221e] via-[#17221e]/45 to-transparent" aria-hidden="true" /><span className="absolute inset-x-0 bottom-0 z-10 block p-7 sm:p-10"><span className="inline-block rounded-full bg-[#e1ad45] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.15em] text-[#17221e]">Featured story</span><span className="mt-4 block text-[10px] font-black uppercase tracking-[0.18em] text-white/65">{story.category}</span><span className="mt-3 block max-w-2xl text-3xl font-black leading-tight tracking-[-0.03em] sm:text-5xl">{story.title}</span><span className="mt-4 block max-w-xl text-sm leading-6 text-white/75">{story.excerpt}</span><span className="mt-5 inline-flex text-xs font-black uppercase tracking-widest text-[#e1ad45]">Read full story <span className="ml-2" aria-hidden="true">→</span></span></span></Link>;
+  return <Link id="featured-stories" href={storyHref} aria-label={`Read full featured story: ${story.title}`} className="group relative block min-h-[520px] scroll-mt-24 overflow-hidden rounded-3xl bg-[#17221e] text-white focus:outline-none focus:ring-2 focus:ring-[#e1ad45] focus:ring-offset-4 focus:ring-offset-white"><Image src={image} alt={story.title} fill sizes="(max-width: 768px) 100vw, 1200px" className="object-cover transition duration-700 group-hover:scale-105" /><span className="absolute inset-0 bg-gradient-to-t from-[#17221e] via-[#17221e]/45 to-transparent" aria-hidden="true" /><span className="absolute inset-x-0 bottom-0 z-10 block p-7 sm:p-10"><span className="inline-block rounded-full bg-[#e1ad45] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.15em] text-[#17221e]">{isFallback ? 'Field desk' : 'Featured story'}</span><span className="mt-4 block text-[10px] font-black uppercase tracking-[0.18em] text-white/65">{story.category}</span><span className="mt-3 block max-w-2xl text-3xl font-black leading-tight tracking-[-0.03em] sm:text-5xl">{story.title}</span><span className="mt-4 block max-w-xl text-sm leading-6 text-white/75">{story.excerpt}</span><span className="mt-5 inline-flex text-xs font-black uppercase tracking-widest text-[#e1ad45]">Read full story <span className="ml-2" aria-hidden="true">→</span></span></span></Link>;
 }
