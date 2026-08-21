@@ -40,12 +40,18 @@ export default function AboutPage() {
     '@context': 'https://schema.org',
     '@type': 'NGO',
     'name': 'Help Meet Shine Initiative',
+    'legalName': 'The Incorporated Trustees of HELP-MEET SHINE INITIATIVE',
     'url': 'https://www.hmsi.org.ng/about',
     'logo': 'https://www.hmsi.org.ng/logo.png',
-    'description': 'HMSI provides humanitarian support and equips individuals for sustainable wealth creation across Nigeria.',
-    'foundingDate': '2018',
+    'description': 'HMSI provides humanitarian assistance, education, empowerment, livelihoods, and sustainable community development across Nigeria and Africa.',
+    'foundingDate': '2019-02-21',
+    'identifier': 'CAC/IT/NO 125103',
+    'taxID': '21249981',
+    'award': 'MEA Award for Most Productive NGO (2022)',
     'address': {
       '@type': 'PostalAddress',
+      'addressLocality': 'Benin City',
+      'addressRegion': 'Edo State',
       'addressCountry': 'Nigeria',
     },
   };
@@ -99,6 +105,42 @@ export default function AboutPage() {
             <p className="mb-6 leading-relaxed">
               From our administrative hubs to our front-line field volunteers, HMSI operates with transparency, urgency, and deep compassion. Over the years, we have grown from a localized effort into a highly coordinated non-governmental organization capable of executing massive community outreach programs across multiple states.
             </p>
+          </div>
+        </div>
+      </section>
+      <section className="bg-slate-50 border-y border-slate-200 py-16 px-6 md:py-20">
+        <div className="max-w-6xl mx-auto">
+          <div className="max-w-3xl mb-10">
+            <p className="text-xs font-black uppercase tracking-[0.22em] text-red-600 mb-4">Trust & accountability</p>
+            <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tight text-slate-900 mb-4">Built to serve responsibly.</h2>
+            <p className="text-lg leading-relaxed text-slate-600">HMSI is committed to transparent governance, responsible stewardship, safeguarding, and measurable community outcomes. The information below is provided for partners, donors, volunteers, and community members.</p>
+          </div>
+          <div className="grid gap-8 md:grid-cols-2">
+            <div className="bg-white border border-slate-200 p-6 md:p-8">
+              <h3 className="text-xl font-black uppercase tracking-tight text-slate-900 mb-5">Legal & leadership</h3>
+              <dl className="space-y-4 text-sm text-slate-600">
+                <div><dt className="font-black uppercase tracking-widest text-slate-400">Registered name</dt><dd className="mt-1 text-slate-900">The Incorporated Trustees of HELP-MEET SHINE INITIATIVE</dd></div>
+                <div><dt className="font-black uppercase tracking-widest text-slate-400">CAC registration</dt><dd className="mt-1 text-slate-900">CAC/IT/NO 125103 · Incorporated 21 February 2019</dd></div>
+                <div><dt className="font-black uppercase tracking-widest text-slate-400">Headquarters</dt><dd className="mt-1 text-slate-900">Benin City, Edo State, Nigeria</dd></div>
+                <div><dt className="font-black uppercase tracking-widest text-slate-400">Board of Trustees</dt><dd className="mt-1 text-slate-900">Mary Ogbeide; Godspower Folorunsho Adebusoye</dd></div>
+                <div><dt className="font-black uppercase tracking-widest text-slate-400">Executive leadership</dt><dd className="mt-1 text-slate-900">Godspower Folorunsho Adebusoye, President</dd></div>
+                <div><dt className="font-black uppercase tracking-widest text-slate-400">Tax identification</dt><dd className="mt-1 text-slate-900">TIN 21249981 · Federal Inland Revenue Service</dd></div>
+              </dl>
+            </div>
+            <div className="bg-slate-900 text-white p-6 md:p-8">
+              <h3 className="text-xl font-black uppercase tracking-tight mb-5">Capability at a glance</h3>
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div><p className="text-3xl font-black text-teal-400">7 meals</p><p className="mt-1 text-sm text-slate-300">served per $1 donated, according to HMSI’s operating measure</p></div>
+                <div><p className="text-3xl font-black text-teal-400">100+</p><p className="mt-1 text-sm text-slate-300">domestic and expatriate field team members</p></div>
+                <div><p className="text-3xl font-black text-teal-400">2022</p><p className="mt-1 text-sm text-slate-300">MEA Award for Most Productive NGO</p></div>
+                <div><p className="text-3xl font-black text-teal-400">5+</p><p className="mt-1 text-sm text-slate-300">cross-cutting intervention areas</p></div>
+              </div>
+              <p className="mt-7 border-t border-white/15 pt-5 text-sm leading-6 text-slate-300">Our focus includes food security and zero hunger, poverty alleviation and wealth creation, crisis response, agriculture, WASH, gender equality, youth empowerment, climate resilience, and peace and conflict resolution.</p>
+            </div>
+          </div>
+          <div className="mt-8 flex flex-wrap gap-4">
+            <Link href="/transparency" className="bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-6 rounded-sm uppercase tracking-widest transition-colors">View transparency</Link>
+            <Link href="/partnerships" className="bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-6 rounded-sm uppercase tracking-widest transition-colors">Partner with HMSI</Link>
           </div>
         </div>
       </section>

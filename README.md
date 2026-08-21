@@ -44,6 +44,14 @@ HMSI is a Next.js App Router application with TypeScript and Tailwind CSS. It is
 | Administration | Hidden admin control center, approval queues, fundraiser management, moderation, donations ledger, messages, newsletters, opportunities, campaigns, and promotion links |
 | Operations | Supabase migrations, server-only secrets, image conversion to WebP, GitHub CI, Dependabot updates, npm audit, and Vercel deployment |
 
+## Verified organizational profile
+
+The organization profile supplied for publication identifies HMSI as **The Incorporated Trustees of HELP-MEET SHINE INITIATIVE**, registered with the Corporate Affairs Commission of the Federal Republic of Nigeria under **CAC/IT/NO 125103** and incorporated on **21 February 2019**. The supplied tax identification number is **21249981**, under the Federal Inland Revenue Service. HMSI’s headquarters are in **Benin City, Edo State, Nigeria**.
+
+The appointed Board of Trustees is **Mary Ogbeide** and **Godspower Folorunsho Adebusoye**. **Godspower Folorunsho Adebusoye** is identified as President. The supplied recognition is the **MEA Award for Most Productive NGO (2022)**. These details are published from HMSI-provided information and should be kept synchronized with official organizational records.
+
+HMSI’s stated capability covers food security and zero hunger, poverty alleviation and empowerment, crisis and emergency response, agriculture, WASH, gender equality, youth empowerment, technology, climate resilience, and peace and conflict resolution. The supplied operating measures are **7 meals per $1 donated** and a field workforce of **100+ domestic and expatriate team members**. Detailed audits and project impact metrics are available to institutional donors upon request.
+
 ## Public experience
 
 The homepage presents HMSI’s mission and the clearest next steps for visitors: donating to NGO work, supporting a verified cause, requesting help, volunteering, partnering, or reading the impact record. Its support CTAs are designed for mobile-first discovery and use direct links rather than inactive visual placeholders.
@@ -67,6 +75,9 @@ The homepage includes an approved fundraiser flash, an approved featured-story f
 | `/volunteer` | Volunteer application path |
 | `/worker-apply` | Worker application-for-approval path |
 | `/contact` | Contact form, support contacts, and direct WhatsApp access |
+| `/partnerships` | Institutional partnership profile, capability statement, focus areas, and donor CTA |
+| `/transparency` | Legal identity, leadership, accountability, safeguarding, privacy, and complaints information |
+| `/terms` | Website terms, governing law, intellectual property, content liability, and authorized linking |
 | `/about`, `/projects` | HMSI organisation and programme information |
 
 Every public fundraiser and featured story has a full detail page. Campaign and story detail pages include direct sharing actions for Facebook and LinkedIn, an Instagram promotion action that copies the tracked URL before opening HMSI’s official Instagram profile, and a copy-link action for WhatsApp, email, SMS, and other channels. Their Open Graph and Twitter metadata is configured for large, campaign-style previews.
@@ -253,6 +264,8 @@ Administrators can publish official content directly. Volunteer and worker submi
 | News | Published newsroom articles | One rotating news flash when records exist |
 
 The homepage featured-story section links to the live [`/stories`](app/stories/page.tsx) archive. Both **Explore field stories** and the featured card’s **Read full story** prompt are clickable. The archive includes both newly approved and previously approved stories, with every item linking to `/stories/[id]`.
+
+The public trust and partnership pages are [`/transparency`](app/transparency/page.tsx) and [`/partnerships`](app/partnerships/page.tsx). The website terms are published at [`/terms`](app/terms/page.tsx). Legal, registration, compliance, award, financial, and safeguarding statements should be reviewed against current official documents before any change is published.
 
 ## GitHub and deployment
 

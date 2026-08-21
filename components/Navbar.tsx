@@ -15,6 +15,8 @@ const links = [
   { href: '/stories', label: 'Field Stories' },
   { href: '/get-help', label: 'Get Help' },
   { href: '/projects', label: 'Projects' },
+  { href: '/partnerships', label: 'Partner with us' },
+  { href: '/transparency', label: 'Transparency' },
   { href: '/volunteer', label: 'Volunteer' },
   { href: '/worker-apply', label: 'Work with HMSI' },
 ];
