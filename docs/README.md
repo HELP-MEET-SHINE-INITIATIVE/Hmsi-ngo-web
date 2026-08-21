@@ -2,6 +2,7 @@
 
 **Organisation:** The Incorporated Trustees of HELP-MEET SHINE INITIATIVE (CAC/IT/NO 125103)  
 **Primary Domain:** `https://www.hmsi.org.ng`  
+**Official Email Sender:** `contact@hmsi.org.ng` / `support@hmsi.org.ng` (Resend Verified)  
 **Official LinkedIn:** `https://www.linkedin.com/company/help-meet-shine-initiative/`  
 **Official Instagram:** `https://www.instagram.com/hmsinitiative/`  
 **Target Account ID:** Google Ads Customer `811-374-9631` (AW-8113749631)  
@@ -9,7 +10,27 @@
 
 ---
 
-## 1. Compliance & Legal Verification Suite
+## 1. Email Infrastructure & Communications Suite
+
+| Document | Purpose & Scope |
+|---|---|
+| `hmsi_resend_email_status_and_capabilities_report.md` | Resend account audit confirming verified `hmsi.org.ng` domain, active API keys, and transactional/broadcast email capabilities. |
+
+---
+
+## 2. Social Media & Creative Growth Suite
+
+| Document / Asset | Purpose & Scope |
+|---|---|
+| `hmsi_instagram_optimization_package.md` | Master Instagram profile bio revamp (148 chars), Highlights taxonomy, and caption templates. |
+| `hmsi_instagram_reels_video_storyboards.md` | Complete frame-by-frame 9:16 vertical video scripts, audio prompts, and voiceover text for 3 high-impact Instagram Reels. |
+| `hmsi_linkedin_optimization_package.md` | Master LinkedIn Company Page overhaul, Executive Trustee bios, 4-pillar content calendar, and CSR partnership copy. |
+| `hmsi_linkedin_live_page_audit_and_corrections.md` | Live LinkedIn audit report and immediate 5-minute admin update checklist. |
+| `hmsi_linkedin_campaign_manager_setup_guide.md` | LinkedIn Campaign Manager ad account creation guide and corporate CSR targeting framework. |
+
+---
+
+## 3. Compliance & Legal Verification Suite
 
 | Document | Purpose & Scope |
 |---|---|
@@ -18,18 +39,7 @@
 
 ---
 
-## 2. Institutional Growth, LinkedIn & Social Outreach
-
-| Document | Purpose & Scope |
-|---|---|
-| `hmsi_linkedin_optimization_package.md` | Master LinkedIn Company Page overhaul, Executive Trustee bios (Godspower Adebusoye), 4-pillar content calendar, and CSR partnership copy templates. |
-| `hmsi_linkedin_live_page_audit_and_corrections.md` | Live LinkedIn page audit report and immediate 5-minute admin update checklist. |
-| `hmsi_linkedin_campaign_manager_setup_guide.md` | LinkedIn Campaign Manager ad account creation guide and corporate CSR targeting framework. |
-| `hmsi_instagram_optimization_package.md` | Master Instagram profile bio overhaul (148 chars), Story Highlights taxonomy, Reels templates, and localized hashtag strategy. |
-
----
-
-## 3. Google Ads Advertising & Policy Package
+## 4. Google Ads Advertising & Policy Package
 
 | Document | Purpose & Scope |
 |---|---|
@@ -42,7 +52,7 @@
 
 ---
 
-## 4. Conversion Tracking, GTM & Payment Gateways
+## 5. Conversion Tracking, GTM & Payment Gateways
 
 | Document | Purpose & Scope |
 |---|---|
