@@ -503,7 +503,7 @@ export default function Home() {
                 <p className="mb-4 text-xs font-black uppercase tracking-[0.22em] text-[#b56b3b]">The HMSI field desk</p>
                 <h2 className="text-4xl font-black tracking-[-0.04em] sm:text-6xl">Stories that move us.</h2>
               </div>
-              <Link href="#featured-stories" className="group inline-flex items-center gap-2 text-sm font-black uppercase tracking-[0.13em] text-[#1e5b49]">Explore field stories <ArrowRight size={17} className="transition-transform group-hover:translate-x-1" /></Link>
+              <Link href="#featured-stories" aria-label="Explore featured field stories" className="group inline-flex items-center gap-2 rounded-full px-1 py-2 text-sm font-black uppercase tracking-[0.13em] text-[#1e5b49] transition hover:text-[#b56b3b] focus:outline-none focus:ring-2 focus:ring-[#1e5b49] focus:ring-offset-4">Explore field stories <ArrowRight size={17} className="transition-transform group-hover:translate-x-1" /></Link>
             </div>
 
             <div className="mt-12 grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
