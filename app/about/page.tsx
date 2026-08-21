@@ -47,7 +47,12 @@ export default function AboutPage() {
     'foundingDate': '2019-02-21',
     'identifier': 'CAC/IT/NO 125103',
     'taxID': '21249981',
-    'award': 'MEA Award for Most Productive NGO (2022)',
+    'award': 'HMSI-reported MEA Award for Most Productive NGO (2022)',
+    'sameAs': [
+      'https://www.instagram.com/hmsinitiative/',
+      'https://www.facebook.com/@hmsinitiative/',
+      'https://www.linkedin.com/company/help-meet-shine-initiative/',
+    ],
     'address': {
       '@type': 'PostalAddress',
       'addressLocality': 'Benin City',
@@ -100,10 +105,10 @@ export default function AboutPage() {
               The Help-Meet Shine Initiative (HMSI) was founded on the fundamental belief that every human being deserves dignity, access to basic necessities, and the opportunity to build a self-sustaining future. In regions severely affected by economic hardship and lack of infrastructure, we serve as a beacon of hope.
             </p>
             <p className="mb-6 leading-relaxed">
-              Our approach is holistic. We do not stop at delivering emergency food supplies and medical interventions. We stay back to equip youths, mothers, and local entrepreneurs with the skills required for sustainable wealth creation. By addressing both the symptoms of poverty and its root causes, we create enduring change.
+              Our approach is practical and people-centred. We connect humanitarian assistance with social development, empowerment, livelihoods, and community participation, while adapting interventions to the needs and dignity of the people we serve.
             </p>
             <p className="mb-6 leading-relaxed">
-              From our administrative hubs to our front-line field volunteers, HMSI operates with transparency, urgency, and deep compassion. Over the years, we have grown from a localized effort into a highly coordinated non-governmental organization capable of executing massive community outreach programs across multiple states.
+              From governance and administration to programme and field operations, HMSI is committed to responsible delivery, accountable partnerships, safeguarding, and learning from evidence. Our institutional profile sets out the systems and documentation needed to make programme results easier for donors and communities to verify.
             </p>
           </div>
         </div>
@@ -130,10 +135,10 @@ export default function AboutPage() {
             <div className="bg-slate-900 text-white p-6 md:p-8">
               <h3 className="text-xl font-black uppercase tracking-tight mb-5">Capability at a glance</h3>
               <div className="grid gap-5 sm:grid-cols-2">
-                <div><p className="text-3xl font-black text-teal-400">7 meals</p><p className="mt-1 text-sm text-slate-300">served per $1 donated, according to HMSI’s operating measure</p></div>
-                <div><p className="text-3xl font-black text-teal-400">100+</p><p className="mt-1 text-sm text-slate-300">domestic and expatriate field team members</p></div>
-                <div><p className="text-3xl font-black text-teal-400">2022</p><p className="mt-1 text-sm text-slate-300">MEA Award for Most Productive NGO</p></div>
-                <div><p className="text-3xl font-black text-teal-400">5+</p><p className="mt-1 text-sm text-slate-300">cross-cutting intervention areas</p></div>
+                <div><p className="text-3xl font-black text-teal-400">7 meals</p><p className="mt-1 text-sm text-slate-300">reported meals served per $1 donated; methodology and period available for due diligence</p></div>
+                <div><p className="text-3xl font-black text-teal-400">100+</p><p className="mt-1 text-sm text-slate-300">reported domestic and expatriate field team members; category and period should be confirmed</p></div>
+                <div><p className="text-3xl font-black text-teal-400">2022</p><p className="mt-1 text-sm text-slate-300">reported MEA Award for Most Productive NGO; evidence should be retained</p></div>
+                <div><p className="text-3xl font-black text-teal-400">SDG 1 & 2</p><p className="mt-1 text-sm text-slate-300">core development alignment</p></div>
               </div>
               <p className="mt-7 border-t border-white/15 pt-5 text-sm leading-6 text-slate-300">Our focus includes food security and zero hunger, poverty alleviation and wealth creation, crisis response, agriculture, WASH, gender equality, youth empowerment, climate resilience, and peace and conflict resolution.</p>
             </div>
@@ -151,15 +156,24 @@ export default function AboutPage() {
             <div className="w-12 h-1 bg-red-600 mb-6"></div>
             <h3 className="text-3xl font-black uppercase mb-4 tracking-tighter">Our Mission</h3>
             <p className="text-lg text-slate-300 leading-relaxed">
-              To provide immediate humanitarian support to crisis-stricken areas while aggressively equipping individuals with educational materials, skills, and resources necessary for sustainable, long-term wealth creation.
+              To strengthen people and communities through practical humanitarian, social-development and empowerment initiatives delivered responsibly and in partnership with relevant stakeholders.
             </p>
           </div>
           <div>
             <div className="w-12 h-1 bg-teal-500 mb-6"></div>
             <h3 className="text-3xl font-black uppercase mb-4 tracking-tighter">Our Vision</h3>
             <p className="text-lg text-slate-300 leading-relaxed">
-              A Nigeria where no community is left vulnerable to extreme poverty, and where every youth and family has the capacity to shine and positively impact their local economy.
+              A stronger and more resilient society where vulnerable people and communities have improved opportunities, dignity and pathways to sustainable wellbeing.
             </p>
+          </div>
+        </div>
+      </section>
+      <section className="bg-slate-50 border-b border-slate-200 py-16 px-6 md:py-20">
+        <div className="max-w-6xl mx-auto">
+          <p className="text-xs font-black uppercase tracking-[0.22em] text-red-600 mb-4">Core values</p>
+          <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tight text-slate-900 mb-8">How we aim to work.</h2>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[['Integrity', 'We act honestly and responsibly with people, partnerships and resources.'], ['Dignity', 'We treat every beneficiary and stakeholder with respect and compassion.'], ['Accountability', 'We accept responsibility for decisions, resources, programmes and results.'], ['Inclusion', 'We promote participation and opportunity without discrimination.'], ['Service', 'We are committed to meaningful community service and sustainable social impact.'], ['Partnership', 'We believe lasting impact is strengthened through collaboration.'], ['Stewardship', 'We manage resources responsibly and respect donor and community trust.'], ['Compassion', 'We respond to community needs with empathy and practical action.']].map(([title, text]) => <article key={title} className="bg-white border border-slate-200 p-6"><h3 className="font-black text-slate-900">{title}</h3><p className="mt-2 text-sm leading-6 text-slate-600">{text}</p></article>)}
           </div>
         </div>
       </section>

@@ -50,7 +50,13 @@ The organization profile supplied for publication identifies HMSI as **The Incor
 
 The appointed Board of Trustees is **Mary Ogbeide** and **Godspower Folorunsho Adebusoye**. **Godspower Folorunsho Adebusoye** is identified as President. The supplied recognition is the **MEA Award for Most Productive NGO (2022)**. These details are published from HMSI-provided information and should be kept synchronized with official organizational records.
 
-HMSI’s stated capability covers food security and zero hunger, poverty alleviation and empowerment, crisis and emergency response, agriculture, WASH, gender equality, youth empowerment, technology, climate resilience, and peace and conflict resolution. The supplied operating measures are **7 meals per $1 donated** and a field workforce of **100+ domestic and expatriate team members**. Detailed audits and project impact metrics are available to institutional donors upon request.
+HMSI’s stated capability covers food security and zero hunger, poverty alleviation and empowerment, crisis and emergency response, agriculture, WASH, gender equality, youth empowerment, technology, climate resilience, and peace and conflict resolution. The supplied, HMSI-reported operating measures are **7 meals per $1 donated** and a field workforce of **100+ domestic and expatriate team members**. The profile recommends defining the reporting period and personnel category and retaining the methodology and supporting records. Detailed audits and project impact metrics are available to institutional donors upon request.
+
+## Professional profile alignment
+
+The public About page now reflects the profile’s mission, vision, and eight core values: integrity, dignity, compassion, accountability, inclusion, service, partnership, and stewardship. The Partnerships page includes the recommended partner audiences, proposal framework, programme and MEL expectations, safeguarding considerations, and due-diligence evidence categories. The Transparency page presents governance roles, financial-control and anti-fraud expectations, safeguarding, privacy, complaints, and responsible-claims guidance without inventing unavailable policy documents or audit results.
+
+The website applies an evidence-first communication rule: the meals, field-personnel, income, and award figures supplied by HMSI are labelled or contextualized as reported information unless a defined reporting period and supporting documentation are available. Formal annual reports, audited statements, certificates, policies, and programme evidence should be added only after HMSI supplies or approves them.
 
 ## Public experience
 
@@ -265,7 +271,7 @@ Administrators can publish official content directly. Volunteer and worker submi
 
 The homepage featured-story section links to the live [`/stories`](app/stories/page.tsx) archive. Both **Explore field stories** and the featured card’s **Read full story** prompt are clickable. The archive includes both newly approved and previously approved stories, with every item linking to `/stories/[id]`.
 
-The public trust and partnership pages are [`/transparency`](app/transparency/page.tsx) and [`/partnerships`](app/partnerships/page.tsx). The website terms are published at [`/terms`](app/terms/page.tsx). Legal, registration, compliance, award, financial, and safeguarding statements should be reviewed against current official documents before any change is published.
+The public trust and partnership pages are [`/transparency`](app/transparency/page.tsx) and [`/partnerships`](app/partnerships/page.tsx). The website terms are published at [`/terms`](app/terms/page.tsx). The homepage and shared contact surfaces use the verified Benin City headquarters and 21 February 2019 incorporation date. Legal, registration, compliance, award, financial, and safeguarding statements should be reviewed against current official documents before any change is published.
 
 ## GitHub and deployment
 

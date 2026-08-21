@@ -74,7 +74,7 @@ export default function ContactForm() {
 
         <div className="mt-10 border-t border-slate-200 pt-6 text-sm text-slate-600">
           <p className="font-bold uppercase tracking-widest text-slate-900">Our base</p>
-          <p className="mt-2">Lagos, Nigeria · Serving communities across Africa</p>
+          <p className="mt-2">Benin City, Edo State, Nigeria · Serving communities across Africa</p>
           <p className="mt-1"><a href="mailto:support@hmsi.org.ng" className="font-bold text-slate-900">support@hmsi.org.ng</a><br /><a href="mailto:contact@hmsi.org.ng" className="font-bold text-slate-900">contact@hmsi.org.ng</a></p>
         </div>
       </div>

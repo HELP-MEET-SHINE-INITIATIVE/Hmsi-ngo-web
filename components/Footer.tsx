@@ -31,7 +31,7 @@ export default function Footer() {
           </div>
           <div>
             <p className="text-xs font-black uppercase tracking-[0.17em] text-[#e1ad45]">Contact</p>
-            <p className="mt-5 text-sm leading-6 text-white/70">Lagos, Nigeria<br />Serving communities across Africa<br /><a href="mailto:support@hmsi.org.ng" className="transition hover:text-white">support@hmsi.org.ng</a><br /><a href="mailto:contact@hmsi.org.ng" className="transition hover:text-white">contact@hmsi.org.ng</a></p>
+            <p className="mt-5 text-sm leading-6 text-white/70">Benin City, Edo State, Nigeria<br />Serving communities across Africa<br /><a href="mailto:support@hmsi.org.ng" className="transition hover:text-white">support@hmsi.org.ng</a><br /><a href="mailto:contact@hmsi.org.ng" className="transition hover:text-white">contact@hmsi.org.ng</a></p>
             <Link href="/contact" className="mt-4 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.12em] text-[#e1ad45]">Start a conversation <ArrowRight size={14} /></Link>
           </div>
         </div>

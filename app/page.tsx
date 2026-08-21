@@ -82,7 +82,7 @@ const waysToHelp = [
     number: "03",
     title: "Partner for impact",
     text: "Connect your organisation to a focused, accountable community network.",
-    href: "/contact",
+    href: "/partnerships",
   },
   {
     icon: Sparkles,
@@ -259,10 +259,13 @@ export default function Home() {
             <Link className="transition-colors hover:text-[#e1ad45]" href="/fundraise">Support a cause</Link>
             <Link className="transition-colors hover:text-[#e1ad45]" href="/impact">Top impact</Link>
             <Link className="transition-colors hover:text-[#e1ad45]" href="/news">News</Link>
+            <Link className="transition-colors hover:text-[#e1ad45]" href="/stories">Field Stories</Link>
             <Link className="transition-colors hover:text-[#e1ad45]" href="/volunteer">Volunteer</Link>
             <Link className="transition-colors hover:text-[#e1ad45]" href="/worker-apply">Work with HMSI</Link>
             <Link className="transition-colors hover:text-[#e1ad45]" href="/opportunities">Opportunities</Link>
             <Link className="transition-colors hover:text-[#e1ad45]" href="/about">About us</Link>
+            <Link className="transition-colors hover:text-[#e1ad45]" href="/partnerships">Partner with us</Link>
+            <Link className="transition-colors hover:text-[#e1ad45]" href="/transparency">Transparency</Link>
           </nav>
 
           <div className="flex items-center gap-3">
@@ -304,13 +307,15 @@ export default function Home() {
               <Link href="/fundraise" onClick={() => setMenuOpen(false)}>Support a cause</Link>
               <Link href="/impact" onClick={() => setMenuOpen(false)}>Top impact</Link>
               <Link href="/news" onClick={() => setMenuOpen(false)}>News</Link>
+              <Link href="/stories" onClick={() => setMenuOpen(false)}>Field Stories</Link>
               <Link href="/volunteer" onClick={() => setMenuOpen(false)}>Volunteer</Link>
               <Link href="/worker-apply" onClick={() => setMenuOpen(false)}>Work with HMSI</Link>
               <Link href="/opportunities" onClick={() => setMenuOpen(false)}>Opportunities</Link>
-              <Link href="#stories" onClick={() => setMenuOpen(false)}>Stories</Link>
               <Link href="#impact" onClick={() => setMenuOpen(false)}>Our impact</Link>
               <Link href="#start-here" onClick={() => setMenuOpen(false)}>How to help</Link>
               <Link href="/about" onClick={() => setMenuOpen(false)}>About us</Link>
+              <Link href="/partnerships" onClick={() => setMenuOpen(false)}>Partner with us</Link>
+              <Link href="/transparency" onClick={() => setMenuOpen(false)}>Transparency</Link>
               <div className="flex flex-wrap gap-3 border-t border-white/15 pt-5">
                 <Link href="/login" onClick={() => setMenuOpen(false)} className="inline-flex rounded-full border border-white/35 px-5 py-3 text-xs font-black uppercase tracking-[0.16em] text-white">Log in</Link>
                 <Link href="/signup" onClick={() => setMenuOpen(false)} className="inline-flex rounded-full bg-white px-5 py-3 text-xs font-black uppercase tracking-[0.16em] text-[#17221e]">Sign up</Link>
@@ -340,7 +345,7 @@ export default function Home() {
               Donate. Volunteer. <span className="text-[#e1ad45]">Help communities thrive.</span>
             </h1>
             <p className="mt-8 max-w-xl text-lg leading-8 text-white/80 sm:text-xl">
-              Help Meet Shine Initiative (HMSI) is an NGO in Nigeria and Africa. Donate to our work, support a verified cause, volunteer your skills, or partner with us to create lasting community change.
+              Help Meet Shine Initiative (HMSI) is a Nigerian nonprofit serving communities in Nigeria and across Africa. Donate to our work, support a verified cause, volunteer your skills, or partner with us to create lasting community change.
             </p>
             <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center">
               <Link href="/donate" className="group inline-flex items-center justify-center gap-3 rounded-full bg-[#e1ad45] px-7 py-4 text-sm font-black uppercase tracking-[0.15em] text-[#17221e] transition hover:bg-white">
@@ -376,10 +381,10 @@ export default function Home() {
       <div className="border-b border-[#d9d6ce] bg-[#f6f4ef]">
         <div className="mx-auto grid max-w-[1440px] grid-cols-2 divide-x divide-[#d9d6ce] sm:grid-cols-4">
           {[
-            ["12", "states reached"],
-            ["48k+", "people supported"],
-            ["100%", "community-led"],
-            ["2018", "founded in Nigeria"],
+            ["2019", "incorporated in Nigeria"],
+            ["100+", "reported field team members"],
+            ["SDG 1 & 2", "core development focus"],
+            ["Nigeria + Africa", "community service reach"],
           ].map(([value, label]) => (
             <div key={label} className="px-4 py-6 text-center sm:px-8 sm:py-8">
               <p className="text-2xl font-black tracking-tight text-[#1e5b49] sm:text-3xl">{value}</p>
@@ -401,7 +406,7 @@ export default function Home() {
               { href: '/donate', label: 'Donate to NGO work', text: 'Give securely to HMSI’s humanitarian mission across Nigeria and Africa.', action: 'Make a donation' },
               { href: '/fundraise', label: 'Support a verified cause', text: 'Browse fundraising requests and choose a need you want to help solve.', action: 'Browse causes' },
               { href: '/volunteer', label: 'Volunteer with HMSI', text: 'Bring your time, skills, and local knowledge to community-led work.', action: 'Become a volunteer' },
-              { href: '/contact', label: 'Partner with HMSI', text: 'Connect your organization, network, or resources to practical NGO work.', action: 'Start a conversation' },
+              { href: '/partnerships', label: 'Partner with HMSI', text: 'Connect your organization, network, or resources to practical NGO work.', action: 'Start a conversation' },
             ].map((pathway) => (
               <Link key={pathway.href} href={pathway.href} className="group rounded-[28px] border border-[#d9d6ce] bg-[#f6f4ef] p-7 transition hover:-translate-y-1 hover:border-[#1e5b49] hover:bg-[#e9f0e9] hover:shadow-xl hover:shadow-[#1e5b49]/10">
                 <h3 className="text-xl font-black tracking-tight text-[#17221e]">{pathway.label}</h3>
@@ -542,7 +547,7 @@ export default function Home() {
                 },
                 {
                   q: "Is it free to post a help request?",
-                  a: "Yes, HMSI is a non-profit platform. We do not charge any fees for posting help requests or receiving donations. We are committed to ensuring 100% of donations reach the intended cause."
+                  a: "Yes, HMSI is a non-profit platform and does not charge a fee to post a help request. Donations are processed through Paystack and handled according to the verified campaign or programme arrangements shown on the relevant donation page."
                 },
                 {
                   q: "How are donations processed?",
@@ -632,8 +637,8 @@ export default function Home() {
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {[
-              { title: "Where the money goes", text: "94% of all donations go directly to our humanitarian programmes and community projects.", icon: ShieldCheck },
-              { title: "Accountable to you", text: "We provide regular, detailed reports on every project, so you see the impact of your gift.", icon: Mail },
+              { title: "Where the money goes", text: "Donations are processed through Paystack, and campaign pages explain the intended use of funds. HMSI maintains records for responsible stewardship.", icon: ShieldCheck },
+              { title: "Evidence-led accountability", text: "Programme reports, budgets, monitoring data and supporting documents are maintained for institutional due diligence; selected materials can be requested.", icon: Mail },
               { title: "Community-led", text: "We work with local leaders to ensure our interventions are relevant, effective and lasting.", icon: Users },
             ].map((item) => (
               <div key={item.title} className="rounded-[40px] border border-[#d9d6ce] bg-white p-10 text-center">
@@ -645,6 +650,7 @@ export default function Home() {
               </div>
             ))}
           </div>
+          <div className="mt-10 text-center"><Link href="/transparency" className="inline-flex items-center gap-2 rounded-full border border-[#1e5b49] px-5 py-3 text-xs font-black uppercase tracking-widest text-[#1e5b49] transition hover:bg-[#e9f0e9]">Visit the Trust Center <ArrowRight size={15} /></Link></div>
         </section>
       </div>
 
