@@ -6,7 +6,7 @@ Help Meet Shine Initiative (HMSI) takes the security and privacy of donors, peop
 
 Please **do not open a public GitHub issue** for a suspected security vulnerability. Public reports can expose people, credentials, payment information, or exploitable implementation details before a fix is available.
 
-Send a private report to **security@helpmeetshine.org**. If that mailbox is unavailable, contact the repository maintainers privately and mark the message **confidential security report**.
+Send a private report to **contact@hmsi.org.ng** with the subject **confidential security report**. Do not include secrets or sensitive personal data in the initial message; request a safer exchange channel if needed.
 
 A useful report should include:
 
@@ -34,7 +34,7 @@ The following values are server-side secrets and must never be committed to GitH
 | `HMSI_ADMIN_SESSION_SECRET` | Use only for signing and verifying the admin session. |
 | `.env.local` and deployment secrets | Keep out of commits, screenshots, logs, and support messages. `.env.local` is ignored and must remain untracked. |
 
-The public Supabase URL, anon key, Paystack public key, and site URL may be exposed where required by the browser, but database policies and server authorization must not rely on secrecy of public values. A previously tracked `.env.local` file containing a browser Paystack key was removed from the repository index during the full-site audit. If that historical value was ever treated as a secret or if any other secret was present in the file, rotate it and review repository history before production use.
+The public Supabase URL, anon key, Paystack public key, and site URL may be exposed where required by the browser, but database policies and server authorization must not rely on secrecy of public values. A previously tracked `.env.local` file was removed from the repository and purged from the reachable Git history during the security audit. The file contained a browser Paystack key, which is normally a public client value, but HMSI must still rotate it if it was ever treated as sensitive or if any other secret was present in the file. Force-pushing the rewritten history does not replace credential rotation, provider revocation, or review of existing clones and caches.
 
 ## Browser and HTTP protections
 
@@ -81,7 +81,7 @@ npm run build
 
 ## Public privacy and safeguarding
 
-The public [`/privacy`](app/privacy/page.tsx) and [`/safeguarding`](app/safeguarding/page.tsx) pages provide working notices and concern-reporting routes. They are not a claim that HMSI has completed formal policy approval, training, data-protection registration, or independent compliance certification. HMSI should approve and maintain formal policies, retention schedules, incident procedures, and safeguarding referral arrangements.
+The public [`/privacy`](app/privacy/page.tsx), [`/cookies`](app/cookies/page.tsx), and [`/safeguarding`](app/safeguarding/page.tsx) pages provide working notices and concern-reporting routes. They are not a claim that HMSI has completed formal policy approval, consent-management deployment, training, data-protection registration, or independent compliance certification. HMSI should approve and maintain formal policies, retention schedules, incident procedures, cookie inventories, and safeguarding referral arrangements.
 
 ## Scope exclusions
 
