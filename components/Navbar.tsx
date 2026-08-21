@@ -12,6 +12,7 @@ const links = [
   { href: '/fundraise', label: 'Help Me' },
   { href: '/impact', label: 'Top Impact' },
   { href: '/news', label: 'News' },
+  { href: '/stories', label: 'Field Stories' },
   { href: '/get-help', label: 'Get Help' },
   { href: '/projects', label: 'Projects' },
   { href: '/volunteer', label: 'Volunteer' },

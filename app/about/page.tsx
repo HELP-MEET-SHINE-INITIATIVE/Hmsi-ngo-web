@@ -64,10 +64,10 @@ export default function AboutPage() {
       <div className="bg-slate-50 py-16 md:py-24 border-b border-slate-200">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter text-slate-900 mb-6">
-            Empowering Communities. <br/><span className="text-red-600">Restoring Hope.</span>
+            Empowering Communities. <br/><span className="text-red-600">Restoring Dignity.</span>
           </h1>
           <p className="text-lg md:text-xl font-medium text-slate-600 max-w-2xl mx-auto">
-            We exist to bridge the gap for vulnerable demographics in Nigeria, offering a hand-up rather than just a hand-out through humanitarian aid and sustainable wealth creation.
+            We exist to support vulnerable and underserved communities in Nigeria through humanitarian assistance, education, empowerment, livelihoods, and sustainable community development.
           </p>
         </div>
       </div>
