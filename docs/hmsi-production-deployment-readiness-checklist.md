@@ -2,7 +2,9 @@
 
 **Organization:** The Incorporated Trustees of HELP-MEET SHINE INITIATIVE (CAC/IT/NO 125103)  
 **Primary Domain:** `https://www.hmsi.org.ng`  
-**Google Ads Customer ID:** `811-374-9631` (AW-8113749631)  
+**Google Ads Customer ID:** `811-374-9631`
+**Google Ads tracking ID:** `AW-732806243`
+**Begin checkout conversion label:** `IpQkCJvO3OUcEOP4tt0C`
 **Audit Date:** 21 August 2026  
 **Auditor:** Devops & Production Security Engineering  
 
@@ -19,7 +21,8 @@ The HMSI Next.js 16 platform separates public client-side variables (`NEXT_PUBLI
 | Variable Name                | Target Scope       | Verified Value / State| Security Level        |
 +------------------------------+--------------------+-----------------------+-----------------------+
 | `NEXT_PUBLIC_GTM_ID`         | Client (Browser)   | `GTM-XXXXXXX` -> Live | Public (GTM Container)|
-| `NEXT_PUBLIC_GOOGLE_ADS_ID`  | Client (Browser)   | `AW-8113749631`       | Public (Google Tag)   |
+| `NEXT_PUBLIC_GOOGLE_ADS_ID`  | Client (Browser)   | `AW-732806243`       | Public (Google Tag)   |
+| `NEXT_PUBLIC_GOOGLE_ADS_BEGIN_CHECKOUT_SEND_TO` | Client (Browser) | `AW-732806243/IpQkCJvO3OUcEOP4tt0C` | Public conversion destination |
 | `NEXT_PUBLIC_PAYSTACK_KEY`   | Client (Browser)   | `pk_live_...`         | Public Publishable Key|
 | `NEXT_PUBLIC_SUPABASE_URL`   | Client (Browser)   | `https://...supabase` | Public API Gateway    |
 | `NEXT_PUBLIC_SUPABASE_ANON`  | Client (Browser)   | `eyJhbGci...`         | Public Anon Token     |
@@ -90,6 +93,6 @@ To connect your live Google Tag Manager container and activate Google Ads conver
 1. **Tag Assistant Verification:**  
    Install the [Google Tag Assistant Companion](https://tagassistant.google.com/) Chrome Extension and navigate to `https://www.hmsi.org.ng`. Confirm that the container loads and reports green status.
 2. **Test Conversion Firing:**  
-   Navigate to `/gtm-preview`, fire the mock `begin_checkout` and `onSuccess` simulations, and confirm that Google Ads Conversion ID `AW-8113749631` registers the hits in Tag Assistant.
+   Navigate to `/gtm-preview`, fire the mock `begin_checkout` and `onSuccess` simulations, and confirm that tracking ID `AW-732806243` and conversion destination `AW-732806243/IpQkCJvO3OUcEOP4tt0C` register the hits in Tag Assistant.
 3. **Live Form Smoke Test:**  
    Submit a test volunteer application with test credentials to verify that `volunteer_application_submitted` appears in the live DataLayer buffer.

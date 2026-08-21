@@ -4,7 +4,7 @@ import Link from "next/link";
 import Script from "next/script";
 import { FormEvent, useState } from "react";
 import { Check, HeartHandshake, LockKeyhole, Mail, ShieldCheck, Sparkles } from "lucide-react";
-import { trackBeginCheckout, trackDonationCompleted } from "../../lib/gtm";
+import { trackBeginCheckout, trackDonationCompleted, trackGoogleAdsBeginCheckoutConversion } from "../../lib/gtm";
 
 type PaymentResponse = {
   reference?: string;
@@ -123,6 +123,9 @@ export default function DonateForm() {
 
     // Dispatch Google Tag Manager begin_checkout event
     trackBeginCheckout({
+      amount: amountInNaira,
+    });
+    trackGoogleAdsBeginCheckoutConversion({
       amount: amountInNaira,
     });
 

@@ -2,7 +2,9 @@
 
 **Organization:** The Incorporated Trustees of HELP-MEET SHINE INITIATIVE (CAC/IT/NO 125103)  
 **Deployment Commit:** `5c6e6de` (`feat: add GTM container and Paystack conversion tracking events`)  
-**Target Customer ID:** `811-374-9631`  
+**Google Ads account:** Customer `811-374-9631`
+**Google Ads tracking ID:** `AW-732806243`
+**Begin checkout conversion label:** `IpQkCJvO3OUcEOP4tt0C`
 **Primary Payment Processor:** Paystack (Inline Popup Modal, Debit Card, Bank Transfer, USSD)  
 **Date Prepared:** 21 August 2026  
 
@@ -16,7 +18,8 @@ Provides safe, strongly typed dispatchers for all major business conversion even
 
 ```typescript
 export const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || 'GTM-XXXXXXX';
-export const GOOGLE_ADS_CONVERSION_ID = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID || 'AW-8113749631';
+export const GOOGLE_ADS_CONVERSION_ID = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID || 'AW-732806243';
+export const GOOGLE_ADS_BEGIN_CHECKOUT_SEND_TO = process.env.NEXT_PUBLIC_GOOGLE_ADS_BEGIN_CHECKOUT_SEND_TO || 'AW-732806243/IpQkCJvO3OUcEOP4tt0C';
 
 export function pushToDataLayer(data: Record<string, unknown>): void {
   if (typeof window !== 'undefined') {
@@ -145,6 +148,7 @@ To activate GTM tracking in production, configure the following environment vari
 | Variable | Recommended Production Value | Description |
 |---|---|---|
 | `NEXT_PUBLIC_GTM_ID` | `GTM-XXXXXXX` *(Your GTM Container ID)* | Activates the GTM script across all pages |
-| `NEXT_PUBLIC_GOOGLE_ADS_ID` | `AW-8113749631` | Google Ads Conversion Tag ID |
+| `NEXT_PUBLIC_GOOGLE_ADS_ID` | `AW-732806243` | Google Ads tracking ID |
+| `NEXT_PUBLIC_GOOGLE_ADS_BEGIN_CHECKOUT_SEND_TO` | `AW-732806243/IpQkCJvO3OUcEOP4tt0C` | Begin checkout conversion destination |
 
 When `NEXT_PUBLIC_GTM_ID` is unset or left as default, the container component gracefully renders `null` without throwing errors or breaking page hydration.

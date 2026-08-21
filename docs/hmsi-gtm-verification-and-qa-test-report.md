@@ -1,7 +1,9 @@
 # HMSI GTM Container Verification & Cross-Browser DataLayer QA Testing Report
 
 **Organization:** The Incorporated Trustees of HELP-MEET SHINE INITIATIVE (CAC/IT/NO 125103)  
-**Target Account ID:** `811-374-9631` (AW-8113749631)  
+**Google Ads account:** Customer `811-374-9631`
+**Google Ads tracking ID:** `AW-732806243`
+**Begin checkout conversion label:** `IpQkCJvO3OUcEOP4tt0C`
 **Test Environment:** Next.js 16.3.1 (App Router) / Vercel Production (`https://www.hmsi.org.ng`)  
 **Deployment Commit:** `a057583` (`feat: add interactive GTM event debugger and live dataLayer preview`)  
 **Date of Audit:** 21 August 2026  
@@ -71,6 +73,7 @@ Simulated live donation interactions were executed on `/donate` and through the 
   }
   ```
 * **Audit Finding:** Correctly formats dynamic NGN currency, passes positive float values, and precedes the external Paystack popup modal.
+* **Google Ads conversion mapping:** The checkout initiation path additionally sends `AW-732806243/IpQkCJvO3OUcEOP4tt0C` through the direct Google tag when configured.
 
 ### B. Event: `donation_completed` (Paystack `onSuccess` Callback)
 * **Trigger Condition:** Paystack verifies card/transfer charge and returns a transaction reference string.

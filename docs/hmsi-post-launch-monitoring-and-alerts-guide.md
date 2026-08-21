@@ -1,7 +1,9 @@
 # HMSI Post-Launch Monitoring, Alert Setup & Incident Response Guide
 
 **Organization:** The Incorporated Trustees of HELP-MEET SHINE INITIATIVE (CAC/IT/NO 125103)  
-**Target Account ID:** `811-374-9631` (AW-8113749631)  
+**Google Ads account:** Customer `811-374-9631`
+**Google Ads tracking ID:** `AW-732806243`
+**Begin checkout conversion label:** `IpQkCJvO3OUcEOP4tt0C`
 **Primary Payment Processor:** Paystack (Inline Popup Modal, Debit Card, Bank Transfer, USSD)  
 **Application Stack:** Next.js 16 (App Router) / Supabase Serverless DB / Vercel Edge  
 **Date Prepared:** 21 August 2026  

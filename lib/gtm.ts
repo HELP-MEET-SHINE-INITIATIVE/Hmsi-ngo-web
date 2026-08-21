@@ -1,11 +1,13 @@
 export const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || 'GTM-XXXXXXX';
-export const GOOGLE_ADS_CONVERSION_ID = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID || 'AW-8113749631';
+export const GOOGLE_ADS_CONVERSION_ID = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID || 'AW-732806243';
+export const GOOGLE_ADS_BEGIN_CHECKOUT_SEND_TO = process.env.NEXT_PUBLIC_GOOGLE_ADS_BEGIN_CHECKOUT_SEND_TO || 'AW-732806243/IpQkCJvO3OUcEOP4tt0C';
 
 type DataLayerEvent = Record<string, unknown>;
 
 declare global {
   interface Window {
     dataLayer?: DataLayerEvent[];
+    gtag?: (...args: unknown[]) => void;
   }
 }
 
@@ -41,6 +43,31 @@ export function trackBeginCheckout(params: {
         },
       ],
     },
+  });
+}
+
+/**
+ * Track the supplied Google Ads Begin checkout conversion label.
+ * The call is intentionally separate from the generic GTM event so the
+ * configured Google Ads conversion action receives the exact send_to value.
+ */
+export function trackGoogleAdsBeginCheckoutConversion(params: { amount: number }): void {
+  if (typeof window === 'undefined') return;
+
+  const conversionPayload = {
+    send_to: GOOGLE_ADS_BEGIN_CHECKOUT_SEND_TO,
+    value: params.amount,
+    currency: 'NGN',
+  };
+
+  if (typeof window.gtag === 'function') {
+    window.gtag('event', 'conversion', conversionPayload);
+    return;
+  }
+
+  pushToDataLayer({
+    event: 'conversion',
+    ...conversionPayload,
   });
 }
 

@@ -5,7 +5,8 @@
 **Official Email Sender:** `contact@hmsi.org.ng` / `support@hmsi.org.ng` (Resend Verified)  
 **Official LinkedIn:** `https://www.linkedin.com/company/help-meet-shine-initiative/`  
 **Official Instagram:** `https://www.instagram.com/hmsinitiative/`  
-**Target Account ID:** Google Ads Customer `811-374-9631` (AW-8113749631)  
+**Google Ads account:** Customer `811-374-9631`
+**Google Ads tracking ID:** `AW-732806243`
 **Date Updated:** 21 August 2026  
 
 ---
@@ -43,7 +44,7 @@
 
 | Document | Purpose & Scope |
 |---|---|
-| `hmsi_google_ads_policy_review_request.md` | Formal submission letter to Google Ads Trust & Safety requesting non-profit review and advertiser verification for Customer ID 811-374-9631. |
+| `hmsi_google_ads_policy_review_request.md` | Formal submission letter to Google Ads Trust & Safety requesting non-profit review and advertiser verification for Customer ID 811-374-9631. The account ID is distinct from the tracking ID `AW-732806243`. |
 | `hmsi_google_ads_policy_submission_step_by_step_guide.md` | Step-by-step submission instructions with copy-ready text blocks and document attachment lists. |
 | `hmsi_google_ads_support_escalation_template.md` | Escalation email template if Google policy review exceeds the 5-day SLA. |
 | `hmsi_google_ads_complete_campaign_copy.md` | Master character-counted ad copy (48 headlines, 16 descriptions), match-typed keywords, and extensions for all 4 tracks. |
