@@ -17,7 +17,7 @@ type OptionalImageUploadProps = {
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
-export default function OptionalImageUpload({ viewer, value, onChange, label = 'Optional picture', helpText = 'JPG, PNG, or WEBP up to 8 MB. You can publish without a picture.' }: OptionalImageUploadProps) {
+export default function OptionalImageUpload({ viewer, value, onChange, label = 'Optional picture', helpText = 'JPG, PNG, or WEBP up to 8 MB. Images are automatically optimized for faster loading. You can publish without a picture.' }: OptionalImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState('');
 

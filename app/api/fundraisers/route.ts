@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createFundraiser, getFundraisers } from '../../../lib/fundraisers';
+import { optimizeUploadedImage } from '../../../lib/optimizeImage';
 import { getSupabaseAdmin, getSupabaseStorageBucket, hasSupabaseConfig } from '../../../lib/supabaseAdmin';
 
 export const runtime = 'nodejs';
@@ -63,13 +64,20 @@ export async function POST(request: Request) {
     const bucket = getSupabaseStorageBucket();
     if (!admin) throw new Error('Supabase storage is not configured.');
 
+    let optimizedImage;
+    try {
+      optimizedImage = await optimizeUploadedImage(image);
+    } catch (optimizationError) {
+      console.error('[Fundraisers] Failed to optimize cover image:', optimizationError);
+      return NextResponse.json({ error: 'The cover image could not be processed. Please choose a valid JPG, PNG, or WEBP image.' }, { status: 400 });
+    }
+
     const id = crypto.randomUUID();
-    const extension = image.type === 'image/jpeg' ? 'jpg' : image.type.split('/')[1];
-    uploadedPath = `fundraisers/${id}.${extension}`;
+    uploadedPath = `fundraisers/${id}.${optimizedImage.extension}`;
     const { error: uploadError } = await admin.storage
       .from(bucket)
-      .upload(uploadedPath, await image.arrayBuffer(), {
-        contentType: image.type,
+      .upload(uploadedPath, optimizedImage.buffer, {
+        contentType: optimizedImage.contentType,
         cacheControl: '31536000',
         upsert: false,
       });
