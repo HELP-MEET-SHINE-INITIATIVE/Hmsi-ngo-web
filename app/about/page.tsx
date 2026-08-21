@@ -129,7 +129,7 @@ export default function AboutPage() {
                 <div><dt className="font-black uppercase tracking-widest text-slate-400">Headquarters</dt><dd className="mt-1 text-slate-900">Benin City, Edo State, Nigeria</dd></div>
                 <div><dt className="font-black uppercase tracking-widest text-slate-400">Board of Trustees</dt><dd className="mt-1 text-slate-900">Mary Ogbeide; Godspower Folorunsho Adebusoye</dd></div>
                 <div><dt className="font-black uppercase tracking-widest text-slate-400">Executive leadership</dt><dd className="mt-1 text-slate-900">Godspower Folorunsho Adebusoye, President</dd></div>
-                <div><dt className="font-black uppercase tracking-widest text-slate-400">Tax identification</dt><dd className="mt-1 text-slate-900">TIN 21249981 · Federal Inland Revenue Service</dd></div>
+                <div><dt className="font-black uppercase tracking-widest text-slate-400">FIRS tax identification</dt><dd className="mt-1 text-slate-900">TIN 21249981 · FIRS taxpayer-results record; not a tax-exemption certificate</dd></div>
               </dl>
             </div>
             <div className="bg-slate-900 text-white p-6 md:p-8">
