@@ -2,6 +2,7 @@
 
 **Organisation:** The Incorporated Trustees of HELP-MEET SHINE INITIATIVE (CAC/IT/NO 125103)  
 **Primary Domain:** `https://www.hmsi.org.ng`  
+**Official LinkedIn:** `https://www.linkedin.com/company/help-meet-shine-initiative/`  
 **Target Account ID:** Google Ads Customer `811-374-9631` (AW-8113749631)  
 **Date Updated:** 21 August 2026  
 
@@ -16,7 +17,15 @@
 
 ---
 
-## 2. Google Ads Advertising & Policy Package
+## 2. Institutional Growth, LinkedIn & Social Outreach
+
+| Document | Purpose & Scope |
+|---|---|
+| `hmsi_linkedin_optimization_package.md` | Master LinkedIn Company Page overhaul, Executive Trustee bios (Godspower Adebusoye), 4-pillar content calendar, and CSR partnership copy templates. |
+
+---
+
+## 3. Google Ads Advertising & Policy Package
 
 | Document | Purpose & Scope |
 |---|---|
@@ -29,7 +38,7 @@
 
 ---
 
-## 3. Conversion Tracking, GTM & Payment Gateways
+## 4. Conversion Tracking, GTM & Payment Gateways
 
 | Document | Purpose & Scope |
 |---|---|
