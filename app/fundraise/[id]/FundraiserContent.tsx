@@ -3,12 +3,12 @@
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Footer from "../../../components/Footer";
+import PromotedSharePanel from "../../../components/PromotedSharePanel";
 import Image from "next/image";
 import Link from "next/link";
 import Script from "next/script";
 import { 
   ChevronLeft, 
-  Share2, 
   ShieldCheck, 
   Heart, 
   Users, 
@@ -88,31 +88,6 @@ export default function FundraiserContent() {
     if (!id || typeof window === "undefined") return;
     setIsFollowing(window.localStorage.getItem(`hmsi-follow-fundraiser-${id}`) === "true");
   }, [id]);
-
-  const handleShare = async () => {
-    const shareUrl = window.location.href;
-    const shareData = {
-      title: fundraiser?.title || "HMSI fundraiser",
-      text: `Support this verified HMSI cause: ${fundraiser?.title || "HMSI fundraiser"}`,
-      url: shareUrl,
-    };
-    setShareStatus("");
-    try {
-      if (navigator.share) {
-        await navigator.share(shareData);
-        setShareStatus("Thanks for sharing this cause.");
-        return;
-      }
-    } catch (shareError) {
-      if (shareError instanceof DOMException && shareError.name === "AbortError") return;
-    }
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      setShareStatus("Fundraiser link copied. You can paste it anywhere.");
-    } catch {
-      setShareStatus(`Copy this fundraiser link: ${shareUrl}`);
-    }
-  };
 
   const handleFollow = () => {
     const nextValue = !isFollowing;
@@ -345,14 +320,10 @@ export default function FundraiserContent() {
                 )}
 
                 <div className="mt-8 border-t border-[#f6f4ef] pt-8">
-                  <div className="flex items-center justify-center gap-6">
-                    <button type="button" onClick={handleShare} aria-label="Share this fundraiser" className="flex flex-col items-center gap-2 text-[#66716a] transition-colors hover:text-[#1e5b49] focus:outline-none focus:ring-2 focus:ring-[#1e5b49] focus:ring-offset-2">
-                      <div className="rounded-full bg-[#f6f4ef] p-3"><Share2 size={20} aria-hidden="true" /></div>
-                      <span className="text-[10px] font-black uppercase tracking-widest">Share</span>
-                    </button>
-                    <button type="button" onClick={handleFollow} aria-pressed={isFollowing} aria-label={isFollowing ? "Unfollow this fundraiser" : "Follow this fundraiser"} className={`flex flex-col items-center gap-2 transition-colors focus:outline-none focus:ring-2 focus:ring-[#1e5b49] focus:ring-offset-2 ${isFollowing ? "text-[#1e5b49]" : "text-[#66716a] hover:text-[#1e5b49]"}`}>
-                      <div className="rounded-full bg-[#f6f4ef] p-3"><Heart size={20} fill={isFollowing ? "currentColor" : "none"} aria-hidden="true" /></div>
-                      <span className="text-[10px] font-black uppercase tracking-widest">{isFollowing ? "Following" : "Follow"}</span>
+                  <PromotedSharePanel title={fundraiser.title} description={fundraiser.description} type="fundraiser" />
+                  <div className="mt-6 flex justify-center">
+                    <button type="button" onClick={handleFollow} aria-pressed={isFollowing} aria-label={isFollowing ? "Unfollow this fundraiser" : "Follow this fundraiser"} className={`inline-flex items-center gap-2 rounded-full border px-5 py-3 text-xs font-black uppercase tracking-widest transition-colors focus:outline-none focus:ring-2 focus:ring-[#1e5b49] focus:ring-offset-2 ${isFollowing ? "border-[#1e5b49] bg-[#e9f0e9] text-[#1e5b49]" : "border-[#d9d6ce] text-[#66716a] hover:border-[#1e5b49] hover:text-[#1e5b49]"}`}>
+                      <Heart size={16} fill={isFollowing ? "currentColor" : "none"} aria-hidden="true" /> {isFollowing ? "Following" : "Follow this fundraiser"}
                     </button>
                   </div>
                   {shareStatus && <p className="mt-4 text-center text-xs font-bold leading-5 text-[#1e5b49]" role="status" aria-live="polite">{shareStatus}</p>}
