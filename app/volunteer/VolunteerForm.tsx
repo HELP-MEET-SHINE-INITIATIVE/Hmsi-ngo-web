@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { trackVolunteerApplication } from '../../lib/gtm';
 type ApplicationRole = 'volunteer' | 'worker';
 
 export default function VolunteerForm({ applicationRole = 'volunteer' }: { applicationRole?: ApplicationRole }) {
@@ -42,6 +43,13 @@ export default function VolunteerForm({ applicationRole = 'volunteer' }: { appli
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'We could not save your application.');
+
+      // Dispatch Google Tag Manager lead conversion event
+      trackVolunteerApplication({
+        role: applicationRole,
+        interest: formData.interest,
+      });
+
       setSubmitted(true);
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : 'We could not save your application.');

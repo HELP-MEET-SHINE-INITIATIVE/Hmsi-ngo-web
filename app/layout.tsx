@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { AuthProvider } from '../lib/auth';
 import Navbar from '../components/Navbar';
+import GoogleTagManager from '../components/GoogleTagManager';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -130,6 +131,7 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased">
+        <GoogleTagManager />
         <AuthProvider>
           <a href="#main-content" className="sr-only z-[100] bg-[#e1ad45] px-4 py-3 text-sm font-black text-[#17221e] focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:rounded-full focus:outline-none focus:ring-2 focus:ring-[#17221e]">Skip to main content</a>
           <Navbar />

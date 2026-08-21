@@ -4,6 +4,7 @@ import Link from "next/link";
 import Script from "next/script";
 import { FormEvent, useState } from "react";
 import { Check, HeartHandshake, LockKeyhole, Mail, ShieldCheck, Sparkles } from "lucide-react";
+import { trackBeginCheckout, trackDonationCompleted } from "../../lib/gtm";
 
 type PaymentResponse = {
   reference?: string;
@@ -76,6 +77,14 @@ export default function DonateForm() {
       setRecordingWarning(ledgerError instanceof Error ? ledgerError.message : "Your payment succeeded, but the HMSI ledger is still syncing.");
     }
 
+    // Dispatch Google Tag Manager donation_completed event
+    trackDonationCompleted({
+      transactionId: reference,
+      amount: amountInNaira,
+      donorEmail: donorEmail,
+      isAnonymous: isAnonymous,
+    });
+
     setIsSubmitted(true);
   };
 
@@ -111,6 +120,11 @@ export default function DonateForm() {
       setError("Paystack is still loading. Please wait a moment and try again.");
       return;
     }
+
+    // Dispatch Google Tag Manager begin_checkout event
+    trackBeginCheckout({
+      amount: amountInNaira,
+    });
 
     const popup = new window.PaystackPop();
     popup.newTransaction({

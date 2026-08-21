@@ -14,6 +14,7 @@ import {
   Type,
 } from 'lucide-react';
 import Link from 'next/link';
+import { trackHelpRequest } from '../../../lib/gtm';
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
@@ -96,6 +97,12 @@ export default function CreateFundraiserContent({ mode = 'fundraise' }: { mode?:
       }
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'We could not submit this fundraiser.');
+
+      // Dispatch Google Tag Manager help request conversion event
+      trackHelpRequest({
+        category: formData.category,
+        targetAmount: targetAmount,
+      });
 
       setIsSubmitted(true);
     } catch (submitError) {
