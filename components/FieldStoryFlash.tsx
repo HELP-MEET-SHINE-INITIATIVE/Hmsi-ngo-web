@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { BookOpen } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 type PublishedStory = {
   id: string;
@@ -11,20 +11,36 @@ type PublishedStory = {
   category: string;
   author_name: string;
   published_at: string | null;
+  created_at?: string;
 };
 
 const ROTATION_MS = 2 * 60 * 1000;
+const LIVE_REFRESH_MS = 30 * 1000;
+
+function newestFirst(items: PublishedStory[]) {
+  return [...items].sort((first, second) => {
+    const firstDate = new Date(first.published_at || first.created_at || 0).getTime();
+    const secondDate = new Date(second.published_at || second.created_at || 0).getTime();
+    return secondDate - firstDate;
+  });
+}
 
 export default function FieldStoryFlash() {
   const [stories, setStories] = useState<PublishedStory[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
+  const storyIdsRef = useRef<string[]>([]);
 
   const loadStories = useCallback(async () => {
     try {
       const response = await fetch('/api/stories', { cache: 'no-store' });
       const result = await response.json();
       if (!response.ok) return;
-      setStories(result.stories || []);
+      const nextStories = newestFirst(result.stories || []);
+      const previousIds = storyIdsRef.current;
+      const newStoryArrived = nextStories.some((story) => !previousIds.includes(story.id));
+      storyIdsRef.current = nextStories.map((story) => story.id);
+      setStories(nextStories);
+      if (newStoryArrived) setActiveIndex(0);
     } catch {
       // The homepage stays available when the optional stories migration is unavailable.
     }
@@ -32,7 +48,7 @@ export default function FieldStoryFlash() {
 
   useEffect(() => {
     loadStories();
-    const refreshTimer = window.setInterval(loadStories, ROTATION_MS);
+    const refreshTimer = window.setInterval(loadStories, LIVE_REFRESH_MS);
     return () => window.clearInterval(refreshTimer);
   }, [loadStories]);
 

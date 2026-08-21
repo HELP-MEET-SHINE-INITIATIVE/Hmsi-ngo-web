@@ -35,13 +35,13 @@ export async function GET(request: Request) {
   const storyId = new URL(request.url).searchParams.get('id')?.trim() || '';
   let query = admin
     .from('featured_story_drafts')
-    .select('id,title,excerpt,body,category,image_url,author_name,author_email,author_role,status,rejection_reason,approved_by,approved_at,published_at,created_at,updated_at')
-    .order('created_at', { ascending: false });
+    .select('id,title,excerpt,body,category,image_url,author_name,author_email,author_role,status,rejection_reason,approved_by,approved_at,published_at,created_at,updated_at');
 
   if (!viewer) {
-    query = query.eq('status', 'published').order('published_at', { ascending: false });
+    query = query.eq('status', 'published').order('published_at', { ascending: false }).order('created_at', { ascending: false });
     if (storyId) query = query.eq('id', storyId);
   } else if (viewer.role !== 'admin') {
+    query = query.order('created_at', { ascending: false });
     query = query.eq('author_email', viewer.email);
   }
 
