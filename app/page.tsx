@@ -12,6 +12,7 @@ import FundraiserFlash from "../components/FundraiserFlash";
 import FieldStoryFlash from "../components/FieldStoryFlash";
 import HomepageFeaturedStoryCard from "../components/HomepageFeaturedStoryCard";
 import HomepageHelpCta from "../components/HomepageHelpCta";
+import FundraisingGrowthHub from "../components/FundraisingGrowthHub";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -375,6 +376,7 @@ export default function Home() {
       <HomepageHelpCta />
       <OpportunityFlash />
       <FundraiserFlash />
+      <FundraisingGrowthHub />
       <FieldStoryFlash />
       <NewsFlash />
 
@@ -402,11 +404,11 @@ export default function Home() {
             <p className="mt-5 max-w-2xl text-lg leading-8 text-[#66716a]">Whether you want to donate to NGO work, support a verified person or cause, volunteer your skills, or partner with HMSI, start here.</p>
           </div>
           <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {[
+              {[
               { href: '/donate', label: 'Donate to NGO work', text: 'Give securely to HMSI’s humanitarian mission across Nigeria and Africa.', action: 'Make a donation' },
               { href: '/fundraise', label: 'Support a verified cause', text: 'Browse fundraising requests and choose a need you want to help solve.', action: 'Browse causes' },
+              { href: '/fundraising-growth', label: 'Grow a campaign', text: 'Help an approved HMSI campaign reach donors through responsible outreach.', action: 'Join the growth team' },
               { href: '/volunteer', label: 'Volunteer with HMSI', text: 'Bring your time, skills, and local knowledge to community-led work.', action: 'Become a volunteer' },
-              { href: '/partnerships', label: 'Partner with HMSI', text: 'Connect your organization, network, or resources to practical NGO work.', action: 'Start a conversation' },
             ].map((pathway) => (
               <Link key={pathway.href} href={pathway.href} className="group rounded-[28px] border border-[#d9d6ce] bg-[#f6f4ef] p-7 transition hover:-translate-y-1 hover:border-[#1e5b49] hover:bg-[#e9f0e9] hover:shadow-xl hover:shadow-[#1e5b49]/10">
                 <h3 className="text-xl font-black tracking-tight text-[#17221e]">{pathway.label}</h3>

@@ -18,6 +18,7 @@ const links = [
   { href: '/partnerships', label: 'Partner with us' },
   { href: '/transparency', label: 'Transparency' },
   { href: '/volunteer', label: 'Volunteer' },
+  { href: '/fundraising-growth', label: 'Grow a campaign' },
   { href: '/worker-apply', label: 'Work with HMSI' },
 ];
 

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import Footer from '../../components/Footer';
 import PromotedSharePanel from '../../components/PromotedSharePanel';
+import FundraisingGrowthHub from '../../components/FundraisingGrowthHub';
 import {
   Activity,
   ArrowRight,
@@ -153,6 +154,8 @@ export default function FundraiseContent() {
 
           {filteredFundraisers.length === 0 && <div className="rounded-[40px] border border-dashed border-[#d9d6ce] bg-white py-20 text-center"><p className="text-[#66716a] italic">No fundraisers found for this search.</p><button onClick={() => { setActiveCategory('all'); setSearchTerm(''); }} className="mt-4 text-xs font-black uppercase tracking-widest text-[#1e5b49] hover:underline">View all causes</button></div>}
         </section>
+
+        <FundraisingGrowthHub compact />
 
         <section className="bg-[#e9f0e9] px-6 py-20">
           <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-16 lg:grid-cols-2">
