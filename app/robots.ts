@@ -15,6 +15,7 @@ export default function robots(): MetadataRoute.Robots {
         '/login',
         '/signup',
         '/fundraise/create',
+        '/gtm-preview',
       ],
     },
     sitemap: 'https://www.hmsi.org.ng/sitemap.xml',
