@@ -17,6 +17,10 @@ import {
   AlertCircle
 } from "lucide-react";
 
+function displayCategory(category: string) {
+  return category.toLowerCase() === 'community' ? 'Community Support' : category;
+}
+
 type PaymentResponse = {
   reference?: string;
   status?: string;
@@ -209,7 +213,7 @@ export default function FundraiserContent() {
               <Image src={fundraiser.image} alt={fundraiser.title} fill sizes="(max-width: 1024px) 100vw, 60vw" className="object-cover" />
               <div className="absolute top-6 left-6">
                 <span className="px-4 py-2 rounded-full bg-white/90 backdrop-blur-md text-xs font-black uppercase tracking-widest text-[#1e5b49]">
-                  {fundraiser.category}
+                  {displayCategory(fundraiser.category)}
                 </span>
               </div>
             </div>

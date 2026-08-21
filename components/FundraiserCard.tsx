@@ -16,6 +16,10 @@ const naira = new Intl.NumberFormat('en-NG', {
   maximumFractionDigits: 0,
 });
 
+function displayCategory(category: string) {
+  return category.toLowerCase() === 'community' ? 'Community Support' : category;
+}
+
 export default function FundraiserCard({ fundraiser, rankLabel }: FundraiserCardProps) {
   const progress = fundraiser.targetAmount > 0
     ? Math.min(100, Math.round((fundraiser.raisedAmount / fundraiser.targetAmount) * 100))
@@ -46,7 +50,7 @@ export default function FundraiserCard({ fundraiser, rankLabel }: FundraiserCard
         </div>
       </div>
       <div className="p-6 sm:p-7">
-        <p className="text-[10px] font-black uppercase tracking-widest text-[#b56b3b]">{fundraiser.category}</p>
+        <p className="text-[10px] font-black uppercase tracking-widest text-[#b56b3b]">{displayCategory(fundraiser.category)}</p>
         <h3 className="mt-2 text-xl font-black tracking-tight text-[#17221e] transition-colors group-hover:text-[#1e5b49]">{fundraiser.title}</h3>
         <p className="mt-3 line-clamp-2 text-sm leading-6 text-[#66716a]">{fundraiser.description}</p>
         <div className="mt-6 space-y-3">

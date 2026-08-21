@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
   title: 'Support Verified NGO Causes in Nigeria | HMSI',
   description: 'Browse verified fundraising causes and support people facing medical, education, housing, and emergency needs across Nigeria and Africa through HMSI.',
-  keywords: ['support verified causes Nigeria', 'donate to verified fundraiser Nigeria', 'charity fundraising Africa', 'medical bill fundraiser Nigeria', 'education support Nigeria', 'HMSI fundraisers'],
+  keywords: ['support verified causes Nigeria', 'donate to verified fundraiser Nigeria', 'charity fundraising Africa', 'medical bill fundraiser Nigeria', 'education support Nigeria', 'community support fundraising Nigeria', 'HMSI fundraisers'],
   openGraph: {
     type: 'website',
     title: 'Support Verified NGO Causes in Nigeria | HMSI Fundraising',

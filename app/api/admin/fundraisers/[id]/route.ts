@@ -5,7 +5,7 @@ import { getSupabaseAdmin, getSupabaseStorageBucket } from '../../../../../lib/s
 export const runtime = 'nodejs';
 
 const ALLOWED_STATUSES = new Set(['active', 'pending', 'archived', 'rejected', 'completed']);
-const ALLOWED_CATEGORIES = new Set(['medical', 'education', 'housing', 'emergency']);
+const ALLOWED_CATEGORIES = new Set(['medical', 'education', 'housing', 'emergency', 'community']);
 const ALLOWED_CAMPAIGN_TYPES = new Set(['organisation', 'programme']);
 
 type RouteContext = { params: Promise<{ id: string }> };

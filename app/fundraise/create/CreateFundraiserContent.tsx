@@ -169,6 +169,7 @@ export default function CreateFundraiserContent() {
                     <option value="education">Education</option>
                     <option value="housing">Housing</option>
                     <option value="emergency">Emergency</option>
+                    <option value="community">Community Support</option>
                   </select>
                 </div>
                 <div>
