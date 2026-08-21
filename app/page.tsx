@@ -10,6 +10,7 @@ import OpportunityFlash from "../components/OpportunityFlash";
 import NewsFlash from "../components/NewsFlash";
 import FundraiserFlash from "../components/FundraiserFlash";
 import FieldStoryFlash from "../components/FieldStoryFlash";
+import HomepageFeaturedStoryCard from "../components/HomepageFeaturedStoryCard";
 import HomepageHelpCta from "../components/HomepageHelpCta";
 import {
   ArrowRight,
@@ -502,19 +503,11 @@ export default function Home() {
                 <p className="mb-4 text-xs font-black uppercase tracking-[0.22em] text-[#b56b3b]">The HMSI field desk</p>
                 <h2 className="text-4xl font-black tracking-[-0.04em] sm:text-6xl">Stories that move us.</h2>
               </div>
-              <Link href="/fundraise" className="group inline-flex items-center gap-2 text-sm font-black uppercase tracking-[0.13em] text-[#1e5b49]">Explore field stories <ArrowRight size={17} className="transition-transform group-hover:translate-x-1" /></Link>
+              <Link href="#featured-stories" className="group inline-flex items-center gap-2 text-sm font-black uppercase tracking-[0.13em] text-[#1e5b49]">Explore field stories <ArrowRight size={17} className="transition-transform group-hover:translate-x-1" /></Link>
             </div>
 
             <div className="mt-12 grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
-              <article className="group relative min-h-[520px] overflow-hidden rounded-3xl bg-[#17221e] text-white">
-                <Image src="/images/outreach-10.png" alt="HMSI volunteers working with a community" fill className="object-cover transition duration-700 group-hover:scale-105" />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#17221e] via-[#17221e]/30 to-transparent" />
-                <div className="absolute inset-x-0 bottom-0 p-7 sm:p-10">
-                  <span className="rounded-full bg-[#e1ad45] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.15em] text-[#17221e]">Featured story</span>
-                  <h3 className="mt-5 max-w-2xl text-3xl font-black leading-tight tracking-[-0.03em] sm:text-5xl">When a community leads, relief becomes resilience.</h3>
-                  <p className="mt-4 max-w-xl text-sm leading-6 text-white/75">From urgent essentials to skills that last, our teams work alongside local leaders to build the next chapter together.</p>
-                </div>
-              </article>
+              <HomepageFeaturedStoryCard />
 
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-1">
                 {humanitarianBriefs.map((brief) => (
