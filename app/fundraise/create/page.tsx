@@ -13,6 +13,7 @@ export const metadata: Metadata = {
   alternates: {
     canonical: 'https://www.hmsi.org.ng/fundraise/create',
   },
+  robots: { index: false, follow: false },
 };
 
 export default function CreateFundraiserPage() {

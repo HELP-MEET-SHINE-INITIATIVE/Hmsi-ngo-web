@@ -4,6 +4,7 @@ import DashboardContent from '../dashboard/DashboardContent';
 export const metadata: Metadata = {
   title: 'Worker Dashboard | HMSI',
   description: 'HMSI worker coordination dashboard for assignments, opportunities, and worker collaboration.',
+  robots: { index: false, follow: false },
 };
 
 export default function WorkerDashboardPage() {
