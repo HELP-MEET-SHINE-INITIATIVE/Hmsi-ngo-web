@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getAdminEmailFromCookie } from '../../../../lib/adminSession';
 import { getSupabaseAdmin } from '../../../../lib/supabaseAdmin';
+import { ONBOARDING_CTA_CATALOG } from '../../../../lib/onboardingCtas';
 
 export const runtime = 'nodejs';
 
@@ -8,9 +9,10 @@ const SEARCH_HOSTS = ['google.', 'bing.', 'yahoo.', 'duckduckgo.', 'search.brave
 const SOCIAL_HOSTS = ['facebook.', 'instagram.', 'linkedin.', 'twitter.', 'x.com', 'tiktok.', 'youtube.', 'whatsapp.'];
 
 type AnalyticsRow = {
-  event_type: 'page_view' | 'link_click';
+  event_type: 'page_view' | 'link_click' | 'cta_impression' | 'cta_click';
   path: string;
   target_path: string | null;
+  cta_key: string | null;
   referrer_host: string | null;
   utm_source: string | null;
   utm_medium: string | null;
@@ -60,7 +62,7 @@ export async function GET(request: Request) {
   const from = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
   const { data, error } = await admin
     .from('page_views')
-    .select('event_type,path,target_path,referrer_host,utm_source,utm_medium,utm_campaign,created_at')
+    .select('event_type,path,target_path,cta_key,referrer_host,utm_source,utm_medium,utm_campaign,created_at')
     .gte('created_at', from.toISOString())
     .order('created_at', { ascending: false })
     .limit(10000);
@@ -80,6 +82,8 @@ export async function GET(request: Request) {
   const pageViewCounts = new Map<string, number>();
   const clickCounts = new Map<string, number>();
   const dailyCounts = new Map<string, number>();
+  const ctaImpressionCounts = new Map<string, number>();
+  const ctaClickCounts = new Map<string, number>();
 
   pageViews.forEach((row) => {
     increment(originCounts, classifyOrigin(row));
@@ -91,6 +95,29 @@ export async function GET(request: Request) {
   linkClicks.forEach((row) => {
     if (row.target_path) increment(clickCounts, row.target_path);
   });
+  rows.forEach((row) => {
+    if (!row.cta_key) return;
+    if (row.event_type === 'cta_impression') increment(ctaImpressionCounts, row.cta_key);
+    if (row.event_type === 'cta_click') increment(ctaClickCounts, row.cta_key);
+  });
+
+  const onboardingCtas = ONBOARDING_CTA_CATALOG.map((cta) => {
+    const impressions = ctaImpressionCounts.get(cta.key) || 0;
+    const clicks = ctaClickCounts.get(cta.key) || 0;
+    return {
+      key: cta.key,
+      label: cta.label,
+      group: cta.group,
+      type: cta.type,
+      impressions,
+      clicks,
+      ctr: share(clicks, impressions),
+    };
+  }).sort((a, b) => b.clicks - a.clicks || b.ctr - a.ctr || b.impressions - a.impressions || a.label.localeCompare(b.label));
+  const ctaTotals = {
+    impressions: onboardingCtas.reduce((total, cta) => total + cta.impressions, 0),
+    clicks: onboardingCtas.reduce((total, cta) => total + cta.clicks, 0),
+  };
 
   const trafficOrigins = Array.from(originCounts.entries())
     .map(([label, views]) => ({ label, views, share: share(views, totalViews) }))
@@ -132,12 +159,21 @@ export async function GET(request: Request) {
   return NextResponse.json({
     periodDays: days,
     from: from.toISOString(),
-    totals: { pageViews: totalViews, linkClicks: linkClicks.length, origins: originCounts.size, pages: pageViewCounts.size },
+    totals: {
+      pageViews: totalViews,
+      linkClicks: linkClicks.length,
+      origins: originCounts.size,
+      pages: pageViewCounts.size,
+      ctaImpressions: ctaTotals.impressions,
+      ctaClicks: ctaTotals.clicks,
+      ctaCtr: share(ctaTotals.clicks, ctaTotals.impressions),
+    },
     trafficOrigins,
     topReferrers,
     topCampaigns,
     topPages,
     topClickedPages,
+    onboardingCtas,
     dailyTrend,
     limited: rows.length >= 10000,
   });

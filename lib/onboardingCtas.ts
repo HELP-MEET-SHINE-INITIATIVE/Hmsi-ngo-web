@@ -1,0 +1,27 @@
+export const ONBOARDING_CTA_CATALOG = [
+  { key: 'direct-volunteer', label: 'Apply directly as a volunteer', group: 'HMSI application entry points', type: 'direct' },
+  { key: 'direct-worker', label: 'Apply for worker review', group: 'HMSI application entry points', type: 'direct' },
+  { key: 'digital-communications', label: 'Digital communications and storytelling', group: 'HMSI volunteer roles', type: 'role' },
+  { key: 'website-accessibility', label: 'Website, analytics, and accessibility', group: 'HMSI volunteer roles', type: 'role' },
+  { key: 'grant-partnership-research', label: 'Grant and partnership research', group: 'HMSI volunteer roles', type: 'role' },
+  { key: 'mel-support', label: 'Monitoring, evaluation, and learning', group: 'HMSI volunteer roles', type: 'role' },
+  { key: 'translation-outreach', label: 'Translation and regional outreach', group: 'HMSI volunteer roles', type: 'role' },
+  { key: 'community-outreach', label: 'Community outreach and mobilisation', group: 'HMSI volunteer roles', type: 'role' },
+  { key: 'technical-support', label: 'Agriculture, food security, WASH, and livelihoods', group: 'HMSI volunteer roles', type: 'role' },
+  { key: 'fundraising-growth', label: 'Fundraising growth and donor communications', group: 'HMSI volunteer roles', type: 'role' },
+  { key: 'worker-coordination', label: 'Worker and programme coordination', group: 'HMSI worker roles', type: 'role' },
+  { key: 'unv-online', label: 'UNV Online Volunteering', group: 'Official external routes', type: 'platform' },
+  { key: 'aiesec-global-volunteer', label: 'AIESEC Global Volunteer', group: 'Official external routes', type: 'platform' },
+  { key: 'idealist', label: 'Idealist', group: 'Official external routes', type: 'platform' },
+  { key: 'au-yvc', label: 'African Union Youth Volunteer Corps', group: 'Official external routes', type: 'platform' },
+  { key: 'globalgiving', label: 'GlobalGiving Pathway', group: 'Official external routes', type: 'platform' },
+  { key: 'nnngo', label: 'NNNGO membership', group: 'Official external routes', type: 'platform' },
+  { key: 'yali', label: 'YALI / YALIServes', group: 'Official external routes', type: 'platform' },
+  { key: 'nysc', label: 'NYSC community development', group: 'Official external routes', type: 'platform' },
+  { key: 'apn', label: 'Africa Philanthropy Network', group: 'Official external routes', type: 'platform' },
+  { key: 'wacsi', label: 'WACSI', group: 'Official external routes', type: 'platform' },
+  { key: 'nigerian-red-cross', label: 'Nigerian Red Cross', group: 'Official external routes', type: 'platform' },
+  { key: 'africans-rising', label: 'Africans Rising', group: 'Official external routes', type: 'platform' },
+] as const;
+
+export type OnboardingCtaKey = (typeof ONBOARDING_CTA_CATALOG)[number]['key'];
