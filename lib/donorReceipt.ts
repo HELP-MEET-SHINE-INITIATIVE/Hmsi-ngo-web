@@ -5,7 +5,7 @@ export interface DonorReceiptData {
   donorName: string;
   donorEmail: string;
   isAnonymous: boolean;
-  amountNgn: number;
+  amountMajor: number;
   currency: string;
   paystackReference: string;
   channel?: string | null;
@@ -14,8 +14,8 @@ export interface DonorReceiptData {
   fundraiserTitle?: string | null;
 }
 
-function formatNaira(amount: number) {
-  return `NGN ${amount.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+function formatAmount(amount: number, currency: string) {
+  return `${currency} ${amount.toLocaleString(currency === 'NGN' ? 'en-NG' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 function formatDate(value?: string | null) {
@@ -54,7 +54,7 @@ export async function createDonorReceiptPdf(data: DonorReceiptData): Promise<Uin
 
   const rows: Array<[string, string]> = [
     ['Donor', data.isAnonymous ? 'Anonymous donor' : data.donorName],
-    ['Donation amount', formatNaira(data.amountNgn)],
+    ['Donation amount', formatAmount(data.amountMajor, data.currency)],
     ['Payment status', 'Verified successful'],
     ['Paystack reference', data.paystackReference],
     ['Payment channel', data.channel || 'Paystack'],

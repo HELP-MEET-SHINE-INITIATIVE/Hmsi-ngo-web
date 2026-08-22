@@ -26,13 +26,14 @@ export function pushToDataLayer(data: DataLayerEvent): void {
  */
 export function trackBeginCheckout(params: {
   amount: number;
+  currency?: string;
   fundraiserId?: string;
   fundraiserTitle?: string;
 }): void {
   pushToDataLayer({
     event: 'begin_checkout',
     ecommerce: {
-      currency: 'NGN',
+      currency: params.currency || 'NGN',
       value: params.amount,
       items: [
         {
@@ -51,13 +52,13 @@ export function trackBeginCheckout(params: {
  * The call is intentionally separate from the generic GTM event so the
  * configured Google Ads conversion action receives the exact send_to value.
  */
-export function trackGoogleAdsBeginCheckoutConversion(params: { amount: number }): void {
+export function trackGoogleAdsBeginCheckoutConversion(params: { amount: number; currency?: string }): void {
   if (typeof window === 'undefined') return;
 
   const conversionPayload = {
     send_to: GOOGLE_ADS_BEGIN_CHECKOUT_SEND_TO,
     value: params.amount,
-    currency: 'NGN',
+    currency: params.currency || 'NGN',
   };
 
   if (typeof window.gtag === 'function') {
@@ -77,6 +78,7 @@ export function trackGoogleAdsBeginCheckoutConversion(params: { amount: number }
 export function trackDonationCompleted(params: {
   transactionId: string;
   amount: number;
+  currency?: string;
   fundraiserId?: string;
   fundraiserTitle?: string;
   donorEmail?: string;
@@ -87,7 +89,7 @@ export function trackDonationCompleted(params: {
     ecommerce: {
       transaction_id: params.transactionId,
       value: params.amount,
-      currency: 'NGN',
+      currency: params.currency || 'NGN',
       payment_method: 'paystack_modal',
       items: [
         {

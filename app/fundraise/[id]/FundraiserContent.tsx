@@ -7,8 +7,9 @@ import PromotedSharePanel from "../../../components/PromotedSharePanel";
 import Image from "next/image";
 import Link from "next/link";
 import Script from "next/script";
-import { 
-  ChevronLeft, 
+import { formatHmsiAmount, type HmsiPaymentCurrency } from "../../../lib/paystackCurrencies";
+import {
+  ChevronLeft,
   ShieldCheck, 
   Heart, 
   Users, 
@@ -58,6 +59,7 @@ export default function FundraiserContent() {
   const [donorEmail, setDonorEmail] = useState("");
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [donationAmount, setDonationAmount] = useState("5000");
+  const [currency, setCurrency] = useState<HmsiPaymentCurrency>("NGN");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [recordingWarning, setRecordingWarning] = useState("");
   const [error, setError] = useState("");
@@ -110,7 +112,8 @@ export default function FundraiserContent() {
       return;
     }
 
-    if ((!isAnonymous && !donorName) || !donorEmail || !donationAmount) {
+    const minimumAmount = currency === "NGN" ? 100 : 1;
+    if ((!isAnonymous && !donorName) || !donorEmail || !donationAmount || Number(donationAmount) < minimumAmount) {
       setError(isAnonymous ? "Please enter your email and donation amount." : "Please fill in all fields.");
       return;
     }
@@ -120,14 +123,14 @@ export default function FundraiserContent() {
       return;
     }
 
-    const amountInKobo = Math.round(Number(donationAmount) * 100);
+    const amountInMinorUnits = Math.round(Number(donationAmount) * 100);
     const popup = new window.PaystackPop();
     
     popup.newTransaction({
       key: publicKey,
       email: donorEmail,
-      amount: amountInKobo,
-      currency: "NGN",
+      amount: amountInMinorUnits,
+      currency,
       metadata: {
         custom_fields: [
           {
@@ -154,13 +157,14 @@ export default function FundraiserContent() {
               donor_email: donorEmail,
               is_anonymous: isAnonymous,
               amount: Number(donationAmount),
+              currency,
               paystack_reference: reference,
               fundraiser_id: id,
             }),
           });
           const ledgerResult = await ledgerResponse.json().catch(() => ({}));
           if (!ledgerResponse.ok) throw new Error(ledgerResult.error || "The donation ledger could not be updated.");
-          if (ledgerResult.fundraiserTotalUpdated === false) setRecordingWarning("Your payment was recorded, but this fundraiser’s displayed total is still syncing.");
+          if (ledgerResult.fundraiserTotalUpdated === false) setRecordingWarning(ledgerResult.fundraiserTotalUpdateReason || "Your payment was recorded, but this fundraiser’s displayed total is still syncing.");
           const refreshedResponse = await fetch(`/api/fundraisers/${encodeURIComponent(id)}`, { cache: "no-store" });
           const refreshedResult = await refreshedResponse.json().catch(() => ({}));
           if (refreshedResponse.ok && refreshedResult.fundraiser) setFundraiser(refreshedResult.fundraiser);
@@ -285,10 +289,15 @@ export default function FundraiserContent() {
                     )}
                     
                     <div>
-                      <label className="block text-[10px] font-black uppercase tracking-widest text-[#66716a] mb-2">Donation Amount (₦)</label>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-[#66716a] mb-2">Payment currency</label>
+                      <select value={currency} onChange={(e) => { const next = e.target.value as HmsiPaymentCurrency; setCurrency(next); setDonationAmount(next === "NGN" ? "5000" : "25"); }} className="mb-3 w-full px-6 py-4 rounded-2xl bg-[#f6f4ef] border-none focus:ring-2 focus:ring-[#1e5b49] outline-none text-sm font-bold"><option value="NGN">NGN — Nigerian naira</option><option value="USD">USD — US dollar</option></select>
+                      <p className="mb-3 text-xs leading-5 text-[#66716a]">International cards can pay from abroad. Paystack supports NGN or USD for a Nigeria-based account; settlement depends on the approved Paystack setup.</p>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-[#66716a] mb-2">Donation Amount ({currency})</label>
                       <input 
                         type="number" 
                         required
+                        min={currency === "NGN" ? 100 : 1}
+                        step={currency === "NGN" ? 100 : 1}
                         value={donationAmount}
                         onChange={(e) => setDonationAmount(e.target.value)}
                         className="w-full px-6 py-4 rounded-2xl bg-[#f6f4ef] border-none focus:ring-2 focus:ring-[#1e5b49] outline-none text-sm font-bold"

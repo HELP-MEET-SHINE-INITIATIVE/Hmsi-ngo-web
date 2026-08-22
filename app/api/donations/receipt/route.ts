@@ -26,7 +26,7 @@ export async function POST(request: Request) {
 
   const donation = await admin
     .from('donations')
-    .select('id, fundraiser_id, donor_name, donor_email, is_anonymous, amount_ngn, paystack_reference, status, currency, channel, paid_at, created_at')
+    .select('id, fundraiser_id, donor_name, donor_email, is_anonymous, amount_ngn, amount_major, paystack_reference, status, currency, channel, paid_at, created_at')
     .eq('paystack_reference', reference)
     .eq('donor_email', donorEmail)
     .eq('status', 'success')
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
       donorName: donation.data.donor_name,
       donorEmail: donation.data.donor_email,
       isAnonymous: donation.data.is_anonymous,
-      amountNgn: Number(donation.data.amount_ngn),
+      amountMajor: Number(donation.data.amount_major ?? donation.data.amount_ngn),
       currency: donation.data.currency,
       paystackReference: donation.data.paystack_reference,
       channel: donation.data.channel,

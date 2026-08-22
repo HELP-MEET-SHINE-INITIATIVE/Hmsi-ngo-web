@@ -6,7 +6,7 @@ async function main() {
     donorName: 'Anonymous donor',
     donorEmail: 'supporter@example.org',
     isAnonymous: true,
-    amountNgn: 25000,
+    amountMajor: 25000,
     currency: 'NGN',
     paystackReference: 'ref_test_20260822',
     channel: 'card',

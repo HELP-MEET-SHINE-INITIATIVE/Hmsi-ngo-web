@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../lib/supabaseAdmin';
 import { createDonorReceiptPdf } from '../../../lib/donorReceipt';
 import { sendResendEmailWithRetry } from '../../../lib/resendRetryQueue';
+import { isHmsiPaymentCurrency, toMinorUnits } from '../../../lib/paystackCurrencies';
 
 export const runtime = 'nodejs';
 
@@ -42,14 +43,17 @@ export async function POST(request: Request) {
   const donorEmail = typeof body.donor_email === 'string' ? body.donor_email.trim().toLowerCase() : '';
   const reference = typeof body.paystack_reference === 'string' ? body.paystack_reference.trim() : '';
   const fundraiserId = typeof body.fundraiser_id === 'string' && body.fundraiser_id.trim() ? body.fundraiser_id.trim() : null;
-  const amountInNaira = typeof body.amount === 'number' ? body.amount : Number(body.amount);
-  const expectedAmountKobo = Math.round(amountInNaira * 100);
+  const requestedCurrency = typeof body.currency === 'string' ? body.currency.trim().toUpperCase() : 'NGN';
+  const amountInMajorUnits = typeof body.amount === 'number' ? body.amount : Number(body.amount);
+  const currency = isHmsiPaymentCurrency(requestedCurrency) ? requestedCurrency : null;
+  const expectedAmountMinor = currency ? toMinorUnits(amountInMajorUnits, currency) : 0;
 
   if (!isAnonymous && (donorName.length < 2 || donorName.length > 160)) return badRequest('Please provide a valid donor name.');
   if (!emailPattern.test(donorEmail) || donorEmail.length > 320) return badRequest('Please provide a valid donor email.');
   if (!referencePattern.test(reference)) return badRequest('Paystack returned an invalid transaction reference.');
-  if (!Number.isFinite(amountInNaira) || !Number.isSafeInteger(expectedAmountKobo) || expectedAmountKobo < 10000) {
-    return badRequest('Donation amount must be at least ₦100.');
+  if (!currency) return badRequest('HMSI currently supports NGN and USD payment currencies through Paystack.');
+  if (!Number.isFinite(amountInMajorUnits) || !Number.isSafeInteger(expectedAmountMinor) || expectedAmountMinor < toMinorUnits(currency === 'NGN' ? 100 : 1, currency)) {
+    return badRequest(`Donation amount must be at least ${currency === 'NGN' ? '₦100' : '$1'}.`);
   }
 
   const admin = getSupabaseAdmin();
@@ -88,8 +92,8 @@ export async function POST(request: Request) {
   }
 
   if (payment.reference !== reference) return badRequest('Paystack reference verification did not match.');
-  if (payment.currency && payment.currency !== 'NGN') return badRequest('Only NGN donations are supported.');
-  if (payment.amount !== expectedAmountKobo) {
+  if (payment.currency !== currency) return badRequest(`The verified payment currency does not match the selected ${currency} donation.`);
+  if (payment.amount !== expectedAmountMinor) {
     return badRequest('The verified payment amount does not match the donation amount.');
   }
 
@@ -98,26 +102,28 @@ export async function POST(request: Request) {
     donor_name: donorName,
     donor_email: donorEmail,
     is_anonymous: isAnonymous,
-    amount_ngn: payment.amount / 100,
+    amount_ngn: currency === 'NGN' ? payment.amount / 100 : null,
+    amount_major: payment.amount / 100,
     paystack_reference: reference,
     status: 'success',
-    currency: payment.currency || 'NGN',
+    currency,
     channel: payment.channel || null,
     paid_at: payment.paid_at || payment.created_at || null,
   };
 
-  const inserted = await admin.from('donations').insert(donationRecord).select('id,fundraiser_id,donor_name,donor_email,is_anonymous,amount_ngn,paystack_reference,status,currency,channel,paid_at,created_at').single();
+  const inserted = await admin.from('donations').insert(donationRecord).select('id,fundraiser_id,donor_name,donor_email,is_anonymous,amount_ngn,amount_major,paystack_reference,status,currency,channel,paid_at,created_at').single();
   if (inserted.error) {
     if (inserted.error.code === '23505') {
-      const existing = await admin.from('donations').select('id,fundraiser_id,donor_name,donor_email,is_anonymous,amount_ngn,paystack_reference,status,currency,channel,paid_at,created_at').eq('paystack_reference', reference).maybeSingle();
+      const existing = await admin.from('donations').select('id,fundraiser_id,donor_name,donor_email,is_anonymous,amount_ngn,amount_major,paystack_reference,status,currency,channel,paid_at,created_at').eq('paystack_reference', reference).maybeSingle();
       if (existing.data) return NextResponse.json({ donation: existing.data, duplicate: true });
     }
     console.error('[Donations] Failed to record verified donation:', inserted.error);
     return NextResponse.json({ error: 'The verified payment could not be added to the HMSI ledger yet. Please keep your Paystack reference and contact support.' }, { status: 503 });
   }
 
-  let fundraiserTotalUpdated = true;
-  if (fundraiserId) {
+  let fundraiserTotalUpdated = currency === 'NGN';
+  const fundraiserTotalUpdateReason = currency === 'USD' ? 'USD donation recorded; the NGN fundraiser total was not converted automatically.' : undefined;
+  if (fundraiserId && currency === 'NGN') {
     const totalUpdate = await admin.rpc('increment_fundraiser_raised_amount', {
       p_fundraiser_id: fundraiserId,
       p_amount: payment.amount / 100,
@@ -140,7 +146,7 @@ export async function POST(request: Request) {
         donorName: inserted.data.donor_name,
         donorEmail: inserted.data.donor_email,
         isAnonymous: inserted.data.is_anonymous,
-        amountNgn: Number(inserted.data.amount_ngn),
+        amountMajor: Number(inserted.data.amount_major),
         currency: inserted.data.currency,
         paystackReference: inserted.data.paystack_reference,
         channel: inserted.data.channel,
@@ -171,5 +177,5 @@ export async function POST(request: Request) {
     receiptError = 'Receipt email delivery is not configured.';
   }
 
-  return NextResponse.json({ donation: inserted.data, fundraiserTotalUpdated, receiptSent, receiptError: receiptError || undefined }, { status: 201 });
+  return NextResponse.json({ donation: inserted.data, fundraiserTotalUpdated, fundraiserTotalUpdateReason, receiptSent, receiptError: receiptError || undefined }, { status: 201 });
 }
