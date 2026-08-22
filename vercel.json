@@ -6,12 +6,12 @@
       "schedule": "0 8 * * 1"
     },
     {
-      "path": "/api/cron/national-governance-digest",
-      "schedule": "0 9 * * 1"
+      "path": "/api/cron/dead-letter-monitor",
+      "schedule": "30 8 * * 1"
     },
     {
-      "path": "/api/cron/dead-letter-monitor",
-      "schedule": "30 9 * * 1"
+      "path": "/api/cron/national-governance-digest",
+      "schedule": "0 9 * * 1"
     },
     {
       "path": "/api/cron/cta-alert",
