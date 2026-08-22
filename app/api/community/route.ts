@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../lib/supabaseAdmin';
 import { getNewsletterViewer } from '../../../lib/newsletterAccess';
+import { checkCommunityAntiSpam } from '../../../lib/communityAntiSpam';
 
 export const runtime = 'nodejs';
 
@@ -38,6 +39,7 @@ export async function GET(request: Request) {
     .select('id,audience,author_name,author_role,content,created_at')
     .order('created_at', { ascending: false })
     .limit(100);
+  query = query.eq('moderation_status', 'published');
   if (requestedAudience !== 'all') query = query.in('audience', [requestedAudience, 'all']);
 
   const { data: posts, error: postsError } = await query;
@@ -71,15 +73,19 @@ export async function POST(request: Request) {
     if (!content || content.length > 5000) return NextResponse.json({ error: 'A post up to 5,000 characters is required.' }, { status: 400 });
     const viewer = await getNewsletterViewer(request, admin, { email: body.email, role: body.authorRole });
     if (!viewer) return NextResponse.json({ error: 'Sign in with an approved HMSI account to publish community posts.' }, { status: 401 });
-    if (audience === 'worker' && viewer.role !== 'worker' && viewer.role !== 'admin') return NextResponse.json({ error: 'Volunteers cannot post in the worker room.' }, { status: 403 });
+    if (viewer.role === 'worker') return NextResponse.json({ error: 'Workers use HMSI Worker Assistance for workflow guidance; direct room posting is disabled.' }, { status: 403 });
+    if (audience === 'worker' && viewer.role !== 'admin') return NextResponse.json({ error: 'Only administrators may post in the worker room.' }, { status: 403 });
+    const actorKey = `${viewer.email}:${viewer.role}`;
+    const spam = await checkCommunityAntiSpam(admin, 'community_posts', actorKey, content);
+    if (!spam.allowed) return NextResponse.json({ error: spam.error }, { status: spam.status || 503 });
 
     const { data, error } = await admin
       .from('community_posts')
-      .insert({ audience, author_name: viewer.name, author_role: viewer.role, content })
+      .insert({ audience, author_name: viewer.name, author_role: viewer.role, author_key: actorKey, content: spam.normalized, content_hash: spam.hash, moderation_status: spam.moderationStatus, spam_score: spam.spamScore })
       .select('id,audience,author_name,author_role,content,created_at')
       .single();
     if (error) throw error;
-    return NextResponse.json({ post: { ...data, comments: [], likeCount: 0, likedByMe: false } }, { status: 201 });
+    return NextResponse.json({ post: { ...data, comments: [], likeCount: 0, likedByMe: false }, moderationStatus: spam.moderationStatus }, { status: spam.moderationStatus === 'held' ? 202 : 201 });
   } catch (error) {
     const databaseError = error as DatabaseError;
     const message = explainDatabaseError(databaseError);

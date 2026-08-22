@@ -14,9 +14,10 @@ export async function POST(request: Request) {
     if (!postId) return NextResponse.json({ error: 'A post is required.' }, { status: 400 });
     const viewer = await getNewsletterViewer(request, admin, { email: body.email, role: body.role });
     if (!viewer) return NextResponse.json({ error: 'Sign in with an approved HMSI account to like posts.' }, { status: 401 });
+    if (viewer.role === 'worker') return NextResponse.json({ error: 'Workers use HMSI Worker Assistance; direct community interactions are disabled.' }, { status: 403 });
     const { data: post } = await admin.from('community_posts').select('audience').eq('id', postId).maybeSingle();
     if (!post) return NextResponse.json({ error: 'This post was not found.' }, { status: 404 });
-    if (post.audience === 'worker' && viewer.role !== 'worker' && viewer.role !== 'admin') return NextResponse.json({ error: 'Only approved workers and administrators can interact with worker-room posts.' }, { status: 403 });
+    if (post.audience === 'worker' && viewer.role !== 'admin') return NextResponse.json({ error: 'Only administrators may interact with worker-room posts.' }, { status: 403 });
     const actorKey = `${viewer.email}:${viewer.role}`;
 
     const { data: existing } = await admin

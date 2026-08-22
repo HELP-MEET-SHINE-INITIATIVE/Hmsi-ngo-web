@@ -1,0 +1,10 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { CheckCircle2, Loader2 } from 'lucide-react';
+export default function SchoolCertificateCompletePage() {
+  const [state, setState] = useState({ loading: true, ok: false, message: '' });
+  useEffect(() => { const reference = new URLSearchParams(window.location.search).get('reference') || new URLSearchParams(window.location.search).get('trxref') || ''; fetch('/api/school/certificates/verify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reference }) }).then(async (response) => { const result = await response.json(); if (!response.ok) throw new Error(result.error || 'Payment could not be verified.'); setState({ loading: false, ok: true, message: result.message || 'Payment verified.' }); }).catch((cause) => setState({ loading: false, ok: false, message: cause instanceof Error ? cause.message : 'Payment verification failed.' })); }, []);
+  return <main className="flex min-h-screen items-center justify-center bg-[#f6f4ef] px-5 py-12 text-[#17221e]"><section className="w-full max-w-lg rounded-3xl border border-[#d9d6ce] bg-white p-8 text-center">{state.loading ? <><Loader2 className="mx-auto animate-spin text-[#1e5b49]" size={34} /><h1 className="mt-5 text-2xl font-black">Verifying payment</h1><p className="mt-2 text-sm text-[#66716a]">Please wait while HMSI confirms the Paystack transaction.</p></> : <><CheckCircle2 className={state.ok ? 'mx-auto text-[#1e5b49]' : 'mx-auto text-red-600'} size={34} /><h1 className="mt-5 text-2xl font-black">{state.ok ? 'Payment verified' : 'Verification needs attention'}</h1><p className="mt-3 text-sm leading-6 text-[#66716a]">{state.message}</p>{state.ok && <p className="mt-4 rounded-2xl bg-[#e9f0e9] p-4 text-sm text-[#1e5b49]">Certificate issuance remains an HMSI administrator action.</p>}<Link href="/school/certificates" className="mt-6 inline-flex rounded-full bg-[#1e5b49] px-5 py-3 text-xs font-black uppercase tracking-widest text-white">Back to certificate requests</Link></>}</section></main>;
+}
