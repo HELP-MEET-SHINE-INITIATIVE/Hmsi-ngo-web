@@ -10,6 +10,7 @@ import MessageInbox from '../../components/MessageInbox';
 import NewsletterStudio from '../../components/NewsletterStudio';
 import FeaturedStoryStudio from '../../components/FeaturedStoryStudio';
 import NewsroomStudio from '../../components/NewsroomStudio';
+import WorkerOperationsPanel from '../../components/WorkerOperationsPanel';
 import { 
   LayoutDashboard, 
   Briefcase, 
@@ -254,6 +255,7 @@ export default function DashboardContent() {
       <main className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-[280px_1fr_320px] gap-8">
         <div className="lg:col-span-3 rounded-3xl border border-[#d9d6ce] bg-white p-5"><p className="text-xs font-black uppercase tracking-[0.18em] text-[#b56b3b]">{viewer.role === 'worker' ? 'Worker coordination workspace' : 'Volunteer community workspace'}</p><h2 className="mt-2 text-2xl font-black">{viewer.role === 'worker' ? 'Assignments, worker posts, and field coordination' : 'Volunteer opportunities, community posts, and collaboration'}</h2><p className="mt-2 text-sm text-[#66716a]">Use the message icon to open the {viewer.role === 'worker' ? 'worker room' : 'volunteer room'}, or choose an opportunity to apply.</p></div>
         {notice && <div className="lg:col-span-3 rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-700" role="status">{notice}</div>}
+        {viewer.role === 'worker' && <div className="lg:col-span-3"><WorkerOperationsPanel /></div>}
         {/* Left Sidebar */}
         <aside className="hidden lg:block space-y-6">
           <nav className="bg-white rounded-3xl p-4 border border-[#d9d6ce] shadow-sm">

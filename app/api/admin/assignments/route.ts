@@ -28,6 +28,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Title, description, type, and worker are required.' }, { status: 400 });
     }
 
+    const worker = await admin.from('workers').select('id,status,onboarding_status').eq('id', workerId).maybeSingle();
+    if (worker.error) throw worker.error;
+    if (!worker.data || worker.data.status !== 'active') return NextResponse.json({ error: 'Choose an active worker.' }, { status: 400 });
+    if (worker.data.onboarding_status !== 'completed') return NextResponse.json({ error: 'This worker must complete HMSI onboarding before receiving an assignment.' }, { status: 409 });
+
     const { data, error } = await admin.from('work_assignments').insert({
       title,
       description,

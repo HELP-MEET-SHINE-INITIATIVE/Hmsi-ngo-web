@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getAdminEmailFromCookie } from '../../../../../lib/adminSession';
 import { getSupabaseAdmin } from '../../../../../lib/supabaseAdmin';
+import { createOnboardingInvitation } from '../../../../../lib/onboarding';
+import { sendResendEmailWithRetry } from '../../../../../lib/resendRetryQueue';
 
 export const runtime = 'nodejs';
 const ALLOWED_STATUSES = new Set(['pending', 'approved', 'rejected']);
@@ -40,12 +42,39 @@ export async function PATCH(
 
     if (error) throw error;
 
+    let workerId: string | null = null;
     if (!accessStatus && status === 'approved' && application.applicant_role === 'worker') {
-      const { error: workerError } = await admin.from('workers').upsert({ name: application.name, email: application.email, phone: application.phone, role: 'worker', status: 'active' }, { onConflict: 'email' });
+      const { data: worker, error: workerError } = await admin.from('workers').upsert({ name: application.name, email: application.email, phone: application.phone, role: 'worker', status: 'active', onboarding_status: 'not_started', ads_manager_enabled: false, assignments_manager_enabled: false }, { onConflict: 'email' }).select('id').single();
       if (workerError) throw workerError;
+      workerId = worker.id;
     }
 
-    return NextResponse.json({ volunteer: data, workerCreated: !accessStatus && status === 'approved' && application.applicant_role === 'worker' });
+    let onboarding: { emailSent: boolean; onboardingUrl: string | null; error?: string } | null = null;
+    if (!accessStatus && status === 'approved') {
+      const invitation = await createOnboardingInvitation({ applicationId: application.id, workerId, email: application.email, role: application.applicant_role === 'worker' ? 'worker' : 'volunteer' });
+      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() || 'https://www.hmsi.org.ng';
+      const onboardingUrl = `${baseUrl}/onboarding?token=${encodeURIComponent(invitation.token)}`;
+      const resendApiKey = process.env.RESEND_API_KEY?.trim();
+      let emailSent = false;
+      let emailError = '';
+      if (resendApiKey) {
+        const emailResult = await sendResendEmailWithRetry(resendApiKey, {
+          from: process.env.RESEND_FROM_EMAIL?.trim() || 'contact@hmsi.org.ng',
+          to: [invitation.email],
+          subject: 'HMSI onboarding invitation',
+          html: `<p>Dear ${application.name},</p><p>Your HMSI ${invitation.role} application has been approved. Please complete your onboarding tasks here: <a href="${onboardingUrl}">${onboardingUrl}</a></p><p>This link expires in 30 days. Please do not forward it; contact contact@hmsi.org.ng if you need help.</p>`,
+          text: `Your HMSI ${invitation.role} application has been approved. Complete your onboarding tasks here: ${onboardingUrl}. This link expires in 30 days. Do not forward it. For help, contact contact@hmsi.org.ng.`,
+          idempotencyKey: `onboarding_invitation_${invitation.invitationId}`,
+        }, { maxRetries: 3, baseDelayMs: 200, maxDelayMs: 2500 });
+        emailSent = emailResult.ok;
+        if (!emailResult.ok) emailError = emailResult.error || 'Onboarding invitation email could not be delivered.';
+      } else {
+        emailError = 'Onboarding email delivery is not configured.';
+      }
+      onboarding = { emailSent, onboardingUrl, error: emailError || undefined };
+    }
+
+    return NextResponse.json({ volunteer: data, workerCreated: Boolean(workerId), onboarding });
   } catch (error) {
     console.error('[Admin] Failed to update volunteer application:', error);
     return NextResponse.json({ error: 'We could not update this application.' }, { status: 500 });
