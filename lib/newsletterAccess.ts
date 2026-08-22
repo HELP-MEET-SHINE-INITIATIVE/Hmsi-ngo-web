@@ -1,5 +1,6 @@
 import { getAdminEmailFromCookie } from './adminSession';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { getWorkerSessionFromCookie } from './workerSession';
 
 export type NewsletterViewer = {
   email: string;
@@ -25,7 +26,9 @@ export async function getNewsletterViewer(
   if (!email || !requestedRole) return null;
 
   if (requestedRole === 'worker') {
-    const worker = await admin.from('workers').select('name,email').ilike('email', email).eq('status', 'active').maybeSingle();
+    const workerSession = getWorkerSessionFromCookie(request.headers.get('cookie'));
+    if (!workerSession || workerSession.email.toLowerCase() !== email) return null;
+    const worker = await admin.from('workers').select('name,email').eq('id', workerSession.workerId).ilike('email', email).eq('status', 'active').eq('onboarding_status', 'completed').maybeSingle();
     if (worker.error || !worker.data) return null;
     return { email: worker.data.email, name: worker.data.name, role: 'worker' };
   }

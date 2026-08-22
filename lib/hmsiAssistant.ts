@@ -24,6 +24,7 @@ export function limitPrompt(value: string) {
 export async function recordAssistantAudit(input: {
   actorEmail: string;
   action: string;
+  actorRole?: 'admin' | 'worker';
   documentId?: string | null;
   manusTaskId?: string | null;
   details?: Record<string, unknown>;
@@ -32,7 +33,7 @@ export async function recordAssistantAudit(input: {
   if (!admin) return;
   await admin.from('hmsi_assistant_audit_logs').insert({
     actor_email: input.actorEmail,
-    actor_role: 'admin',
+    actor_role: input.actorRole || 'admin',
     action: input.action,
     document_id: input.documentId || null,
     manus_task_id: input.manusTaskId || null,
@@ -64,7 +65,7 @@ async function manusRequest(path: string, init: RequestInit = {}) {
   return payload;
 }
 
-export async function createManusAssistantTask(input: { prompt: string; title: string }) {
+export async function createManusAssistantTask(input: { prompt: string; title: string; structuredOutputSchema?: Record<string, unknown> }) {
   return manusRequest('/v2/task.create', {
     method: 'POST',
     body: JSON.stringify({
@@ -73,6 +74,7 @@ export async function createManusAssistantTask(input: { prompt: string; title: s
       agent_profile: 'manus-1.6-lite',
       hide_in_task_list: true,
       share_visibility: 'private',
+      ...(input.structuredOutputSchema ? { structured_output_schema: input.structuredOutputSchema } : {}),
     }),
   });
 }
@@ -86,8 +88,10 @@ export function extractManusTaskState(payload: any) {
   const events = Array.isArray(payload?.messages) ? payload.messages : Array.isArray(payload?.data?.messages) ? payload.data.messages : [];
   let status = 'running';
   let text = '';
+  let structuredOutput: { success: boolean; value: unknown; error: string | null } | null = null;
   for (const event of events) {
     const eventType = event?.type || event?.event_type;
+    if (eventType === 'structured_output_result' && event?.structured_output_result) structuredOutput = event.structured_output_result;
     if (eventType === 'status_update') {
       const nextStatus = event?.status || event?.data?.status;
       if (typeof nextStatus === 'string') status = nextStatus;
@@ -99,5 +103,5 @@ export function extractManusTaskState(payload: any) {
       if (parts.length) text = parts.join('\n').trim();
     }
   }
-  return { status, text, eventCount: events.length };
+  return { status, text, structuredOutput, eventCount: events.length };
 }

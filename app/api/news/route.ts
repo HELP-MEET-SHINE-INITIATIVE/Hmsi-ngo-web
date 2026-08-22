@@ -26,7 +26,7 @@ export async function GET(request: Request) {
   const viewer = await getViewer(request, admin);
   let query = admin
     .from('news_articles')
-    .select('id,headline,summary,body,category,image_url,author_name,author_email,author_role,status,rejection_reason,approved_by,approved_at,published_at,created_at,updated_at')
+    .select('id,headline,summary,body,category,image_url,author_name,author_email,author_role,status,rejection_reason,approved_by,approved_at,published_at,source_name,source_url,source_urls,source_published_at,verification_status,verification_notes,verified_source_count,research_task_id,reviewed_at,created_at,updated_at')
     .order('published_at', { ascending: false, nullsFirst: false });
 
   if (requestedId) {
@@ -78,8 +78,10 @@ export async function POST(request: Request) {
     author_email: viewer.email,
     author_role: viewer.role,
     status: isAdmin ? 'published' : 'pending_admin_approval',
+    verification_status: isAdmin ? 'admin_verified' : 'not_reviewed',
     approved_by: isAdmin ? viewer.email : null,
     approved_at: isAdmin ? new Date().toISOString() : null,
+    reviewed_at: isAdmin ? new Date().toISOString() : null,
     published_at: isAdmin ? new Date().toISOString() : null,
   }).select('id,headline,status').single();
 
@@ -107,7 +109,7 @@ export async function PATCH(request: Request) {
   if (!id || !action) return NextResponse.json({ error: 'A news article and review action are required.' }, { status: 400 });
   if (action === 'reject' && reason.length < 3) return NextResponse.json({ error: 'Add a short reason when requesting changes or rejecting news.' }, { status: 400 });
 
-  const { data: existing, error: lookupError } = await admin.from('news_articles').select('id,status').eq('id', id).maybeSingle();
+  const { data: existing, error: lookupError } = await admin.from('news_articles').select('id,status,verification_status').eq('id', id).maybeSingle();
   if (lookupError || !existing) return NextResponse.json({ error: 'News article not found.' }, { status: 404 });
   if (existing.status === 'published') return NextResponse.json({ error: 'Published news cannot be changed from this review action.' }, { status: 409 });
 
@@ -118,8 +120,10 @@ export async function PATCH(request: Request) {
   const { data: article, error } = await admin.from('news_articles').update({
     status: nextStatus,
     rejection_reason: action === 'reject' ? reason : null,
+    verification_status: action === 'reject' ? 'candidate' : 'admin_verified',
     approved_by: action === 'reject' ? null : viewer.email,
     approved_at: action === 'reject' ? null : new Date().toISOString(),
+    reviewed_at: new Date().toISOString(),
     published_at: isPublishing ? new Date().toISOString() : null,
   }).eq('id', id).select('id,headline,status').single();
 
