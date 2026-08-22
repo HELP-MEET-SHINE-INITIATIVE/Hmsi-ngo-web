@@ -16,28 +16,40 @@ export interface DeadLetterFailure {
 export interface MonitorOptions {
   lookbackHours?: number;
   failureThreshold?: number;
+  pagerDutyThreshold?: number;
   slackWebhookUrl?: string;
+  pagerDutyRoutingKey?: string;
   customFetch?: typeof fetch;
   mockFailures?: DeadLetterFailure[];
 }
 
 export interface MonitorResult {
   alerted: boolean;
+  pagedOnCall: boolean;
   failureCount: number;
   threshold: number;
+  pagerDutyThreshold: number;
   lookbackHours: number;
   failures: DeadLetterFailure[];
   slackStatus?: number;
   slackError?: string;
+  pagerDutyStatus?: number;
+  pagerDutyDedupKey?: string;
+  pagerDutyError?: string;
   message: string;
 }
 
-export function formatSlackPayload(failures: DeadLetterFailure[], lookbackHours: number, threshold: number) {
+export function formatSlackPayload(
+  failures: DeadLetterFailure[],
+  lookbackHours: number,
+  threshold: number,
+  pagedOnCall: boolean
+) {
   const failureCount = failures.length;
-  const isCritical = failureCount >= 5;
-  const severityEmoji = isCritical ? '🔥 P1 - CRITICAL' : '⚠️ P2 - ATTENTION';
+  const isCritical = failureCount >= 10;
+  const severityEmoji = isCritical ? '🔥 P1 - CRITICAL (PAGERDUTY ON-CALL)' : '⚠️ P2 - ATTENTION';
   const headerText = isCritical
-    ? 'CRITICAL ALERT: Resend Dispatch Dead-Letter Threshold Breached'
+    ? 'CRITICAL P1 ALERT: Dead-Letter Threshold Breached & On-Call Paged'
     : 'WARNING: Resend Dispatch Dead-Letter Retry Failures Detected';
 
   const affectedOffices = Array.from(new Set(failures.map((f) => f.office_name)));
@@ -52,83 +64,132 @@ export function formatSlackPayload(failures: DeadLetterFailure[], lookbackHours:
 
   const extraCount = failureCount > 5 ? `\n_...and ${failureCount - 5} more failures logged._` : '';
 
+  const blocks: any[] = [
+    {
+      type: 'header',
+      text: {
+        type: 'plain_text',
+        text: `🚨 ${headerText}`,
+        emoji: true,
+      },
+    },
+  ];
+
+  if (pagedOnCall) {
+    blocks.push({
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: '📟 *PAGERDUTY P1 ON-CALL ESCALATION TRIGGERED* — Critical threshold (>10 failures) breached. Primary on-call reliability engineer has been paged automatically.',
+      },
+    });
+  }
+
+  blocks.push(
+    {
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: `*Help Meet Shine Initiative (HMSI) Alert Engine* has detected *${failureCount} failed dispatch(es)* in the last *${lookbackHours} hour(s)*, exceeding the operational threshold of *${threshold}*.`,
+      },
+    },
+    {
+      type: 'section',
+      fields: [
+        {
+          type: 'mrkdwn',
+          text: `*Severity Level:*\n\`${severityEmoji}\``,
+        },
+        {
+          type: 'mrkdwn',
+          text: `*Total Failures:*\n*${failureCount}* (P1 Limit: 10)`,
+        },
+        {
+          type: 'mrkdwn',
+          text: `*Affected Units:*\n${affectedOffices.join(', ') || 'National'}`,
+        },
+        {
+          type: 'mrkdwn',
+          text: `*Lookback Window:*\nPast ${lookbackHours} hours`,
+        },
+      ],
+    },
+    {
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: `*Recent Dead-Letter Failure Logs:*\n${failureList}${extraCount}`,
+      },
+    },
+    {
+      type: 'actions',
+      elements: [
+        {
+          type: 'button',
+          text: {
+            type: 'plain_text',
+            text: '🔍 Open Admin Audit Console',
+            emoji: true,
+          },
+          url: 'https://www.hmsi.org.ng/hmsi-control',
+          style: 'primary',
+        },
+      ],
+    },
+    {
+      type: 'context',
+      elements: [
+        {
+          type: 'mrkdwn',
+          text: '🤖 Automated Health Check Monitor · HMSI Infrastructure Operations',
+        },
+      ],
+    }
+  );
+
+  return { blocks };
+}
+
+export function formatPagerDutyPayload(
+  routingKey: string,
+  failures: DeadLetterFailure[],
+  lookbackHours: number,
+  dedupKey: string
+) {
+  const failureCount = failures.length;
+  const affectedOffices = Array.from(new Set(failures.map((f) => f.office_name)));
+  const recentErrors = failures.slice(0, 5).map((f) => `[${f.office_code}] ${f.alert_type}: ${f.error_message || 'Timeout'}`);
+
   return {
-    blocks: [
-      {
-        type: 'header',
-        text: {
-          type: 'plain_text',
-          text: `🚨 ${headerText}`,
-          emoji: true,
-        },
+    routing_key: routingKey,
+    event_action: 'trigger',
+    dedup_key: dedupKey,
+    payload: {
+      summary: `[CRITICAL P1] HMSI Resend Dispatch Dead-Letter Surge: ${failureCount} failures in past ${lookbackHours}h`,
+      source: 'hmsi-governance-alert-engine',
+      severity: 'critical',
+      component: 'resend-email-dispatcher',
+      group: 'infrastructure-alerts',
+      class: 'dead-letter-surge',
+      custom_details: {
+        total_failures: failureCount,
+        critical_threshold: 10,
+        lookback_hours: lookbackHours,
+        affected_units: affectedOffices,
+        recent_errors: recentErrors,
+        admin_console_url: 'https://www.hmsi.org.ng/hmsi-control',
+        timestamp_utc: new Date().toISOString(),
       },
-      {
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: `*Help Meet Shine Initiative (HMSI) Alert Engine* has detected *${failureCount} failed dispatch(es)* in the last *${lookbackHours} hour(s)*, exceeding the operational threshold of *${threshold}*.`,
-        },
-      },
-      {
-        type: 'section',
-        fields: [
-          {
-            type: 'mrkdwn',
-            text: `*Severity Level:*\n\`${severityEmoji}\``,
-          },
-          {
-            type: 'mrkdwn',
-            text: `*Total Failures:*\n*${failureCount}* (Threshold: ${threshold})`,
-          },
-          {
-            type: 'mrkdwn',
-            text: `*Affected Units:*\n${affectedOffices.join(', ') || 'National'}`,
-          },
-          {
-            type: 'mrkdwn',
-            text: `*Lookback Window:*\nPast ${lookbackHours} hours`,
-          },
-        ],
-      },
-      {
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: `*Recent Dead-Letter Failure Logs:*\n${failureList}${extraCount}`,
-        },
-      },
-      {
-        type: 'actions',
-        elements: [
-          {
-            type: 'button',
-            text: {
-              type: 'plain_text',
-              text: '🔍 Open Admin Audit Console',
-              emoji: true,
-            },
-            url: 'https://www.hmsi.org.ng/hmsi-control',
-            style: 'primary',
-          },
-        ],
-      },
-      {
-        type: 'context',
-        elements: [
-          {
-            type: 'mrkdwn',
-            text: '🤖 Automated Health Check Monitor · HMSI Infrastructure Operations',
-          },
-        ],
-      },
-    ],
+    },
   };
 }
 
 export async function evaluateDeadLetterQueue(options: MonitorOptions = {}): Promise<MonitorResult> {
   const lookbackHours = options.lookbackHours ?? 24;
   const failureThreshold = options.failureThreshold ?? 2;
+  const pagerDutyThreshold = options.pagerDutyThreshold ?? 10;
   const slackWebhookUrl = options.slackWebhookUrl || process.env.SLACK_WEBHOOK_URL?.trim();
+  const pagerDutyRoutingKey = options.pagerDutyRoutingKey || process.env.PAGERDUTY_ROUTING_KEY?.trim();
   const fetchFn = options.customFetch ?? fetch;
 
   let failures: DeadLetterFailure[] = [];
@@ -178,75 +239,90 @@ export async function evaluateDeadLetterQueue(options: MonitorOptions = {}): Pro
 
   const failureCount = failures.length;
   const shouldAlert = failureCount >= failureThreshold;
+  const shouldPageOnCall = failureCount >= pagerDutyThreshold;
 
   if (!shouldAlert) {
     return {
       alerted: false,
+      pagedOnCall: false,
       failureCount,
       threshold: failureThreshold,
+      pagerDutyThreshold,
       lookbackHours,
       failures,
       message: `Queue healthy: ${failureCount} failure(s) recorded, below threshold of ${failureThreshold}.`,
     };
   }
 
-  // Threshold breached -> Dispatch Slack webhook
-  const slackPayload = formatSlackPayload(failures, lookbackHours, failureThreshold);
+  let pagerDutyStatus: number | undefined;
+  let pagerDutyError: string | undefined;
+  const dedupKey = `hmsi_resend_dead_letter_critical_${new Date().toISOString().slice(0, 10)}`;
 
-  if (!slackWebhookUrl) {
-    console.warn(`[Dead-Letter Monitor] Threshold breached (${failureCount} failures), but SLACK_WEBHOOK_URL is not configured.`);
-    return {
-      alerted: true,
-      failureCount,
-      threshold: failureThreshold,
-      lookbackHours,
-      failures,
-      slackError: 'SLACK_WEBHOOK_URL not configured',
-      message: `Threshold breached (${failureCount} failures), Slack alert skipped (no webhook URL).`,
-    };
-  }
-
-  try {
-    const slackRes = await fetchFn(slackWebhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(slackPayload),
-    });
-
-    if (slackRes.ok) {
-      return {
-        alerted: true,
-        failureCount,
-        threshold: failureThreshold,
-        lookbackHours,
-        failures,
-        slackStatus: slackRes.status,
-        message: `Slack notification successfully sent for ${failureCount} dead-letter failure(s).`,
-      };
+  // Trigger PagerDuty P1 Escalation if critical threshold exceeded
+  if (shouldPageOnCall) {
+    if (pagerDutyRoutingKey) {
+      try {
+        const pdPayload = formatPagerDutyPayload(pagerDutyRoutingKey, failures, lookbackHours, dedupKey);
+        const pdRes = await fetchFn('https://events.pagerduty.com/v2/enqueue', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(pdPayload),
+        });
+        pagerDutyStatus = pdRes.status;
+        if (!pdRes.ok) {
+          const pdText = await pdRes.text().catch(() => '');
+          pagerDutyError = `PagerDuty HTTP ${pdRes.status}: ${pdText}`;
+        }
+      } catch (pdErr) {
+        pagerDutyError = pdErr instanceof Error ? pdErr.message : 'Network error reaching PagerDuty';
+      }
     } else {
-      const errText = await slackRes.text().catch(() => '');
-      return {
-        alerted: true,
-        failureCount,
-        threshold: failureThreshold,
-        lookbackHours,
-        failures,
-        slackStatus: slackRes.status,
-        slackError: `Slack webhook returned HTTP ${slackRes.status}: ${errText}`,
-        message: `Threshold breached, but Slack webhook failed with HTTP ${slackRes.status}.`,
-      };
+      pagerDutyError = 'PAGERDUTY_ROUTING_KEY not configured';
+      console.warn(`[Dead-Letter Monitor] P1 Critical threshold reached (${failureCount} failures), but PAGERDUTY_ROUTING_KEY is not configured.`);
     }
-  } catch (netErr) {
-    return {
-      alerted: true,
-      failureCount,
-      threshold: failureThreshold,
-      lookbackHours,
-      failures,
-      slackError: netErr instanceof Error ? netErr.message : 'Network error reaching Slack',
-      message: `Threshold breached, but failed to connect to Slack webhook.`,
-    };
   }
+
+  // Trigger Slack Block Kit notification
+  const slackPayload = formatSlackPayload(failures, lookbackHours, failureThreshold, shouldPageOnCall);
+  let slackStatus: number | undefined;
+  let slackError: string | undefined;
+
+  if (slackWebhookUrl) {
+    try {
+      const slackRes = await fetchFn(slackWebhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(slackPayload),
+      });
+      slackStatus = slackRes.status;
+      if (!slackRes.ok) {
+        const errText = await slackRes.text().catch(() => '');
+        slackError = `Slack webhook returned HTTP ${slackRes.status}: ${errText}`;
+      }
+    } catch (netErr) {
+      slackError = netErr instanceof Error ? netErr.message : 'Network error reaching Slack';
+    }
+  } else {
+    slackError = 'SLACK_WEBHOOK_URL not configured';
+  }
+
+  return {
+    alerted: true,
+    pagedOnCall: shouldPageOnCall,
+    failureCount,
+    threshold: failureThreshold,
+    pagerDutyThreshold,
+    lookbackHours,
+    failures,
+    slackStatus,
+    slackError,
+    pagerDutyStatus,
+    pagerDutyDedupKey: shouldPageOnCall ? dedupKey : undefined,
+    pagerDutyError,
+    message: shouldPageOnCall
+      ? `🚨 P1 CRITICAL SURGE: ${failureCount} dead-letter failures! On-call engineers paged via PagerDuty (Status: ${pagerDutyStatus || 'error'}).`
+      : `⚠️ Warning: ${failureCount} dead-letter failures detected. Slack alert dispatched.`,
+  };
 }
 
 // Standalone CLI execution
