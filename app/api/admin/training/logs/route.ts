@@ -14,7 +14,8 @@ export interface AuditLogEntry {
   threshold_value: number;
   recipient_emails: string[];
   sent_at: string;
-  status: 'DELIVERED' | 'FAILED';
+  status: 'DELIVERED' | 'FAILED' | 'WARNING';
+  error_message: string | null;
 }
 
 export interface AuditLogsResponse {
@@ -23,6 +24,7 @@ export interface AuditLogsResponse {
     nationalDigestsSent: number;
     regionalBriefingsSent: number;
     thresholdBreachesLogged: number;
+    failedDispatchesCount: number;
     uniqueRecipientsCount: number;
     latestDispatchAt: string | null;
   };
@@ -42,6 +44,7 @@ export async function GET(request: Request) {
       nationalDigestsSent: 0,
       regionalBriefingsSent: 0,
       thresholdBreachesLogged: 0,
+      failedDispatchesCount: 0,
       uniqueRecipientsCount: 0,
       latestDispatchAt: null,
     },
@@ -74,7 +77,11 @@ export async function GET(request: Request) {
     // 2. Fetch Logs
     let query = admin.from('training_alert_logs').select('*').order('sent_at', { ascending: false }).limit(limit);
     if (filterType && filterType !== 'ALL') {
-      query = query.ilike('alert_type', `%${filterType}%`);
+      if (filterType === 'FAILED') {
+        query = query.or('alert_type.ilike.%FAIL%,alert_type.ilike.%ERROR%');
+      } else {
+        query = query.ilike('alert_type', `%${filterType}%`);
+      }
     }
 
     const { data: logRows, error: logErr } = await query;
@@ -91,6 +98,18 @@ export async function GET(request: Request) {
       const emails: string[] = Array.isArray(row.recipient_emails) ? row.recipient_emails : [];
       for (const e of emails) uniqueRecipients.add(e.toLowerCase());
 
+      const alertTypeUpper = String(row.alert_type || '').toUpperCase();
+      const isFailed = alertTypeUpper.includes('FAIL') || alertTypeUpper.includes('ERROR') || row.status === 'FAILED';
+      const isWarning = alertTypeUpper.includes('WARN') || alertTypeUpper.includes('AMBER');
+      const status: 'DELIVERED' | 'FAILED' | 'WARNING' = isFailed ? 'FAILED' : isWarning ? 'WARNING' : 'DELIVERED';
+
+      let errorMessage: string | null = row.error_message || null;
+      if (!errorMessage && isFailed) {
+        if (alertTypeUpper.includes('RATE_LIMIT')) errorMessage = 'Resend API rate limit exceeded. Retry scheduled.';
+        else if (alertTypeUpper.includes('INVALID_EMAIL')) errorMessage = 'Recipient email bounce or invalid format detected.';
+        else errorMessage = 'Dispatch delivery failed during Resend execution.';
+      }
+
       return {
         id: row.id,
         regional_office_id: row.regional_office_id,
@@ -101,31 +120,37 @@ export async function GET(request: Request) {
         threshold_value: Number(row.threshold_value || 0),
         recipient_emails: emails,
         sent_at: row.sent_at,
-        status: 'DELIVERED', // Since rows are written after verified Resend dispatch
+        status,
+        error_message: errorMessage,
       };
     });
 
-    const nationalDigestsSent = logs.filter((l) => l.alert_type.includes('NATIONAL_GOVERNANCE_DIGEST')).length;
-    const regionalBriefingsSent = logs.filter((l) => l.alert_type.includes('MONDAY_REGIONAL_BRIEFING')).length;
+    const nationalDigestsSent = logs.filter((l) => l.alert_type.includes('NATIONAL_GOVERNANCE_DIGEST') && l.status !== 'FAILED').length;
+    const regionalBriefingsSent = logs.filter((l) => l.alert_type.includes('MONDAY_REGIONAL_BRIEFING') && l.status !== 'FAILED').length;
     const thresholdBreachesLogged = logs.filter(
       (l) => l.alert_type.includes('LOW_COMPLETION') || l.alert_type.includes('CRITICAL_DATA_PROTECTION') || l.alert_type.includes('RED') || l.alert_type.includes('AMBER')
     ).length;
+    const failedDispatchesCount = logs.filter((l) => l.status === 'FAILED').length;
 
-    return NextResponse.json({
-      summary: {
-        totalDispatches: logs.length,
-        nationalDigestsSent,
-        regionalBriefingsSent,
-        thresholdBreachesLogged,
-        uniqueRecipientsCount: uniqueRecipients.size,
-        latestDispatchAt: logs[0]?.sent_at || null,
+    return NextResponse.json(
+      {
+        summary: {
+          totalDispatches: logs.length,
+          nationalDigestsSent,
+          regionalBriefingsSent,
+          thresholdBreachesLogged,
+          failedDispatchesCount,
+          uniqueRecipientsCount: uniqueRecipients.size,
+          latestDispatchAt: logs[0]?.sent_at || null,
+        },
+        logs,
+        migrationNeeded: false,
       },
-      logs,
-      migrationNeeded: false,
-    }, {
-      status: 200,
-      headers: { 'Cache-Control': 'no-store, max-age=0' },
-    });
+      {
+        status: 200,
+        headers: { 'Cache-Control': 'no-store, max-age=0' },
+      },
+    );
   } catch (error) {
     console.error('[Admin Audit Logs] Unexpected error loading logs:', error);
     return NextResponse.json({ error: 'Failed to retrieve delivery audit logs.' }, { status: 500 });

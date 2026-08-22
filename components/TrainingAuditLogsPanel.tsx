@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  AlertCircle,
   AlertTriangle,
   Bell,
   CheckCircle2,
@@ -14,6 +15,7 @@ import {
   Send,
   ShieldAlert,
   Users,
+  XCircle,
 } from 'lucide-react';
 import type { AuditLogEntry, AuditLogsResponse } from '../app/api/admin/training/logs/route';
 
@@ -55,6 +57,7 @@ export default function TrainingAuditLogsPanel() {
         log.office_name.toLowerCase().includes(q) ||
         log.office_code.toLowerCase().includes(q) ||
         log.alert_type.toLowerCase().includes(q) ||
+        (log.error_message && log.error_message.toLowerCase().includes(q)) ||
         log.recipient_emails.some((email) => email.toLowerCase().includes(q))
     );
   }, [data?.logs, searchQuery]);
@@ -71,7 +74,14 @@ export default function TrainingAuditLogsPanel() {
     }).format(date) + ' UTC';
   };
 
-  const getEventBadge = (alertType: string) => {
+  const getEventBadge = (alertType: string, status: string) => {
+    if (status === 'FAILED' || alertType.includes('FAIL') || alertType.includes('ERROR')) {
+      return (
+        <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-red-800">
+          <XCircle size={10} /> Dispatch Error
+        </span>
+      );
+    }
     if (alertType.includes('NATIONAL_GOVERNANCE_DIGEST')) {
       return (
         <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-blue-800">
@@ -132,7 +142,7 @@ export default function TrainingAuditLogsPanel() {
       )}
 
       {/* KPI Ribbon */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
         <div className="rounded-3xl border border-[#d9d6ce] bg-white p-5">
           <div className="flex items-center justify-between text-[#66716a]">
             <span className="text-[10px] font-black uppercase tracking-widest">Total Dispatches</span>
@@ -142,7 +152,7 @@ export default function TrainingAuditLogsPanel() {
             {data?.summary.totalDispatches || 0}
           </p>
           <p className="mt-1 text-xs text-[#66716a]">
-            Logged across all cron cycles
+            Logged across all cycles
           </p>
         </div>
 
@@ -155,7 +165,7 @@ export default function TrainingAuditLogsPanel() {
             {data?.summary.nationalDigestsSent || 0}
           </p>
           <p className="mt-1 text-xs text-[#66716a]">
-            Delivered Mondays 09:00 UTC
+            Mondays 09:00 UTC
           </p>
         </div>
 
@@ -168,7 +178,20 @@ export default function TrainingAuditLogsPanel() {
             {data?.summary.regionalBriefingsSent || 0}
           </p>
           <p className="mt-1 text-xs text-[#66716a]">
-            Customized unit summaries
+            Mondays 08:00 UTC
+          </p>
+        </div>
+
+        <div className="rounded-3xl border border-[#d9d6ce] bg-white p-5">
+          <div className="flex items-center justify-between text-[#66716a]">
+            <span className="text-[10px] font-black uppercase tracking-widest">Delivery Errors</span>
+            <AlertCircle size={18} className="text-red-500" />
+          </div>
+          <p className="mt-3 text-3xl font-black text-red-600">
+            {data?.summary.failedDispatchesCount || 0}
+          </p>
+          <p className="mt-1 text-xs text-[#66716a]">
+            {data?.summary.failedDispatchesCount ? 'Requires retry' : '0 failures recorded'}
           </p>
         </div>
 
@@ -181,7 +204,7 @@ export default function TrainingAuditLogsPanel() {
             {data?.summary.uniqueRecipientsCount || 0}
           </p>
           <p className="mt-1 text-xs text-[#66716a]">
-            Trustees & regional coordinators
+            Trustees & coordinators
           </p>
         </div>
       </div>
@@ -218,13 +241,23 @@ export default function TrainingAuditLogsPanel() {
           >
             Regional Briefings
           </button>
+          <button
+            onClick={() => setSelectedType('FAILED')}
+            className={`rounded-full px-3 py-1.5 text-xs font-black uppercase tracking-wider transition ${
+              selectedType === 'FAILED'
+                ? 'bg-red-600 text-white'
+                : 'bg-[#f6f4ef] text-[#66716a] hover:bg-red-50 hover:text-red-700'
+            }`}
+          >
+            Errors & Failures ({data?.summary.failedDispatchesCount || 0})
+          </button>
         </div>
 
         <div className="relative w-full sm:w-72">
           <Search size={16} className="absolute top-1/2 left-3 -translate-y-1/2 text-[#66716a]" />
           <input
             type="text"
-            placeholder="Search logs or email…"
+            placeholder="Search logs or error message…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full rounded-full border border-[#d9d6ce] bg-[#f6f4ef] py-2 pr-4 pl-9 text-xs outline-none focus:border-[#1e5b49]"
@@ -242,7 +275,7 @@ export default function TrainingAuditLogsPanel() {
 
         {filteredLogs.length === 0 ? (
           <div className="p-10 text-center text-sm text-[#66716a]">
-            {isLoading ? 'Loading delivery logs…' : 'No matching email dispatch logs found. Cron runs on Monday 08:00 UTC and 09:00 UTC will log dispatches here.'}
+            {isLoading ? 'Loading delivery logs…' : 'No matching email dispatch logs found for this filter.'}
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -259,12 +292,12 @@ export default function TrainingAuditLogsPanel() {
               </thead>
               <tbody className="divide-y divide-[#eeeae2]">
                 {filteredLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-[#faf9f6]">
+                  <tr key={log.id} className={`hover:bg-[#faf9f6] ${log.status === 'FAILED' ? 'bg-red-50/40' : ''}`}>
                     <td className="px-6 py-4 whitespace-nowrap text-xs font-bold text-[#17221e]">
                       {formatTimestamp(log.sent_at)}
                     </td>
                     <td className="px-6 py-4">
-                      {getEventBadge(log.alert_type)}
+                      {getEventBadge(log.alert_type, log.status)}
                     </td>
                     <td className="px-6 py-4">
                       <p className="font-bold text-[#17221e]">{log.office_name}</p>
@@ -278,11 +311,26 @@ export default function TrainingAuditLogsPanel() {
                       <div className="max-w-xs truncate text-[#4a544e]" title={log.recipient_emails.join(', ')}>
                         {log.recipient_emails.join(', ')}
                       </div>
+                      {log.error_message && (
+                        <p className="mt-1 text-[11px] font-medium text-red-600">
+                          Error: {log.error_message}
+                        </p>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-right whitespace-nowrap">
-                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-800">
-                        <CheckCircle2 size={12} /> Delivered (Resend)
-                      </span>
+                      {log.status === 'FAILED' ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-red-800">
+                          <XCircle size={12} /> Delivery Failed
+                        </span>
+                      ) : log.status === 'WARNING' ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-amber-800">
+                          <AlertTriangle size={12} /> Dispatched (Warning)
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-800">
+                          <CheckCircle2 size={12} /> Delivered (Resend)
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))}
