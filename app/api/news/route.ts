@@ -12,7 +12,7 @@ async function getViewer(request: Request, admin: NonNullable<ReturnType<typeof 
   return getNewsletterViewer(request, admin, getNewsletterViewerPayload(request));
 }
 
-async function recordEvent(admin: NonNullable<ReturnType<typeof getSupabaseAdmin>>, newsId: string, action: string, viewer: { email: string; role: 'admin' | 'worker' | 'volunteer' }, reason?: string) {
+async function recordEvent(admin: NonNullable<ReturnType<typeof getSupabaseAdmin>>, newsId: string, action: string, viewer: { email: string; role: 'admin' | 'worker' | 'volunteer' | 'member' }, reason?: string) {
   await admin.from('news_approval_events').insert({ news_id: newsId, action, actor_email: viewer.email, actor_role: viewer.role, reason: reason || null });
 }
 
@@ -54,7 +54,7 @@ export async function POST(request: Request) {
   if (!admin) return NextResponse.json({ error: 'News publishing is not configured yet.' }, { status: 503 });
 
   const viewer = await getViewer(request, admin);
-  if (!viewer) return NextResponse.json({ error: 'Only the administrator and approved active workers or volunteers can submit news.' }, { status: 403 });
+  if (!viewer) return NextResponse.json({ error: 'Only the administrator and approved active HMSI members, workers, or volunteers can submit news.' }, { status: 403 });
 
   const payload = await request.json().catch(() => ({}));
   const headline = cleanText(payload.headline, 220);

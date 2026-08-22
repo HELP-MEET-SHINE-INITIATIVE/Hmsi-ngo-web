@@ -1,5 +1,7 @@
 import { Metadata } from 'next';
 import WorkerAssistantPanel from '../../components/WorkerAssistantPanel';
+import WorkerRoomContributorStudio from '../../components/WorkerRoomContributorStudio';
+import HmsiRoomFlashPlacements from '../../components/HmsiRoomFlashPlacements';
 
 export const metadata: Metadata = {
   title: 'HMSI Worker Assistance | HMSI',
@@ -8,5 +10,5 @@ export const metadata: Metadata = {
 };
 
 export default function WorkerRoomPage() {
-  return <WorkerAssistantPanel />;
+  return <><HmsiRoomFlashPlacements /><WorkerAssistantPanel /><WorkerRoomContributorStudio /></>;
 }

@@ -15,7 +15,7 @@ export async function POST(request: Request) {
   if (!admin) return NextResponse.json({ error: 'Image uploads are not configured yet.' }, { status: 503 });
 
   const viewer = await getNewsletterViewer(request, admin, getNewsletterViewerPayload(request));
-  if (!viewer) return NextResponse.json({ error: 'Only the administrator and approved active workers or volunteers can upload images.' }, { status: 403 });
+  if (!viewer) return NextResponse.json({ error: 'Only the administrator and approved active HMSI members, workers, or volunteers can upload images.' }, { status: 403 });
 
   const formData = await request.formData().catch(() => null);
   const image = formData?.get('image');

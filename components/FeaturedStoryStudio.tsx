@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { CheckCircle2, FileText, Pencil, Save, Send, Trash2, X, XCircle } from 'lucide-react';
 import OptionalImageUpload from './OptionalImageUpload';
 
-type StoryViewer = { email: string; name: string; role: 'admin' | 'worker' | 'volunteer' };
+type StoryViewer = { email: string; name: string; role: 'admin' | 'worker' | 'volunteer' | 'member' };
 type Story = { id: string; title: string; excerpt: string; body: string; category: string; image_url: string | null; author_name: string; author_email: string; author_role: string; status: string; rejection_reason: string | null; created_at: string; published_at: string | null };
 type StoryDraft = Pick<Story, 'title' | 'excerpt' | 'body' | 'category'> & { image_url: string };
 
@@ -119,7 +119,7 @@ export default function FeaturedStoryStudio({ viewer }: { viewer: StoryViewer })
   const statusLabel: Record<string, string> = { pending_admin_approval: 'Waiting for admin approval', approved: 'Approved — ready to publish', rejected: 'Needs revision', published: 'Published on homepage', draft: 'Draft' };
 
   return <div className="space-y-6">
-    <div><h2 className="text-2xl font-black">Featured homepage stories</h2><p className="mt-2 text-sm leading-6 text-[#66716a]">{viewer.role === 'admin' ? 'Create and publish stories directly, approve submissions, or edit and delete any story at any time.' : 'Submit a field story for the administrator to review before it appears on the homepage.'}</p></div>
+    <div><h2 className="text-2xl font-black">Featured homepage stories</h2><p className="mt-2 text-sm leading-6 text-[#66716a]">{viewer.role === 'admin' ? 'Create and publish stories directly, approve submissions, or edit and delete any story at any time.' : 'Submit a field story or field-event update for the administrator to review before it appears publicly.'}</p></div>
     {(error || notice) && <div className={`rounded-2xl border p-4 text-sm ${error ? 'border-red-100 bg-red-50 text-red-700' : 'border-emerald-100 bg-emerald-50 text-emerald-700'}`} role="status">{error || notice}</div>}
     <form onSubmit={submitStory} className="grid gap-4 rounded-3xl border border-[#d9d6ce] bg-white p-6 md:grid-cols-2">
       <input required minLength={5} placeholder="Story title" value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} className="rounded-2xl bg-[#f6f4ef] px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#1e5b49] md:col-span-2" />

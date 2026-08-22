@@ -3,7 +3,7 @@
 import { ImagePlus, Loader2, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
-type UploadViewer = { email: string; role: 'admin' | 'worker' | 'volunteer' };
+type UploadViewer = { email: string; role: 'admin' | 'worker' | 'volunteer' | 'member' };
 
 type OptionalImageUploadProps = {
   viewer: UploadViewer;
