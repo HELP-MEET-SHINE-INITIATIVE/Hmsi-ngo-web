@@ -29,7 +29,7 @@ export async function getOperatorContext(admin: SupabaseClient) {
     admin.from('news_articles').select('id,headline,summary,status,category,source_name,source_url,verification_status,created_at').order('created_at', { ascending: false }).limit(30),
     admin.from('community_posts').select('id,audience,author_name,author_role,content,moderation_status,created_at').eq('moderation_status', 'published').order('created_at', { ascending: false }).limit(50),
     admin.from('workers').select('id,name,email,role,status,onboarding_status').order('created_at', { ascending: false }).limit(200),
-    admin.from('volunteer_applications').select('id,name,email,applicant_role,status,account_status').order('created_at', { ascending: false }).limit(200),
+    admin.from('volunteer_applications').select('id,name,email,applicant_role,status').order('created_at', { ascending: false }).limit(200),
     admin.from('newsletter_subscribers').select('email,status').eq('status', 'active').limit(10000),
   ]);
   for (const result of [messages, newsletters, news, rooms, workers, volunteers, subscribers]) if (result.error) throw result.error;
@@ -43,7 +43,7 @@ export async function getOperatorContext(admin: SupabaseClient) {
     audience_counts: {
       active_newsletter_subscribers: subscribers.data?.length || 0,
       active_workers: (workers.data || []).filter((person) => person.status === 'active').length,
-      approved_active_volunteers: (volunteers.data || []).filter((person) => person.status === 'approved' && person.account_status === 'active' && person.applicant_role !== 'worker').length,
+      approved_active_volunteers: (volunteers.data || []).filter((person) => person.status === 'approved' && person.applicant_role !== 'worker').length,
     },
   };
 }
