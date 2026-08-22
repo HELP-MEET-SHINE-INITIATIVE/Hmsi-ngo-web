@@ -248,7 +248,7 @@ export default function DonateForm() {
         </div>
       </section>
 
-      <section className="border-t border-[#d9d6ce] bg-white"><div className="mx-auto flex max-w-[1440px] flex-col gap-3 px-5 py-8 text-center sm:px-8 lg:flex-row lg:items-center lg:justify-between lg:px-12 lg:text-left"><p className="text-sm font-bold text-[#17221e]">Every contribution helps communities move from crisis to possibility.</p><p className="text-xs font-semibold text-[#66716a]">Payments processed securely by Paystack · NGN donations</p></div></section>
+      <section className="border-t border-[#d9d6ce] bg-white"><div className="mx-auto flex max-w-[1440px] flex-col gap-3 px-5 py-8 text-center sm:px-8 lg:flex-row lg:items-center lg:justify-between lg:px-12 lg:text-left"><p className="text-sm font-bold text-[#17221e]">Every contribution helps communities move from crisis to possibility.</p><p className="text-xs font-semibold text-[#66716a]">Payments processed securely by Paystack · NGN or USD donations</p></div></section>
     </main>
   );
 }
