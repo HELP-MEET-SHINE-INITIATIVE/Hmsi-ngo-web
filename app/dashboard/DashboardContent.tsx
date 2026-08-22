@@ -12,6 +12,7 @@ import FeaturedStoryStudio from '../../components/FeaturedStoryStudio';
 import NewsroomStudio from '../../components/NewsroomStudio';
 import WorkerOperationsPanel from '../../components/WorkerOperationsPanel';
 import WorkerAssistantPanel from '../../components/WorkerAssistantPanel';
+import WorkspaceOpportunities from '../../components/WorkspaceOpportunities';
 import HmsiIdCardPanel from '../../components/HmsiIdCardPanel';
 import MemberWorkspace from '../../components/MemberWorkspace';
 import { 
@@ -105,7 +106,7 @@ export default function DashboardContent() {
   }
 
   if (viewer.role === 'worker') {
-    return <div className="min-h-screen bg-[#f6f4ef] text-[#17221e]"><header className="flex items-center justify-between border-b border-[#d9d6ce] bg-white px-5 py-4 sm:px-8"><div><p className="text-xs font-black uppercase tracking-[0.18em] text-[#b56b3b]">HMSI restricted workspace</p><p className="mt-1 text-sm font-bold">{viewer.name}</p></div><button onClick={async () => { await fetch('/api/worker/session', { method: 'DELETE' }); await fetch('/api/member/session', { method: 'DELETE' }); logout(); }} className="rounded-full border border-red-200 px-4 py-2 text-xs font-black uppercase tracking-widest text-red-600">Sign out</button></header><div className="mx-auto max-w-4xl px-5 pt-8 sm:px-8"><HmsiIdCardPanel /></div><WorkerAssistantPanel /></div>;
+    return <div className="min-h-screen bg-[#f6f4ef] text-[#17221e]"><header className="flex items-center justify-between border-b border-[#d9d6ce] bg-white px-5 py-4 sm:px-8"><div><p className="text-xs font-black uppercase tracking-[0.18em] text-[#b56b3b]">HMSI restricted workspace</p><p className="mt-1 text-sm font-bold">{viewer.name}</p></div><button onClick={async () => { await fetch('/api/worker/session', { method: 'DELETE' }); await fetch('/api/member/session', { method: 'DELETE' }); logout(); }} className="rounded-full border border-red-200 px-4 py-2 text-xs font-black uppercase tracking-widest text-red-600">Sign out</button></header><div className="mx-auto max-w-4xl px-5 pt-8 sm:px-8"><HmsiIdCardPanel /><WorkspaceOpportunities viewerRole="worker" /></div><WorkerAssistantPanel /></div>;
   }
 
   if (viewer.role === 'member') return <MemberWorkspace name={viewer.name} logout={logout} />;
@@ -269,7 +270,7 @@ export default function DashboardContent() {
       <main className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-[280px_1fr_320px] gap-8">
         <div className="lg:col-span-3 rounded-3xl border border-[#d9d6ce] bg-white p-5"><p className="text-xs font-black uppercase tracking-[0.18em] text-[#b56b3b]">{viewer.role === 'worker' ? 'Worker coordination workspace' : 'Volunteer community workspace'}</p><h2 className="mt-2 text-2xl font-black">{viewer.role === 'worker' ? 'Assignments, worker posts, and field coordination' : 'Volunteer opportunities, community posts, and collaboration'}</h2><p className="mt-2 text-sm text-[#66716a]">Use the message icon to open the {viewer.role === 'worker' ? 'worker room' : 'volunteer room'}, or choose an opportunity to apply.</p></div>
         {notice && <div className="lg:col-span-3 rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-700" role="status">{notice}</div>}
-        <div className="lg:col-span-3"><HmsiIdCardPanel /></div>
+        <div className="lg:col-span-3"><HmsiIdCardPanel /></div><div className="lg:col-span-3"><WorkspaceOpportunities viewerRole="volunteer" /></div>
         {viewer.role === 'worker' && <div className="lg:col-span-3"><WorkerOperationsPanel /></div>}
         {/* Left Sidebar */}
         <aside className="hidden lg:block space-y-6">

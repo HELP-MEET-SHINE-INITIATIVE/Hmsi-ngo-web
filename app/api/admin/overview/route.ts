@@ -34,7 +34,7 @@ export async function GET(request: Request) {
 
   const [volunteersWithRole, opportunities, opportunityApplications] = await Promise.all([
     admin.from('volunteer_applications').select('id,name,email,phone,interest,message,status,applicant_role,created_at').order('created_at', { ascending: false }),
-    admin.from('opportunities').select('id,title,description,audience,location,image_url,image_path,starts_at,ends_at,status,created_at').order('starts_at', { ascending: true }),
+    admin.from('opportunities').select('id,title,description,audience,location,image_url,image_path,starts_at,ends_at,status,category,eligibility_note,requires_hmsi_certificate,member_visible,created_at').order('starts_at', { ascending: true }),
     admin.from('opportunity_applications').select('id,opportunity_id,applicant_name,applicant_email,applicant_phone,applicant_role,status,reviewed_at,created_at').order('created_at', { ascending: false }),
   ]);
 

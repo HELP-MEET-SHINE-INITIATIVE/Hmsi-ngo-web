@@ -11,7 +11,7 @@ export async function GET() {
 
   const { data, error } = await admin
     .from('opportunities')
-    .select('id,title,description,audience,location,image_url,image_path,starts_at,ends_at,status,created_at')
+    .select('id,title,description,audience,location,image_url,image_path,starts_at,ends_at,status,category,eligibility_note,requires_hmsi_certificate,member_visible,created_at')
     .eq('status', 'open')
     .order('starts_at', { ascending: true });
 

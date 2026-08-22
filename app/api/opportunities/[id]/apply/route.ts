@@ -25,17 +25,22 @@ export async function POST(
 
     const { data: opportunity, error: opportunityError } = await admin
       .from('opportunities')
-      .select('id,status,audience')
+      .select('id,status,audience,requires_hmsi_certificate')
       .eq('id', opportunityId)
       .maybeSingle();
 
     if (opportunityError) throw opportunityError;
     if (!opportunity || opportunity.status !== 'open') return NextResponse.json({ error: 'This opportunity is no longer open.' }, { status: 404 });
     if (opportunity.audience !== 'both' && opportunity.audience !== role) return NextResponse.json({ error: `This opportunity is for ${opportunity.audience}s.` }, { status: 403 });
+    if (opportunity.requires_hmsi_certificate) {
+      const certificate = await admin.from('hmsi_school_certificates').select('id').eq('holder_email', email).eq('status', 'valid').limit(1);
+      if (certificate.error) throw certificate.error;
+      if (!certificate.data?.length) return NextResponse.json({ error: 'Complete the HMSI school and obtain a valid HMSI certificate of completion before applying for this leadership pathway.' }, { status: 403 });
+    }
 
     const { data, error } = await admin
       .from('opportunity_applications')
-      .insert({ opportunity_id: opportunityId, applicant_name: name, applicant_email: email, applicant_phone: phone, applicant_role: role, status: 'pending' })
+      .insert({ opportunity_id: opportunityId, applicant_name: name, applicant_email: email, applicant_phone: phone || null, applicant_role: role, status: 'pending' })
       .select('id,opportunity_id,applicant_name,applicant_email,applicant_role,status,created_at')
       .single();
 

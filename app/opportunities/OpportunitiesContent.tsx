@@ -14,6 +14,9 @@ type Opportunity = {
   starts_at: string;
   audience: string;
   image_url?: string | null;
+  category?: string;
+  eligibility_note?: string | null;
+  requires_hmsi_certificate?: boolean;
 };
 
 export default function OpportunitiesContent() {
@@ -86,9 +89,9 @@ export default function OpportunitiesContent() {
               {opportunities.map((opportunity) => (
                 <article id={`opportunity-${opportunity.id}`} key={opportunity.id} className="scroll-mt-24 rounded-3xl border border-[#d9d6ce] bg-white p-6 shadow-sm">
                   {opportunity.image_url && <div role="img" aria-label="Opportunity picture" className="mb-5 h-40 rounded-2xl bg-cover bg-center" style={{ backgroundImage: `url(${JSON.stringify(opportunity.image_url).slice(1, -1)})` }} />}
-                  <div className="flex items-center justify-between gap-3"><span className="rounded-full bg-[#e9f0e9] px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#1e5b49]">{opportunity.audience === 'both' ? 'Volunteer + worker' : opportunity.audience}</span><Users size={18} className="text-[#b56b3b]" /></div>
+                  <div className="flex items-center justify-between gap-3"><span className="rounded-full bg-[#e9f0e9] px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#1e5b49]">{opportunity.category === 'leadership' ? 'Leadership pathway' : opportunity.category === 'core_studies' ? 'Core studies' : opportunity.audience === 'both' ? 'Volunteer + worker' : opportunity.audience}</span><Users size={18} className="text-[#b56b3b]" /></div>
                   <h2 className="mt-5 text-2xl font-black">{opportunity.title}</h2>
-                  <p className="mt-3 text-sm leading-6 text-[#66716a]">{opportunity.description}</p>
+                  <p className="mt-3 text-sm leading-6 text-[#66716a]">{opportunity.description}</p>{opportunity.eligibility_note && <p className="mt-3 border-l-2 border-[#e1ad45] pl-3 text-xs leading-5 text-[#7a5b16]"><strong>Eligibility:</strong> {opportunity.eligibility_note}</p>}
                   <div className="mt-5 space-y-2 text-xs font-bold text-[#66716a]"><p className="flex items-center gap-2"><MapPin size={15} className="text-[#1e5b49]" />{opportunity.location}</p><p className="flex items-center gap-2"><Calendar size={15} className="text-[#1e5b49]" />{new Date(opportunity.starts_at).toLocaleString()}</p></div>
                   <button onClick={() => setSelected(opportunity)} className="mt-6 w-full rounded-full bg-[#1e5b49] px-4 py-3 text-xs font-black uppercase tracking-widest text-white hover:bg-[#17221e]">Apply for this opportunity</button>
                 </article>
