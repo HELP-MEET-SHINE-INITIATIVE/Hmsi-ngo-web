@@ -7,6 +7,7 @@ import Footer from "../components/Footer";
 import FundraiserCard from "../components/FundraiserCard";
 import type { Fundraiser } from "../lib/fundraisers";
 import OpportunityFlash from "../components/OpportunityFlash";
+import HomepageVolunteerOpportunities from "../components/HomepageVolunteerOpportunities";
 import NewsFlash from "../components/NewsFlash";
 import FundraiserFlash from "../components/FundraiserFlash";
 import FieldStoryFlash from "../components/FieldStoryFlash";
@@ -16,6 +17,7 @@ import FundraisingGrowthHub from "../components/FundraisingGrowthHub";
 import {
   ArrowRight,
   ArrowUpRight,
+  BookOpen,
   Check,
   ChevronRight,
   Globe2,
@@ -264,6 +266,8 @@ export default function Home() {
             <Link className="transition-colors hover:text-[#e1ad45]" href="/volunteer">Volunteer</Link>
             <Link className="transition-colors hover:text-[#e1ad45]" href="/worker-apply">Work with HMSI</Link>
             <Link className="transition-colors hover:text-[#e1ad45]" href="/opportunities">Opportunities</Link>
+            <Link className="transition-colors hover:text-[#e1ad45]" href="/school">HMSI School</Link>
+            <Link className="transition-colors hover:text-[#e1ad45]" href="/member-apply">Join HMSI</Link>
             <Link className="transition-colors hover:text-[#e1ad45]" href="/about">About us</Link>
             <Link className="transition-colors hover:text-[#e1ad45]" href="/partnerships">Partner with us</Link>
             <Link className="transition-colors hover:text-[#e1ad45]" href="/transparency">Transparency</Link>
@@ -311,6 +315,8 @@ export default function Home() {
               <Link href="/stories" onClick={() => setMenuOpen(false)}>Field Stories</Link>
               <Link href="/volunteer" onClick={() => setMenuOpen(false)}>Volunteer</Link>
               <Link href="/worker-apply" onClick={() => setMenuOpen(false)}>Work with HMSI</Link>
+              <Link href="/school" onClick={() => setMenuOpen(false)}>HMSI School</Link>
+              <Link href="/member-apply" onClick={() => setMenuOpen(false)}>Join HMSI</Link>
               <Link href="/opportunities" onClick={() => setMenuOpen(false)}>Opportunities</Link>
               <Link href="#impact" onClick={() => setMenuOpen(false)}>Our impact</Link>
               <Link href="#start-here" onClick={() => setMenuOpen(false)}>How to help</Link>
@@ -358,6 +364,9 @@ export default function Home() {
               <Link href="/volunteer" className="inline-flex items-center justify-center gap-3 rounded-full border border-[#e1ad45]/70 px-7 py-4 text-sm font-bold text-[#e1ad45] transition hover:border-[#e1ad45] hover:bg-[#e1ad45]/10">
                 Volunteer with HMSI <Users size={17} />
               </Link>
+              <Link href="/school" className="inline-flex items-center justify-center gap-3 rounded-full border border-white/30 px-7 py-4 text-sm font-bold text-white transition hover:border-white hover:bg-white/10">
+                Explore HMSI School <ArrowRight size={17} />
+              </Link>
             </div>
           </div>
 
@@ -375,6 +384,7 @@ export default function Home() {
 
       <HomepageHelpCta />
       <OpportunityFlash />
+      <HomepageVolunteerOpportunities />
       <FundraiserFlash />
       <FundraisingGrowthHub />
       <FieldStoryFlash />
@@ -419,6 +429,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <section id="membership" className="border-b border-[#d9d6ce] bg-[#17221e] py-20 text-white sm:py-24"><div className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12"><div className="grid gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:items-end"><div><p className="text-xs font-black uppercase tracking-[0.22em] text-[#e1ad45]">Why join HMSI</p><h2 className="mt-4 text-4xl font-black tracking-[-0.04em] sm:text-5xl">A practical place to learn, contribute, and connect.</h2><p className="mt-5 max-w-xl text-base leading-7 text-white/70">Approved members can participate in a moderated member room, receive clearly defined tasks when an administrator allocates them, and use HMSI learning and service resources.</p><Link href="/member-apply" className="mt-7 inline-flex items-center gap-2 rounded-full bg-[#e1ad45] px-5 py-3 text-xs font-black uppercase tracking-widest text-[#17221e]">Request membership <ArrowRight size={15} /></Link></div><div className="grid gap-4 sm:grid-cols-2"><div className="rounded-3xl border border-white/15 bg-white/10 p-6"><ShieldCheck className="text-[#e1ad45]" size={22} /><h3 className="mt-4 text-lg font-black">Moderated community</h3><p className="mt-2 text-sm leading-6 text-white/65">Share respectful questions and service ideas in a safer member-only room.</p></div><div className="rounded-3xl border border-white/15 bg-white/10 p-6"><CheckCircle2 className="text-[#e1ad45]" size={22} /><h3 className="mt-4 text-lg font-black">Clear participation</h3><p className="mt-2 text-sm leading-6 text-white/65">See only tasks assigned to you and submit updates for administrator review.</p></div><div className="rounded-3xl border border-white/15 bg-white/10 p-6"><BookOpen className="text-[#e1ad45]" size={22} /><h3 className="mt-4 text-lg font-black">HMSI school access</h3><p className="mt-2 text-sm leading-6 text-white/65">Explore human-rights and humanitarian-service learning pathways.</p></div><div className="rounded-3xl border border-white/15 bg-white/10 p-6"><Users className="text-[#e1ad45]" size={22} /><h3 className="mt-4 text-lg font-black">Role clarity</h3><p className="mt-2 text-sm leading-6 text-white/65">Membership does not guarantee employment, paid work, stipends, or placement.</p></div></div></div></div></section>
 
       <div id="main-content">
         {/* HOW IT WORKS SECTION */}
