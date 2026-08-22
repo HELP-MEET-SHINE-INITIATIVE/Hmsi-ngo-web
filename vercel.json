@@ -2,6 +2,10 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "crons": [
     {
+      "path": "/api/cron/regional-briefing",
+      "schedule": "0 8 * * 1"
+    },
+    {
       "path": "/api/cron/cta-alert",
       "schedule": "0 9 * * 1"
     },
