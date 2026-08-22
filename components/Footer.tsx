@@ -11,14 +11,14 @@ export default function Footer() {
               <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#e1ad45] text-xl font-black text-[#17221e]">H</span>
               <span className="text-sm font-black uppercase tracking-[0.17em]">HMSI</span>
             </Link>
-            <p className="mt-6 max-w-xs text-sm leading-6 text-white/60">A community-rooted humanitarian initiative helping people move from crisis to possibility across Nigeria and Africa.</p>
+            <p className="mt-6 max-w-xs text-sm leading-6 text-white/60">A Nigerian nonprofit organization based in Benin City, Edo State, with stated activities in humanitarian assistance, education, livelihoods, and community development.</p>
           </div>
           <div>
             <p className="text-xs font-black uppercase tracking-[0.17em] text-[#e1ad45]">Explore</p>
             <div className="mt-5 flex flex-col gap-3 text-sm text-white/70"><Link href="/about" className="transition hover:text-white">About us</Link><Link href="/stories" className="transition hover:text-white">Field Stories</Link><Link href="/#impact" className="transition hover:text-white">Our impact</Link><Link href="/transparency" className="transition hover:text-white">Transparency</Link></div>
           </div>
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.17em] text-[#e1ad45]">Join in</p>
+            <p className="text-xs font-black uppercase tracking-[0.17em] text-[#e1ad45]">Participate</p>
             <div className="mt-5 flex flex-col gap-3 text-sm text-white/70"><Link href="/donate" className="transition hover:text-white">Donate</Link><Link href="/volunteer" className="transition hover:text-white">Volunteer</Link><Link href="/partnerships" className="transition hover:text-white">Partner with us</Link><Link href="/transparency" className="transition hover:text-white">Transparency</Link><Link href="/safeguarding" className="transition hover:text-white">Safeguarding</Link><Link href="/privacy" className="transition hover:text-white">Privacy notice</Link><Link href="/cookies" className="transition hover:text-white">Cookie policy</Link><Link href="/terms" className="transition hover:text-white">Terms & conditions</Link></div>
           </div>
           <div>
@@ -35,7 +35,7 @@ export default function Footer() {
             <Link href="/contact" className="mt-4 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.12em] text-[#e1ad45]">Start a conversation <ArrowRight size={14} /></Link>
           </div>
         </div>
-        <div className="mt-14 flex flex-col justify-between gap-4 border-t border-white/15 pt-6 text-[11px] font-semibold text-white/40 sm:flex-row"><span>© {new Date().getFullYear()} Help-Meet Shine Initiative. All rights reserved.</span><span>Built for dignity, action and shared possibility.</span></div>
+        <div className="mt-14 flex flex-col justify-between gap-4 border-t border-white/15 pt-6 text-[11px] font-semibold text-white/40 sm:flex-row"><span>© {new Date().getFullYear()} Help-Meet Shine Initiative. All rights reserved.</span><span>Public information and contact routes for HMSI.</span></div>
       </div>
     </footer>
   );

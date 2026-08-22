@@ -8,12 +8,12 @@ import { getFundraisers, getNewestFundraisers, getTopRaisedFundraisers } from '.
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: 'Top Impact Fundraisers in Nigeria | HMSI',
-  description: 'Discover HMSI’s highest-raised approved fundraisers and newly posted verified causes across Nigeria and Africa.',
-  keywords: ['top fundraisers Nigeria', 'high impact causes Nigeria', 'verified NGO fundraising Africa', 'donate to causes Nigeria', 'HMSI impact fundraisers'],
+  title: 'Approved Fundraisers and New Causes | HMSI',
+  description: 'Browse approved HMSI fundraisers ordered by recorded progress and recently published support requests.',
+  keywords: ['HMSI fundraisers', 'approved causes Nigeria', 'HMSI support requests', 'fundraising progress Nigeria'],
   openGraph: {
-    title: 'Top Impact Fundraisers in Nigeria | HMSI',
-    description: 'See the approved causes making the strongest fundraising progress and the newest ways to help through HMSI.',
+    title: 'Approved Fundraisers and New Causes | HMSI',
+    description: 'Review approved causes by recorded fundraising progress and the newest published requests on HMSI.',
     url: 'https://www.hmsi.org.ng/impact',
   },
   alternates: { canonical: 'https://www.hmsi.org.ng/impact' },
@@ -43,9 +43,9 @@ export default async function ImpactPage() {
       <main>
         <section className="bg-[#17221e] px-6 py-20 text-white sm:py-28">
           <div className="mx-auto max-w-7xl">
-            <p className="mb-5 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.22em] text-[#e1ad45]"><Sparkles size={14} aria-hidden="true" /> Approved impact fundraisers</p>
-            <h1 className="max-w-4xl text-5xl font-black leading-[0.98] tracking-[-0.05em] sm:text-7xl">See where support is moving the needle.</h1>
-            <p className="mt-7 max-w-2xl text-lg leading-8 text-white/75">Explore approved HMSI causes in two simple ways: follow the fundraisers with the strongest progress, or discover the newest verified requests posted by communities across Nigeria and Africa.</p>
+            <p className="mb-5 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.22em] text-[#e1ad45]"><Sparkles size={14} aria-hidden="true" /> Approved fundraising pages</p>
+            <h1 className="max-w-4xl text-5xl font-black leading-[0.98] tracking-[-0.05em] sm:text-7xl">Review approved fundraising pages.</h1>
+            <p className="mt-7 max-w-2xl text-lg leading-8 text-white/75">Browse approved HMSI fundraising pages by recorded progress or publication date. Review the details of each page before deciding whether to donate.</p>
             <div className="mt-9 flex flex-wrap gap-3">
               <Link href="#top-impact" className="inline-flex items-center gap-2 rounded-full bg-[#e1ad45] px-6 py-3 text-xs font-black uppercase tracking-widest text-[#17221e]">Top impact <TrendingUp size={15} /></Link>
               <Link href="#newly-approved" className="inline-flex items-center gap-2 rounded-full border border-white/30 px-6 py-3 text-xs font-black uppercase tracking-widest text-white">Newly approved <ArrowRight size={15} /></Link>
@@ -59,9 +59,9 @@ export default async function ImpactPage() {
         <section id="top-impact" className="mx-auto max-w-7xl scroll-mt-24 px-6 py-16 sm:py-24">
           <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.22em] text-[#b56b3b]">Highest raised</p>
-              <h2 className="mt-3 text-4xl font-black tracking-[-0.04em] sm:text-5xl">Top impact fundraising</h2>
-              <p className="mt-4 max-w-2xl text-base leading-7 text-[#66716a]">These approved causes have raised the most so far. Your next donation can help them move closer to their target.</p>
+              <p className="text-xs font-black uppercase tracking-[0.22em] text-[#b56b3b]">Recorded progress</p>
+              <h2 className="mt-3 text-4xl font-black tracking-[-0.04em] sm:text-5xl">Fundraisers with the highest recorded totals</h2>
+              <p className="mt-4 max-w-2xl text-base leading-7 text-[#66716a]">These approved fundraisers are ordered by their recorded totals at the time of publication. Review each campaign’s purpose and progress before donating.</p>
             </div>
             <Link href="/fundraise" className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[#1e5b49]">View every cause <ArrowRight size={15} /></Link>
           </div>
@@ -74,7 +74,7 @@ export default async function ImpactPage() {
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.22em] text-[#b56b3b]">Fresh opportunities to help</p>
                 <h2 className="mt-3 text-4xl font-black tracking-[-0.04em] sm:text-5xl">Newly approved causes</h2>
-                <p className="mt-4 max-w-2xl text-base leading-7 text-[#66716a]">Start with the newest verified requests and be among the first people to support them.</p>
+                <p className="mt-4 max-w-2xl text-base leading-7 text-[#66716a]">Review the newest approved requests and the information provided on each campaign page.</p>
               </div>
             </div>
             {newest.length > 0 ? <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">{newest.map((fundraiser) => <FundraiserCard key={fundraiser.id} fundraiser={fundraiser} rankLabel="Newly approved" />)}</div> : <div className="mt-10 rounded-3xl border border-dashed border-[#d9d6ce] bg-[#f6f4ef] p-10 text-center text-[#66716a]">Newly approved fundraisers will appear here when they are published.</div>}

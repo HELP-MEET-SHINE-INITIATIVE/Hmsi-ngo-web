@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: 'Volunteer with Help Meet Shine Initiative (HMSI) and bring your skills, time, and local knowledge to community-led work across Nigeria and Africa.',
   openGraph: {
     title: 'Volunteer with an NGO in Nigeria | HMSI',
-    description: 'Join the HMSI volunteer network and help transform lives through community-led work across Nigeria and Africa.',
+    description: 'Review HMSI volunteer roles and submit an application to contribute skills to its stated programmes in Nigeria.',
     url: 'https://www.hmsi.org.ng/volunteer',
   },
   alternates: { canonical: 'https://www.hmsi.org.ng/volunteer' },

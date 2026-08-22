@@ -5,10 +5,10 @@ import Footer from '../../components/Footer';
 
 export const metadata: Metadata = {
   title: 'Our Story & Mission | About HMSI',
-  description: 'Learn about the Help Meet Shine Initiative (HMSI) story, our mission to restore hope, and how we empower communities across Nigeria through humanitarian aid and sustainable wealth creation.',
+  description: 'Learn about Help Meet Shine Initiative (HMSI), its stated activities, governance, and public registration information in Nigeria.',
   openGraph: {
     title: 'Our Story & Mission | HMSI',
-    description: 'Learn about the Help Meet Shine Initiative (HMSI) story, our mission to restore hope, and how we empower communities across Nigeria.',
+    description: 'Public information about Help Meet Shine Initiative (HMSI), including its stated activities, governance, and location in Nigeria.',
     url: 'https://www.hmsi.org.ng/about',
   },
   alternates: {
@@ -43,11 +43,10 @@ export default function AboutPage() {
     'legalName': 'The Incorporated Trustees of HELP-MEET SHINE INITIATIVE',
     'url': 'https://www.hmsi.org.ng/about',
     'logo': 'https://www.hmsi.org.ng/logo.png',
-    'description': 'HMSI provides humanitarian assistance, education, empowerment, livelihoods, and sustainable community development across Nigeria and Africa.',
+    'description': 'HMSI describes its activities as humanitarian assistance, education, empowerment, livelihoods, and community development in Nigeria and Africa.',
     'foundingDate': '2019-02-21',
     'identifier': 'CAC/IT/NO 125103',
     'taxID': '21249981',
-    'award': 'HMSI-reported MEA Award for Most Productive NGO (2022)',
     'sameAs': [
       'https://www.instagram.com/hmsinitiative/',
       'https://www.facebook.com/@hmsinitiative/',
@@ -75,7 +74,7 @@ export default function AboutPage() {
       <div className="bg-slate-50 py-16 md:py-24 border-b border-slate-200">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter text-slate-900 mb-6">
-            Empowering Communities. <br/><span className="text-red-600">Restoring Dignity.</span>
+            Help Meet Shine Initiative
           </h1>
           <p className="text-lg md:text-xl font-medium text-slate-600 max-w-2xl mx-auto">
             We exist to support vulnerable and underserved communities in Nigeria through humanitarian assistance, education, empowerment, livelihoods, and sustainable community development.
@@ -102,13 +101,13 @@ export default function AboutPage() {
               </p>
             </div>
             <p className="mb-6 leading-relaxed">
-              The Help-Meet Shine Initiative (HMSI) was founded on the fundamental belief that every human being deserves dignity, access to basic necessities, and the opportunity to build a self-sustaining future. In regions severely affected by economic hardship and lack of infrastructure, we serve as a beacon of hope.
+              Help Meet Shine Initiative (HMSI) describes its work as supporting vulnerable and underserved communities through humanitarian assistance, education, empowerment, livelihoods, and community development.
             </p>
             <p className="mb-6 leading-relaxed">
-              Our approach is practical and people-centred. We connect humanitarian assistance with social development, empowerment, livelihoods, and community participation, while adapting interventions to the needs and dignity of the people we serve.
+              HMSI states that its approach combines humanitarian assistance with social-development, livelihoods, and community-participation activities, adapted to the needs of the communities with which it works.
             </p>
             <p className="mb-6 leading-relaxed">
-              From governance and administration to programme and field operations, HMSI is committed to responsible delivery, accountable partnerships, safeguarding, and learning from evidence. Our institutional profile sets out the systems and documentation needed to make programme results easier for donors and communities to verify.
+              HMSI publishes information about its governance, partnerships, safeguarding arrangements, and programme documentation. The organization states that these materials are intended to support due diligence by partners and communities.
             </p>
           </div>
         </div>
@@ -135,9 +134,9 @@ export default function AboutPage() {
             <div className="bg-slate-900 text-white p-6 md:p-8">
               <h3 className="text-xl font-black uppercase tracking-tight mb-5">Capability at a glance</h3>
               <div className="grid gap-5 sm:grid-cols-2">
-                <div><p className="text-3xl font-black text-teal-400">7 meals</p><p className="mt-1 text-sm text-slate-300">reported meals served per $1 donated; methodology and period available for due diligence</p></div>
-                <div><p className="text-3xl font-black text-teal-400">100+</p><p className="mt-1 text-sm text-slate-300">reported domestic and expatriate field team members; category and period should be confirmed</p></div>
-                <div><p className="text-3xl font-black text-teal-400">2022</p><p className="mt-1 text-sm text-slate-300">reported MEA Award for Most Productive NGO; evidence should be retained</p></div>
+                <div><p className="text-3xl font-black text-teal-400">7 meals</p><p className="mt-1 text-sm text-slate-300">HMSI-reported measure; reporting period and methodology require confirmation</p></div>
+                <div><p className="text-3xl font-black text-teal-400">100+</p><p className="mt-1 text-sm text-slate-300">HMSI-reported field-team figure; category and reporting period require confirmation</p></div>
+                <div><p className="text-3xl font-black text-teal-400">2022</p><p className="mt-1 text-sm text-slate-300">HMSI-reported award year; independent award evidence requires confirmation</p></div>
                 <div><p className="text-3xl font-black text-teal-400">SDG 1 & 2</p><p className="mt-1 text-sm text-slate-300">core development alignment</p></div>
               </div>
               <p className="mt-7 border-t border-white/15 pt-5 text-sm leading-6 text-slate-300">Our focus includes food security and zero hunger, poverty alleviation and wealth creation, crisis response, agriculture, WASH, gender equality, youth empowerment, climate resilience, and peace and conflict resolution.</p>
@@ -181,8 +180,8 @@ export default function AboutPage() {
       </section>
       {/* CTA SECTION */}
       <section className="py-24 px-6 text-center max-w-3xl mx-auto">
-        <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tighter mb-6 text-slate-900">Join the Movement</h2>
-        <p className="text-lg text-slate-600 mb-10">We cannot do this alone. Your financial support and your time are critical to our ongoing mission.</p>
+        <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tighter mb-6 text-slate-900">Ways to support HMSI</h2>
+        <p className="text-lg text-slate-600 mb-10">Visitors can learn about HMSI’s work, make a donation, or apply to volunteer.</p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link href="/donate" className="bg-teal-500 hover:bg-teal-600 text-white font-bold py-4 px-10 rounded-sm uppercase tracking-widest transition-colors">
             Make a Donation

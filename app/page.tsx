@@ -36,27 +36,27 @@ import {
 const humanitarianBriefs = [
   {
     category: "Nigeria / Field desk",
-    title: "A community-led response is helping families rebuild after the floods",
+    title: "HMSI field update",
     excerpt:
-      "Local volunteers are pairing emergency relief with practical recovery support so families can move from survival to stability.",
+      "Summary of a published HMSI field activity; details are provided on the linked field-story page.",
     image: "/images/outreach-8.png",
     href: "/outreach/1",
     accent: "bg-[#e9f3ee] text-[#1e5b49]",
   },
   {
     category: "Global / Humanitarian brief",
-    title: "Why dignity belongs at the centre of every relief response",
+    title: "Programme context",
     excerpt:
-      "Across crisis settings, the strongest interventions listen first, act locally, and stay long enough to see change take root.",
+      "Background information on humanitarian and community-development work described by HMSI.",
     image: "/images/outreach-2.png",
     href: "/about",
     accent: "bg-[#f7eadf] text-[#a4512e]",
   },
   {
     category: "Youth / Opportunity",
-    title: "Skills, solidarity and the next generation of community leaders",
+    title: "Volunteer information",
     excerpt:
-      "Young people are transforming neighbourhoods when they have the tools, trust and networks to lead from where they are.",
+      "Information about opportunities to contribute skills to HMSI programmes.",
     image: "/images/outreach-5.png",
     href: "/volunteer",
     accent: "bg-[#e9eef8] text-[#294d83]",
@@ -67,29 +67,29 @@ const waysToHelp = [
   {
     icon: HeartHandshake,
     number: "01",
-    title: "Give with purpose",
-    text: "Your gift helps put essentials, opportunity and dignity within reach.",
+    title: "Donate to HMSI",
+    text: "Donate to HMSI’s stated humanitarian and community programmes.",
     href: "/donate",
   },
   {
     icon: Users,
     number: "02",
-    title: "Volunteer your time",
-    text: "Bring your skills to the field and join people building change locally.",
+    title: "Volunteer with HMSI",
+    text: "Review current volunteer roles and submit an application.",
     href: "/volunteer",
   },
   {
     icon: Globe2,
     number: "03",
-    title: "Partner for impact",
-    text: "Connect your organisation to a focused, accountable community network.",
+    title: "Partnership enquiries",
+    text: "Contact HMSI about a defined programme or institutional partnership.",
     href: "/partnerships",
   },
   {
     icon: Sparkles,
     number: "04",
-    title: "Share the story",
-    text: "Help more people see what is possible when communities lead together.",
+    title:       "Share HMSI information",
+    text:       "Help more people find information about HMSI programmes.",
     href: "/contact",
   },
 ];
@@ -343,10 +343,10 @@ export default function Home() {
               <span className="h-px w-10 bg-[#e1ad45]" /> Humanitarian news & action
             </p>
             <h1 className="max-w-4xl text-5xl font-black leading-[0.94] tracking-[-0.055em] sm:text-7xl lg:text-[6.6rem]">
-              Donate. Volunteer. <span className="text-[#e1ad45]">Help communities thrive.</span>
+              Donate. Volunteer. <span className="text-[#e1ad45]">Support community programmes.</span>
             </h1>
             <p className="mt-8 max-w-xl text-lg leading-8 text-white/80 sm:text-xl">
-              Help Meet Shine Initiative (HMSI) is a Nigerian nonprofit serving communities in Nigeria and across Africa. Donate to our work, support a verified cause, volunteer your skills, or partner with us to create lasting community change.
+              Help Meet Shine Initiative (HMSI) is a Nigerian nonprofit based in Benin City, Edo State. Learn about its stated programmes, support an approved cause, volunteer your skills, or contact the organization about partnerships.
             </p>
             <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center">
               <Link href="/donate" className="group inline-flex items-center justify-center gap-3 rounded-full bg-[#e1ad45] px-7 py-4 text-sm font-black uppercase tracking-[0.15em] text-[#17221e] transition hover:bg-white">
@@ -365,9 +365,9 @@ export default function Home() {
             <div className="mb-5 flex items-center justify-between text-[10px] font-black uppercase tracking-[0.2em] text-white/70">
               <span>Field note / 01</span><span className="text-[#e1ad45]">Live</span>
             </div>
-            <p className="text-xl font-bold leading-snug">&ldquo;The strongest response is one that leaves people stronger.&rdquo;</p>
+                  <p className="text-xl font-bold leading-snug">Published HMSI programme information.</p>
             <div className="mt-5 flex items-center gap-3 text-xs text-white/70">
-              <span className="h-2 w-2 rounded-full bg-[#e1ad45]" /> Community-led action, Nigeria
+              <span className="h-2 w-2 rounded-full bg-[#e1ad45]" /> HMSI programme information
             </div>
           </div>
         </div>
@@ -384,7 +384,7 @@ export default function Home() {
         <div className="mx-auto grid max-w-[1440px] grid-cols-2 divide-x divide-[#d9d6ce] sm:grid-cols-4">
           {[
             ["2019", "incorporated in Nigeria"],
-            ["100+", "reported field team members"],
+            ["100+", "HMSI-reported field-team figure"],
             ["SDG 1 & 2", "core development focus"],
             ["Nigeria + Africa", "community service reach"],
           ].map(([value, label]) => (
@@ -468,17 +468,17 @@ export default function Home() {
         <section id="impact" className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 lg:px-12 lg:py-28">
           <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
             <div>
-              <p className="mb-5 text-xs font-black uppercase tracking-[0.22em] text-[#b56b3b]">Numbers with names behind them</p>
-              <h2 className="max-w-xl text-4xl font-black leading-[1.02] tracking-[-0.04em] text-[#17221e] sm:text-6xl">Impact is more than a number. It is a life with more room to grow.</h2>
+              <p className="mb-5 text-xs font-black uppercase tracking-[0.22em] text-[#b56b3b]">Reported programme indicators</p>
+              <h2 className="max-w-xl text-4xl font-black leading-[1.02] tracking-[-0.04em] text-[#17221e] sm:text-6xl">Programme figures reported by HMSI.</h2>
             </div>
-            <p className="max-w-xl text-lg leading-8 text-[#66716a] lg:justify-self-end">We measure what matters: people reached, communities strengthened and the practical support that helps families move forward with dignity.</p>
+              <p className="max-w-xl text-lg leading-8 text-[#66716a] lg:justify-self-end">This section presents figures reported by HMSI. Each figure should be read with its reporting period, methodology, and supporting records.</p>
           </div>
           <div className="mt-14 grid gap-px overflow-hidden rounded-3xl bg-[#cbd2ca] sm:grid-cols-2 lg:grid-cols-4">
             {[
-              [48000, "+", "people supported"],
-              [126, "", "community projects"],
-              [12, "", "states reached"],
-              [94, "%", "funds to programmes"],
+              [48000, "+", "HMSI-reported people supported"],
+              [126, "", "HMSI-reported community projects"],
+              [12, "", "HMSI-reported states reached"],
+              [94, "%", "HMSI-reported share to programmes"],
             ].map(([target, suffix, label]) => (
               <div key={label as string} className="bg-[#e9f0e9] p-8 sm:p-10">
                 <p className="text-5xl font-black tracking-[-0.06em] text-[#1e5b49] sm:text-6xl"><ImpactCounter target={target as number} suffix={suffix as string} /></p>
@@ -492,9 +492,9 @@ export default function Home() {
           <div className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 lg:px-12 lg:py-24">
             <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
               <div>
-                <p className="mb-4 text-xs font-black uppercase tracking-[0.22em] text-[#b56b3b]">Top impact fundraising</p>
-                <h2 className="text-4xl font-black tracking-[-0.04em] sm:text-6xl">The causes moving furthest, together.</h2>
-                <p className="mt-4 max-w-2xl text-base leading-7 text-[#66716a]">Support the approved fundraisers with the strongest progress and help take their work the final mile.</p>
+                <p className="mb-4 text-xs font-black uppercase tracking-[0.22em] text-[#b56b3b]">Fundraising progress</p>
+                <h2 className="text-4xl font-black tracking-[-0.04em] sm:text-6xl">Approved causes with the highest recorded progress.</h2>
+                <p className="mt-4 max-w-2xl text-base leading-7 text-[#66716a]">This section lists approved fundraisers ordered by their recorded progress. Review each campaign page before donating.</p>
               </div>
               <Link href="/impact" className="group inline-flex items-center gap-2 text-sm font-black uppercase tracking-[0.13em] text-[#1e5b49]">See top impact causes <ArrowRight size={17} className="transition-transform group-hover:translate-x-1" /></Link>
             </div>
@@ -507,8 +507,8 @@ export default function Home() {
           <div className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 lg:px-12 lg:py-28">
             <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
               <div>
-                <p className="mb-4 text-xs font-black uppercase tracking-[0.22em] text-[#b56b3b]">The HMSI field desk</p>
-                <h2 className="text-4xl font-black tracking-[-0.04em] sm:text-6xl">Stories that move us.</h2>
+                <p className="mb-4 text-xs font-black uppercase tracking-[0.22em] text-[#b56b3b]">HMSI field information</p>
+                <h2 className="text-4xl font-black tracking-[-0.04em] sm:text-6xl">Field stories and updates.</h2>
               </div>
               <Link href="/stories" aria-label="Explore all featured field stories" className="group inline-flex items-center gap-2 rounded-full px-1 py-2 text-sm font-black uppercase tracking-[0.13em] text-[#1e5b49] transition hover:text-[#b56b3b] focus:outline-none focus:ring-2 focus:ring-[#1e5b49] focus:ring-offset-4">Explore field stories <ArrowRight size={17} className="transition-transform group-hover:translate-x-1" /></Link>
             </div>
@@ -553,11 +553,11 @@ export default function Home() {
                 },
                 {
                   q: "How are donations processed?",
-                  a: "All donations are processed securely through Paystack. Funds are then disbursed directly to the verified cause or service provider (e.g., hospital for medical bills) to ensure proper usage."
+                  a: "Donations are processed through Paystack and handled according to the verified campaign or programme arrangements shown on the relevant donation page."
                 },
                 {
                   q: "Can I volunteer for HMSI?",
-                  a: "Absolutely! We are always looking for passionate individuals to join our field teams. Visit our Volunteer page to apply and become a force for good."
+                  a: "Yes. Visit the Volunteer page to review current roles and submit an application. Applications are reviewed according to HMSI’s published process."
                 }
               ].map((faq, i) => (
                 <div key={i} className="bg-white p-8 rounded-[32px] border border-[#d9d6ce]">
@@ -574,9 +574,9 @@ export default function Home() {
         <section id="ways-to-help" className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 lg:px-12 lg:py-28">
           <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
             <div>
-              <p className="mb-5 text-xs font-black uppercase tracking-[0.22em] text-[#b56b3b]">Join the movement</p>
-              <h2 className="text-4xl font-black leading-[1.02] tracking-[-0.04em] text-[#17221e] sm:text-6xl">There are many ways to stand with us.</h2>
-              <p className="mt-8 max-w-lg text-lg leading-8 text-[#66716a]">Whether you give, volunteer or partner, your involvement helps communities move from crisis to possibility.</p>
+              <p className="mb-5 text-xs font-black uppercase tracking-[0.22em] text-[#b56b3b]">Ways to participate</p>
+              <h2 className="text-4xl font-black leading-[1.02] tracking-[-0.04em] text-[#17221e] sm:text-6xl">Ways to participate in HMSI work.</h2>
+              <p className="mt-8 max-w-lg text-lg leading-8 text-[#66716a]">Visitors can donate, volunteer, share information, or contact HMSI about a partnership.</p>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               {waysToHelp.map((way) => (
@@ -602,8 +602,8 @@ export default function Home() {
           <div className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
             <div className="flex flex-col items-center justify-between gap-10 rounded-[48px] bg-[#1e5b49] p-10 sm:p-16 lg:flex-row lg:p-20">
               <div className="max-w-xl text-center lg:text-left">
-                <h2 className="text-4xl font-black leading-tight tracking-[-0.03em] sm:text-5xl">Stay informed on the impact we are making.</h2>
-                <p className="mt-6 text-lg text-white/70">Join our newsletter for monthly field updates, success stories and ways to get involved.</p>
+                <h2 className="text-4xl font-black leading-tight tracking-[-0.03em] sm:text-5xl">Receive HMSI programme updates.</h2>
+                <p className="mt-6 text-lg text-white/70">Subscribe for published field updates and information about ways to participate.</p>
               </div>
               <div className="w-full max-w-md">
                 {subscribed ? (
@@ -626,7 +626,7 @@ export default function Home() {
                   </form>
                 )}
                 {newsletterError && <p className="mt-3 text-sm font-bold text-[#ffd2c8]" role="alert">{newsletterError}</p>}
-                <p className="mt-4 text-center text-[10px] font-bold uppercase tracking-widest text-white/40 lg:text-left">No spam. Just hope. Unsubscribe anytime.</p>
+                <p className="mt-4 text-center text-[10px] font-bold uppercase tracking-widest text-white/40 lg:text-left">You can unsubscribe at any time.</p>
               </div>
             </div>
           </div>
@@ -634,14 +634,14 @@ export default function Home() {
 
         <section className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 lg:px-12 lg:py-28">
           <div className="mb-16 text-center">
-            <p className="mb-4 text-xs font-black uppercase tracking-[0.22em] text-[#b56b3b]">Radical transparency</p>
-            <h2 className="text-4xl font-black tracking-[-0.04em] sm:text-6xl">Your trust is our foundation.</h2>
+            <p className="mb-4 text-xs font-black uppercase tracking-[0.22em] text-[#b56b3b]">Transparency and accountability</p>
+            <h2 className="text-4xl font-black tracking-[-0.04em] sm:text-6xl">Governance and public information.</h2>
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {[
               { title: "Where the money goes", text: "Donations are processed through Paystack, and campaign pages explain the intended use of funds. HMSI maintains records for responsible stewardship.", icon: ShieldCheck },
               { title: "Evidence-led accountability", text: "Programme reports, budgets, monitoring data and supporting documents are maintained for institutional due diligence; selected materials can be requested.", icon: Mail },
-              { title: "Community-led", text: "We work with local leaders to ensure our interventions are relevant, effective and lasting.", icon: Users },
+              { title: "Community engagement", text: "HMSI states that it works with local leaders when planning and delivering programmes.", icon: Users },
             ].map((item) => (
               <div key={item.title} className="rounded-[40px] border border-[#d9d6ce] bg-white p-10 text-center">
                 <div className="mx-auto mb-8 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#e9f0e9] text-[#1e5b49]">
@@ -652,7 +652,7 @@ export default function Home() {
               </div>
             ))}
           </div>
-          <div className="mt-10 text-center"><Link href="/transparency" className="inline-flex items-center gap-2 rounded-full border border-[#1e5b49] px-5 py-3 text-xs font-black uppercase tracking-widest text-[#1e5b49] transition hover:bg-[#e9f0e9]">Visit the Trust Center <ArrowRight size={15} /></Link></div>
+          <div className="mt-10 text-center"><Link href="/transparency" className="inline-flex items-center gap-2 rounded-full border border-[#1e5b49] px-5 py-3 text-xs font-black uppercase tracking-widest text-[#1e5b49] transition hover:bg-[#e9f0e9]">Review governance information <ArrowRight size={15} /></Link></div>
         </section>
       </div>
 
