@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../../lib/supabaseAdmin';
 import { getTrainingAnalyticsOverview, type TrainingAnalyticsOverview } from '../../../../lib/trainingAnalytics';
+import { sendResendEmailWithRetry } from '../../../../lib/resendRetryQueue';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -264,30 +265,36 @@ export async function GET(request: Request) {
 
     const recipientList = Array.from(recipients);
 
-    // 5. Dispatch via Resend API
-    const resendResponse = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
+    // 5. Dispatch via Resend API with automated retry and idempotency
+    const dispatch = await sendResendEmailWithRetry(
+      apiKey,
+      {
         from: fromEmail,
         to: recipientList,
         subject: emailData.subject,
         html: emailData.html,
         text: emailData.text,
-      }),
-    });
+        idempotencyKey: `national_digest_${runDate.toISOString().slice(0, 10)}`,
+      },
+      { maxRetries: 3, baseDelayMs: 400, maxDelayMs: 3000 }
+    );
 
-    const resendResult = await resendResponse.json();
+    if (!dispatch.ok) {
+      console.error('[National Digest Cron] Resend dispatch failed after retries:', dispatch.error);
 
-    if (!resendResponse.ok) {
-      console.error('[National Digest Cron] Resend dispatch failed:', resendResult);
-      return NextResponse.json({ error: 'Failed to dispatch National Governance Digest.', details: resendResult }, { status: 502 });
+      // Record dead-letter failure in audit log
+      await admin.from('training_alert_logs').insert({
+        regional_office_id: null,
+        alert_type: `NATIONAL_GOVERNANCE_DIGEST_FAILED`,
+        trigger_metric_value: analytics.summary.globalCompletionRate,
+        threshold_value: 85.0,
+        recipient_emails: recipientList,
+      });
+
+      return NextResponse.json({ error: 'Failed to dispatch National Governance Digest after retries.', details: dispatch.error }, { status: 502 });
     }
 
-    // 6. Record in Audit Log
+    // 6. Record verified dispatch in Audit Log
     await admin.from('training_alert_logs').insert({
       regional_office_id: null,
       alert_type: `NATIONAL_GOVERNANCE_DIGEST_${analytics.summary.ragStatus}`,
@@ -299,7 +306,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       ok: true,
       message: 'National Governance Digest generated and distributed successfully.',
-      resendId: resendResult.id,
+      resendId: dispatch.resendId,
       globalStatus: analytics.summary.ragStatus,
       globalCompletionRate: analytics.summary.globalCompletionRate,
       totalDonationsNgn,

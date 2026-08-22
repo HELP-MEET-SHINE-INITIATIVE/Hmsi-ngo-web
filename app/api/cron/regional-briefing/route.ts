@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../../lib/supabaseAdmin';
 import { getTrainingAnalyticsOverview, type RegionalTrainingMetric, type TrainingAnalyticsOverview } from '../../../../lib/trainingAnalytics';
+import { sendResendEmailWithRetry } from '../../../../lib/resendRetryQueue';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -164,59 +165,53 @@ export async function GET(request: Request) {
         ? office.leadCoordinatorEmail.trim().toLowerCase()
         : MASTER_RECIPIENT;
 
-      try {
-        const response = await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${apiKey}`,
-          },
-          body: JSON.stringify({
-            from: fromEmail,
-            to: [recipient],
-            subject: emailContent.subject,
-            html: emailContent.html,
-            text: emailContent.text,
-          }),
-        });
+      const dispatch = await sendResendEmailWithRetry(
+        apiKey,
+        {
+          from: fromEmail,
+          to: [recipient],
+          subject: emailContent.subject,
+          html: emailContent.html,
+          text: emailContent.text,
+          idempotencyKey: `monday_briefing_${office.code}_${new Date().toISOString().slice(0, 10)}`,
+        },
+        { maxRetries: 3, baseDelayMs: 300, maxDelayMs: 2000 }
+      );
 
-        const result = await response.json();
-
-        if (response.ok) {
-          dispatchResults.push({
-            office: office.name,
-            code: office.code,
-            status: office.ragStatus,
-            recipient,
-            resendId: result.id,
-          });
-
-          // Record dispatch in training_alert_logs
-          await admin.from('training_alert_logs').insert({
-            regional_office_id: office.officeId || null,
-            alert_type: `MONDAY_REGIONAL_BRIEFING_${office.ragStatus}`,
-            trigger_metric_value: office.completionRate,
-            threshold_value: 85.0,
-            recipient_emails: [recipient],
-          });
-        } else {
-          console.error(`[Monday Cron] Failed to send to ${recipient}:`, result);
-          dispatchResults.push({
-            office: office.name,
-            code: office.code,
-            status: office.ragStatus,
-            recipient,
-            error: result.message || 'Resend error',
-          });
-        }
-      } catch (sendErr) {
-        console.error(`[Monday Cron] Exception dispatching to ${recipient}:`, sendErr);
+      if (dispatch.ok) {
         dispatchResults.push({
           office: office.name,
           code: office.code,
           status: office.ragStatus,
           recipient,
-          error: sendErr instanceof Error ? sendErr.message : 'Unknown dispatch error',
+          resendId: dispatch.resendId,
+        });
+
+        // Record successful dispatch in training_alert_logs
+        await admin.from('training_alert_logs').insert({
+          regional_office_id: office.officeId || null,
+          alert_type: `MONDAY_REGIONAL_BRIEFING_${office.ragStatus}`,
+          trigger_metric_value: office.completionRate,
+          threshold_value: 85.0,
+          recipient_emails: [recipient],
+        });
+      } else {
+        console.error(`[Monday Cron] Failed to send to ${recipient}:`, dispatch.error);
+        dispatchResults.push({
+          office: office.name,
+          code: office.code,
+          status: office.ragStatus,
+          recipient,
+          error: dispatch.error,
+        });
+
+        // Record dead-letter failure in training_alert_logs
+        await admin.from('training_alert_logs').insert({
+          regional_office_id: office.officeId || null,
+          alert_type: `MONDAY_REGIONAL_BRIEFING_FAILED`,
+          trigger_metric_value: office.completionRate,
+          threshold_value: 85.0,
+          recipient_emails: [recipient],
         });
       }
     }
@@ -258,20 +253,18 @@ export async function GET(request: Request) {
       </div>
     `;
 
-    await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
+    await sendResendEmailWithRetry(
+      apiKey,
+      {
         from: fromEmail,
         to: Array.from(adminRecipients),
         subject: masterSubject,
         html: masterHtml,
         text: `HMSI Monday Master Governance Digest: ${analytics.summary.globalCompletionRate}% completion across all units.`,
-      }),
-    });
+        idempotencyKey: `monday_master_digest_${new Date().toISOString().slice(0, 10)}`,
+      },
+      { maxRetries: 3, baseDelayMs: 300, maxDelayMs: 2000 }
+    );
 
     return NextResponse.json({
       ok: true,

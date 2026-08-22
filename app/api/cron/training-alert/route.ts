@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../../lib/supabaseAdmin';
 import { getTrainingAnalyticsOverview, type RegionalTrainingMetric, type TrainingAnalyticsOverview } from '../../../../lib/trainingAnalytics';
+import { sendResendEmailWithRetry } from '../../../../lib/resendRetryQueue';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -210,27 +211,35 @@ export async function GET(request: Request) {
 
     const recipientList = Array.from(recipients);
 
-    // Dispatch email via Resend API
-    const resendResponse = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
+    // Dispatch email via Resend API with automated retry and backoff
+    const dispatch = await sendResendEmailWithRetry(
+      apiKey,
+      {
         from: fromEmail,
         to: recipientList,
         subject,
         html: emailData.html,
         text: emailData.text,
-      }),
-    });
+        idempotencyKey: `training_alert_${new Date().toISOString().slice(0, 10)}`,
+      },
+      { maxRetries: 3, baseDelayMs: 400, maxDelayMs: 3000 }
+    );
 
-    const resendResult = await resendResponse.json();
+    if (!dispatch.ok) {
+      console.error('[Training Cron Alert] Resend dispatch failed after retries:', dispatch.error);
 
-    if (!resendResponse.ok) {
-      console.error('[Training Cron Alert] Resend dispatch failed:', resendResult);
-      return NextResponse.json({ error: 'Failed to dispatch alert via Resend.', details: resendResult }, { status: 502 });
+      // Record failure in audit log
+      for (const office of attentionOffices) {
+        await admin.from('training_alert_logs').insert({
+          regional_office_id: office.officeId || null,
+          alert_type: `${office.ragStatus}_ALERT_DISPATCH_FAILED`,
+          trigger_metric_value: office.completionRate,
+          threshold_value: 80.0,
+          recipient_emails: recipientList,
+        });
+      }
+
+      return NextResponse.json({ error: 'Failed to dispatch alert via Resend after retries.', details: dispatch.error }, { status: 502 });
     }
 
     // Record alert in training_alert_logs table
@@ -247,7 +256,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       ok: true,
       message: 'Weekly training RAG alert evaluated and dispatched successfully.',
-      resendId: resendResult.id,
+      resendId: dispatch.resendId,
       globalStatus: analytics.summary.ragStatus,
       attentionOfficesCount: attentionOffices.length,
       recipients: recipientList,
