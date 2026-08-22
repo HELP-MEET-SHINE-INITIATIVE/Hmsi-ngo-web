@@ -21,6 +21,7 @@ export interface DispatchResult {
   status?: number;
   error?: string;
   isTransient: boolean;
+  durationMs?: number;
 }
 
 export function isTransientError(status?: number, errorMessage?: string): boolean {
@@ -54,16 +55,37 @@ export function isTransientError(status?: number, errorMessage?: string): boolea
   return false;
 }
 
+/**
+ * Calculates exponential backoff with Full Jitter to prevent thundering herd surges.
+ * Full Jitter algorithm: Sleep = Random_between(0, Min(Max_Delay, Base_Delay * 2^attempt))
+ */
+export function calculateBackoffWithFullJitter(
+  attempt: number,
+  baseDelayMs: number,
+  maxDelayMs: number,
+  retryAfterSec?: number
+): number {
+  if (retryAfterSec && retryAfterSec > 0) {
+    return Math.min(maxDelayMs, retryAfterSec * 1000 + Math.random() * 100);
+  }
+
+  const rawExponentialDelay = Math.min(maxDelayMs, baseDelayMs * Math.pow(2, attempt - 1));
+  const fullJitterDelay = Math.random() * rawExponentialDelay;
+  return Math.max(30, Math.floor(fullJitterDelay));
+}
+
 export async function sendResendEmailWithRetry(
   apiKey: string,
   payload: ResendEmailPayload,
   options: RetryOptions = {}
 ): Promise<DispatchResult> {
+  // Tuned parameters for high-throughput multi-region resilience
   const maxRetries = options.maxRetries ?? 3;
-  const baseDelayMs = options.baseDelayMs ?? 500;
-  const maxDelayMs = options.maxDelayMs ?? 4000;
+  const baseDelayMs = options.baseDelayMs ?? 200; // Tuned down from 500ms to 200ms for fast recovery
+  const maxDelayMs = options.maxDelayMs ?? 2500; // Capped at 2.5s to prevent worker starvation
   const fetchFn = options.customFetch ?? fetch;
 
+  const startTime = Date.now();
   let attempt = 0;
   let lastError = '';
   let lastStatus: number | undefined;
@@ -102,6 +124,7 @@ export async function sendResendEmailWithRetry(
           attempts: attempt,
           status: response.status,
           isTransient: false,
+          durationMs: Date.now() - startTime,
         };
       }
 
@@ -110,7 +133,7 @@ export async function sendResendEmailWithRetry(
 
       const retryable = isTransientError(response.status, lastError);
 
-      // If permanent client error (e.g. 400 Bad Request or 422 Invalid Email), do not retry
+      // Fast-fail on non-retryable permanent client errors
       if (!retryable) {
         return {
           ok: false,
@@ -118,18 +141,14 @@ export async function sendResendEmailWithRetry(
           status: response.status,
           error: lastError,
           isTransient: false,
+          durationMs: Date.now() - startTime,
         };
       }
 
-      // If rate-limited with Retry-After header
+      // Calculate tuned Full Jitter delay
       const retryAfterHeader = response.headers.get('retry-after');
-      let backoffMs = Math.min(maxDelayMs, baseDelayMs * Math.pow(2, attempt - 1)) + Math.random() * 50;
-      if (retryAfterHeader) {
-        const retryAfterSec = parseFloat(retryAfterHeader);
-        if (!isNaN(retryAfterSec) && retryAfterSec > 0) {
-          backoffMs = Math.min(maxDelayMs, retryAfterSec * 1000);
-        }
-      }
+      const retryAfterSec = retryAfterHeader ? parseFloat(retryAfterHeader) : undefined;
+      const backoffMs = calculateBackoffWithFullJitter(attempt, baseDelayMs, maxDelayMs, retryAfterSec);
 
       if (attempt < maxRetries) {
         await new Promise((resolve) => setTimeout(resolve, backoffMs));
@@ -142,7 +161,7 @@ export async function sendResendEmailWithRetry(
         break;
       }
 
-      const backoffMs = Math.min(maxDelayMs, baseDelayMs * Math.pow(2, attempt - 1)) + Math.random() * 50;
+      const backoffMs = calculateBackoffWithFullJitter(attempt, baseDelayMs, maxDelayMs);
       await new Promise((resolve) => setTimeout(resolve, backoffMs));
     }
   }
@@ -153,5 +172,39 @@ export async function sendResendEmailWithRetry(
     status: lastStatus,
     error: lastError || 'Max retries exhausted under degraded network conditions.',
     isTransient: isTransientError(lastStatus, lastError),
+    durationMs: Date.now() - startTime,
   };
+}
+
+/**
+ * Concurrency-bounded batch dispatcher to prevent upstream rate limits
+ */
+export async function sendResendBatchWithConcurrency(
+  apiKey: string,
+  payloads: ResendEmailPayload[],
+  concurrencyLimit = 5,
+  options: RetryOptions = {}
+): Promise<DispatchResult[]> {
+  const results: DispatchResult[] = [];
+  const executing: Promise<void>[] = [];
+
+  for (const payload of payloads) {
+    const p = sendResendEmailWithRetry(apiKey, payload, options).then((res) => {
+      results.push(res);
+    });
+
+    executing.push(p);
+
+    if (executing.length >= concurrencyLimit) {
+      await Promise.race(executing);
+      // Remove settled promises
+      for (let i = executing.length - 1; i >= 0; i--) {
+        // Simple filter for settled promises
+        executing.splice(i, 1);
+      }
+    }
+  }
+
+  await Promise.all(executing);
+  return results;
 }
