@@ -15,6 +15,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/news',
     '/volunteer',
     '/fundraising-growth',
+    '/instagram',
     '/opportunities',
     '/get-help',
     '/projects',
@@ -29,7 +30,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     url: `${baseUrl}${route}`,
     lastModified: new Date(),
     changeFrequency: 'daily' as const,
-    priority: route === '' ? 1 : ['/donate', '/fundraise', '/impact', '/news', '/stories', '/volunteer', '/fundraising-growth', '/opportunities', '/partnerships', '/transparency', '/safeguarding', '/privacy', '/cookies'].includes(route) ? 0.9 : 0.7,
+    priority: route === '' ? 1 : ['/donate', '/fundraise', '/impact', '/news', '/stories', '/volunteer', '/fundraising-growth', '/instagram', '/opportunities', '/partnerships', '/transparency', '/safeguarding', '/privacy', '/cookies'].includes(route) ? 0.9 : 0.7,
   }));
 
   let fundraisers = [] as Awaited<ReturnType<typeof getFundraisers>>;
