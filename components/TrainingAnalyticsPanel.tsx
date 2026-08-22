@@ -17,12 +17,14 @@ import {
   Users,
 } from 'lucide-react';
 import type { TrainingAnalyticsOverview, RAGStatus } from '../lib/trainingAnalytics';
+import TrainingAuditLogsPanel from './TrainingAuditLogsPanel';
 
 export default function TrainingAnalyticsPanel() {
   const [data, setData] = useState<TrainingAnalyticsOverview | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedModule, setSelectedModule] = useState('MEDIA_SAFETY_2026');
+  const [activeSubTab, setActiveSubTab] = useState<'metrics' | 'audit_logs'>('metrics');
 
   const loadAnalytics = useCallback(async () => {
     setIsLoading(true);
@@ -60,6 +62,34 @@ export default function TrainingAnalyticsPanel() {
 
   return (
     <div className="space-y-6">
+      {/* Sub-view Navigation Switcher */}
+      <div className="flex items-center gap-2 border-b border-[#d9d6ce] pb-3">
+        <button
+          onClick={() => setActiveSubTab('metrics')}
+          className={`rounded-full px-5 py-2.5 text-xs font-black uppercase tracking-widest transition ${
+            activeSubTab === 'metrics'
+              ? 'bg-[#1e5b49] text-white shadow-sm'
+              : 'bg-white text-[#66716a] border border-[#d9d6ce] hover:bg-[#f6f4ef]'
+          }`}
+        >
+          Compliance Analytics & RAG Matrix
+        </button>
+        <button
+          onClick={() => setActiveSubTab('audit_logs')}
+          className={`rounded-full px-5 py-2.5 text-xs font-black uppercase tracking-widest transition ${
+            activeSubTab === 'audit_logs'
+              ? 'bg-[#1e5b49] text-white shadow-sm'
+              : 'bg-white text-[#66716a] border border-[#d9d6ce] hover:bg-[#f6f4ef]'
+          }`}
+        >
+          Digest Delivery & Error Logs
+        </button>
+      </div>
+
+      {activeSubTab === 'audit_logs' ? (
+        <TrainingAuditLogsPanel />
+      ) : (
+        <>
       {/* Header & Controls */}
       <div className="flex flex-col justify-between gap-4 rounded-3xl border border-[#d9d6ce] bg-white p-6 sm:flex-row sm:items-center">
         <div>
@@ -346,6 +376,8 @@ export default function TrainingAnalyticsPanel() {
           </div>
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 }
