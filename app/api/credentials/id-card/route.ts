@@ -12,7 +12,7 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
   const memberNumber = typeof body.member_number === 'string' ? body.member_number.trim().toUpperCase() : '';
   const activationCode = typeof body.activation_code === 'string' ? body.activation_code.trim().toUpperCase() : '';
-  if (!/^HMSI-[WV]-\d{4}-[A-F0-9]{8}$/.test(memberNumber) || !/^[A-F0-9]{12}$/.test(activationCode)) return error('Enter the member number and activation code exactly as printed on the HMSI ID card.');
+  if (!/^HMSI-[WVM]-\d{4}-[A-F0-9]{8}$/.test(memberNumber) || !/^[A-F0-9]{12}$/.test(activationCode)) return error('Enter the member number and activation code exactly as printed on the HMSI ID card.');
 
   const card = await admin.from('hmsi_id_cards').select('id,holder_role,holder_id,holder_name,holder_email,member_number,role_display,activation_code_hash,activation_code_expires_at,activated_at,status,expires_at').eq('member_number', memberNumber).maybeSingle();
   if (card.error || !card.data) return error('The HMSI ID card could not be verified.', 404);

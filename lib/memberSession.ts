@@ -2,7 +2,7 @@ import { createHmac, timingSafeEqual } from 'node:crypto';
 
 const COOKIE_NAME = 'hmsi_member_session';
 const MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
-type MemberSession = { holderId: string; holderRole: 'worker' | 'volunteer'; email: string; exp: number };
+type MemberSession = { holderId: string; holderRole: 'worker' | 'volunteer' | 'member'; email: string; exp: number };
 function secret() { return process.env.WORKER_SESSION_SECRET?.trim() || process.env.HMSI_ADMIN_SESSION_SECRET?.trim() || process.env.CRON_SECRET?.trim() || ''; }
 function sign(payload: string) { return createHmac('sha256', secret()).update(payload).digest('base64url'); }
 export function createMemberSession(holderId: string, holderRole: MemberSession['holderRole'], email: string) {
@@ -19,7 +19,7 @@ export function getMemberSessionFromCookie(cookieHeader: string | null): MemberS
   try {
     if (signature.length !== expected.length || !timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) return null;
     const parsed = JSON.parse(Buffer.from(payload, 'base64url').toString()) as MemberSession;
-    if (!parsed.holderId || !parsed.email || !['worker', 'volunteer'].includes(parsed.holderRole) || parsed.exp < Math.floor(Date.now() / 1000)) return null;
+    if (!parsed.holderId || !parsed.email || !['worker', 'volunteer', 'member'].includes(parsed.holderRole) || parsed.exp < Math.floor(Date.now() / 1000)) return null;
     return parsed;
   } catch { return null; }
 }

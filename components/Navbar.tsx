@@ -20,6 +20,8 @@ const links = [
   { href: '/volunteer', label: 'Volunteer' },
   { href: '/fundraising-growth', label: 'Grow a campaign' },
   { href: '/worker-apply', label: 'Work with HMSI' },
+  { href: '/school', label: 'HMSI School' },
+  { href: '/member-apply', label: 'Join HMSI' },
 ];
 
 export default function Navbar() {

@@ -13,6 +13,7 @@ import NewsroomStudio from '../../components/NewsroomStudio';
 import WorkerOperationsPanel from '../../components/WorkerOperationsPanel';
 import WorkerAssistantPanel from '../../components/WorkerAssistantPanel';
 import HmsiIdCardPanel from '../../components/HmsiIdCardPanel';
+import MemberWorkspace from '../../components/MemberWorkspace';
 import { 
   LayoutDashboard, 
   Briefcase, 
@@ -106,6 +107,8 @@ export default function DashboardContent() {
   if (viewer.role === 'worker') {
     return <div className="min-h-screen bg-[#f6f4ef] text-[#17221e]"><header className="flex items-center justify-between border-b border-[#d9d6ce] bg-white px-5 py-4 sm:px-8"><div><p className="text-xs font-black uppercase tracking-[0.18em] text-[#b56b3b]">HMSI restricted workspace</p><p className="mt-1 text-sm font-bold">{viewer.name}</p></div><button onClick={async () => { await fetch('/api/worker/session', { method: 'DELETE' }); await fetch('/api/member/session', { method: 'DELETE' }); logout(); }} className="rounded-full border border-red-200 px-4 py-2 text-xs font-black uppercase tracking-widest text-red-600">Sign out</button></header><div className="mx-auto max-w-4xl px-5 pt-8 sm:px-8"><HmsiIdCardPanel /></div><WorkerAssistantPanel /></div>;
   }
+
+  if (viewer.role === 'member') return <MemberWorkspace name={viewer.name} logout={logout} />;
 
   const userActivities = data.activities.sort((a: any, b: any) => 
     new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
