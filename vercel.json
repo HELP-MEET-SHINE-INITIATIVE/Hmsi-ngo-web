@@ -10,6 +10,10 @@
       "schedule": "0 9 * * 1"
     },
     {
+      "path": "/api/cron/dead-letter-monitor",
+      "schedule": "30 9 * * 1"
+    },
+    {
       "path": "/api/cron/cta-alert",
       "schedule": "0 9 * * 1"
     },
