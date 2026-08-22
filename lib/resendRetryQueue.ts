@@ -1,9 +1,15 @@
+export interface ResendEmailAttachment {
+  filename: string;
+  content: string;
+}
+
 export interface ResendEmailPayload {
   from: string;
   to: string[];
   subject: string;
   html: string;
   text: string;
+  attachments?: ResendEmailAttachment[];
   idempotencyKey?: string;
 }
 
@@ -111,6 +117,7 @@ export async function sendResendEmailWithRetry(
           subject: payload.subject,
           html: payload.html,
           text: payload.text,
+          ...(payload.attachments?.length ? { attachments: payload.attachments } : {}),
         }),
       });
 

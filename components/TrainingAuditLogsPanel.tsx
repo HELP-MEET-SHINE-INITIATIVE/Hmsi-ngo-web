@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   AlertCircle,
   AlertTriangle,
@@ -48,19 +48,18 @@ export default function TrainingAuditLogsPanel() {
     void loadLogs();
   }, [loadLogs]);
 
-  const filteredLogs = useMemo(() => {
-    if (!data?.logs) return [];
-    if (!searchQuery.trim()) return data.logs;
-    const q = searchQuery.toLowerCase();
-    return data.logs.filter(
-      (log) =>
-        log.office_name.toLowerCase().includes(q) ||
-        log.office_code.toLowerCase().includes(q) ||
-        log.alert_type.toLowerCase().includes(q) ||
-        (log.error_message && log.error_message.toLowerCase().includes(q)) ||
-        log.recipient_emails.some((email) => email.toLowerCase().includes(q))
-    );
-  }, [data?.logs, searchQuery]);
+  const logs = data?.logs ?? [];
+  const normalizedSearch = searchQuery.trim().toLowerCase();
+  const filteredLogs = normalizedSearch
+    ? logs.filter(
+        (log) =>
+          log.office_name.toLowerCase().includes(normalizedSearch) ||
+          log.office_code.toLowerCase().includes(normalizedSearch) ||
+          log.alert_type.toLowerCase().includes(normalizedSearch) ||
+          Boolean(log.error_message?.toLowerCase().includes(normalizedSearch)) ||
+          log.recipient_emails.some((email) => email.toLowerCase().includes(normalizedSearch))
+      )
+    : logs;
 
   const formatTimestamp = (isoString: string) => {
     const date = new Date(isoString);

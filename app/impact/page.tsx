@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowRight, Sparkles, TrendingUp } from 'lucide-react';
+import { ArrowRight, BadgeCheck, BarChart3, Sparkles, TrendingUp } from 'lucide-react';
 import Footer from '../../components/Footer';
 import FundraiserCard from '../../components/FundraiserCard';
 import { getFundraisers, getNewestFundraisers, getTopRaisedFundraisers } from '../../lib/fundraisers';
+import { getPublicImpactMetrics } from '../../lib/publicImpact';
 
 export const revalidate = 60;
 
@@ -22,6 +23,7 @@ export const metadata: Metadata = {
 export default async function ImpactPage() {
   let fundraisers = [] as Awaited<ReturnType<typeof getFundraisers>>;
   let loadError = '';
+  const metrics = await getPublicImpactMetrics();
   try {
     fundraisers = await getFundraisers();
   } catch (error) {
@@ -53,6 +55,21 @@ export default async function ImpactPage() {
             </div>
           </div>
         </section>
+
+        <section className="border-b border-[#d9d6ce] bg-[#e9f0e9] px-6 py-14 sm:px-8 sm:py-20">
+          <div className="mx-auto max-w-7xl">
+            <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
+              <div className="max-w-2xl"><p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.22em] text-[#1e5b49]"><BarChart3 size={15} /> Public impact record</p><h2 className="mt-4 text-4xl font-black tracking-[-0.04em] sm:text-5xl">See what the current records show.</h2><p className="mt-4 text-base leading-7 text-[#3c5148]">These figures are drawn from successful donation records and active or approved operational records held by HMSI. They are presented as a transparency aid, not as an independent evaluation of programme outcomes.</p></div>
+              <Link href="/transparency" className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[#1e5b49]">Read accountability information <ArrowRight size={15} /></Link>
+            </div>
+            <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+              {[['Successful donations', metrics.successfulDonations.toLocaleString('en-NG')], ['Recorded amount', `₦${metrics.recordedDonationAmountNgn.toLocaleString('en-NG', { maximumFractionDigits: 0 })}`], ['Active fundraisers', metrics.activeFundraisers.toLocaleString('en-NG')], ['Active workers', metrics.activeWorkers.toLocaleString('en-NG')], ['Approved volunteer records', metrics.approvedVolunteerApplications.toLocaleString('en-NG')]].map(([label, value]) => <div key={label} className="border border-[#cddbcf] bg-white/75 p-5"><p className="text-2xl font-black tracking-[-0.04em] text-[#17221e]">{value}</p><p className="mt-2 text-xs font-bold leading-5 text-[#66716a]">{label}</p></div>)}
+            </div>
+            <p className="mt-5 text-xs leading-5 text-[#66716a]">{metrics.reportingBasis}</p>
+          </div>
+        </section>
+
+        <section className="border-b border-[#d9d6ce] bg-white px-6 py-12 sm:px-8 sm:py-16"><div className="mx-auto flex max-w-7xl flex-col justify-between gap-5 md:flex-row md:items-center"><div><p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.22em] text-[#b56b3b]"><BadgeCheck size={15} /> Independent checks</p><h2 className="mt-3 text-3xl font-black tracking-[-0.04em]">Verify an HMSI volunteer certificate.</h2><p className="mt-3 max-w-2xl text-sm leading-7 text-[#66716a]">Use a certificate number and private code to check an active certificate record without exposing the volunteer’s contact details.</p></div><Link href="/certificates/verify" className="inline-flex items-center gap-2 rounded-full bg-[#17221e] px-6 py-3 text-xs font-black uppercase tracking-widest text-white">Open verifier <ArrowRight size={15} /></Link></div></section>
 
         {loadError && <div className="mx-auto max-w-7xl px-6 pt-10"><div className="rounded-2xl border border-red-100 bg-red-50 p-4 text-sm text-red-700" role="alert">Fundraisers are temporarily unavailable. Please try again shortly.</div></div>}
 

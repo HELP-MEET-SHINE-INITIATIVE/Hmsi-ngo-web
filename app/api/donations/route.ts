@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../lib/supabaseAdmin';
+import { createDonorReceiptPdf } from '../../../lib/donorReceipt';
+import { sendResendEmailWithRetry } from '../../../lib/resendRetryQueue';
 
 export const runtime = 'nodejs';
 
@@ -126,5 +128,48 @@ export async function POST(request: Request) {
     }
   }
 
-  return NextResponse.json({ donation: inserted.data, fundraiserTotalUpdated }, { status: 201 });
+  let receiptSent = false;
+  let receiptError = '';
+  const resendApiKey = process.env.RESEND_API_KEY?.trim();
+  const fromEmail = process.env.RESEND_FROM_EMAIL?.trim() || 'contact@hmsi.org.ng';
+
+  if (resendApiKey && inserted.data?.donor_email) {
+    try {
+      const receiptPdf = await createDonorReceiptPdf({
+        donationId: inserted.data.id,
+        donorName: inserted.data.donor_name,
+        donorEmail: inserted.data.donor_email,
+        isAnonymous: inserted.data.is_anonymous,
+        amountNgn: Number(inserted.data.amount_ngn),
+        currency: inserted.data.currency,
+        paystackReference: inserted.data.paystack_reference,
+        channel: inserted.data.channel,
+        paidAt: inserted.data.paid_at,
+        createdAt: inserted.data.created_at,
+      });
+      const receiptBase64 = Buffer.from(receiptPdf).toString('base64');
+      const dispatch = await sendResendEmailWithRetry(
+        resendApiKey,
+        {
+          from: fromEmail,
+          to: [inserted.data.donor_email],
+          subject: 'HMSI verified donation acknowledgement',
+          html: `<p>Dear ${inserted.data.is_anonymous ? 'supporter' : inserted.data.donor_name},</p><p>Thank you for your verified donation to Help Meet Shine Initiative. Your donation acknowledgement is attached as a PDF.</p><p>This acknowledgement confirms the verified Paystack payment and is not a tax-exemption certificate or a statement that the donation is tax-deductible.</p><p>For questions, contact <a href="mailto:contact@hmsi.org.ng">contact@hmsi.org.ng</a>.</p>`,
+          text: `Thank you for your verified donation to Help Meet Shine Initiative. Your donation acknowledgement is attached. This acknowledgement is not a tax-exemption certificate or a statement that the donation is tax-deductible. For questions, contact contact@hmsi.org.ng.`,
+          attachments: [{ filename: `HMSI-donation-receipt-${inserted.data.paystack_reference}.pdf`, content: receiptBase64 }],
+          idempotencyKey: `donation_receipt_${inserted.data.paystack_reference}`,
+        },
+        { maxRetries: 3, baseDelayMs: 200, maxDelayMs: 2500 }
+      );
+      receiptSent = dispatch.ok;
+      if (!dispatch.ok) receiptError = dispatch.error || 'Receipt email could not be delivered.';
+    } catch (receiptDispatchError) {
+      receiptError = receiptDispatchError instanceof Error ? receiptDispatchError.message : 'Receipt generation or delivery failed.';
+      console.error('[Donations] Receipt generation or delivery failed:', receiptDispatchError);
+    }
+  } else if (!resendApiKey) {
+    receiptError = 'Receipt email delivery is not configured.';
+  }
+
+  return NextResponse.json({ donation: inserted.data, fundraiserTotalUpdated, receiptSent, receiptError: receiptError || undefined }, { status: 201 });
 }

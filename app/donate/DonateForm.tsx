@@ -48,6 +48,8 @@ export default function DonateForm() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [paymentReference, setPaymentReference] = useState("");
   const [recordingWarning, setRecordingWarning] = useState("");
+  const [receiptDownloading, setReceiptDownloading] = useState(false);
+  const [receiptNotice, setReceiptNotice] = useState("");
 
   const amountInNaira = selectedAmount ?? Number(customAmount);
   const amountInKobo = Math.round(amountInNaira * 100);
@@ -90,6 +92,36 @@ export default function DonateForm() {
 
   const handleClose = () => {
     setError("Payment was closed before completion. Your details are still here whenever you are ready.");
+  };
+
+  const handleDownloadReceipt = async () => {
+    if (!paymentReference || !donorEmail) return;
+    setReceiptDownloading(true);
+    setReceiptNotice("");
+    try {
+      const response = await fetch("/api/donations/receipt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paystack_reference: paymentReference, donor_email: donorEmail }),
+      });
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({}));
+        throw new Error(result.error || "The receipt could not be downloaded.");
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `HMSI-donation-receipt-${paymentReference}.pdf`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+    } catch (receiptError) {
+      setReceiptNotice(receiptError instanceof Error ? receiptError.message : "The receipt could not be downloaded.");
+    } finally {
+      setReceiptDownloading(false);
+    }
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -166,8 +198,12 @@ export default function DonateForm() {
             <h1 className="mt-4 text-4xl font-black leading-tight tracking-[-0.04em] sm:text-5xl">Your generosity is already moving hope forward.</h1>
             <p className="mx-auto mt-6 max-w-lg text-base leading-7 text-[#66716a]">We appreciate your gift, {donorName.split(" ")[0] || "friend"}. Your support helps communities access practical relief, opportunity and a stronger tomorrow.</p>
             {paymentReference && <p className="mt-7 rounded-2xl bg-[#f6f4ef] px-4 py-3 text-xs font-semibold text-[#66716a]">Payment reference: <span className="font-black text-[#17221e]">{paymentReference}</span></p>}
-            {recordingWarning && <p className="mt-4 rounded-2xl border border-[#e1ad45]/50 bg-[#fff8e8] px-4 py-3 text-left text-xs leading-5 text-[#7a5b16]">Your payment was successful, but HMSI could not finish updating its ledger. Please keep the reference above and contact <a className="font-black underline" href="mailto:support@hmsi.org.ng">support@hmsi.org.ng</a>.</p>}
-            <Link href="/" className="mt-9 inline-flex rounded-full bg-[#17221e] px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:bg-[#1e5b49]">Return to HMSI</Link>
+            {recordingWarning && <p className="mt-4 rounded-2xl border border-[#e1ad45]/50 bg-[#fff8e8] px-4 py-3 text-left text-xs leading-5 text-[#7a5b16]">Your payment was successful, but HMSI could not finish updating its ledger. Please keep the reference above and contact <a className="font-black underline" href="mailto:contact@hmsi.org.ng">contact@hmsi.org.ng</a>.</p>}
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:justify-center">
+              <button type="button" onClick={handleDownloadReceipt} disabled={receiptDownloading || !paymentReference} className="inline-flex items-center justify-center rounded-full border border-[#1e5b49] px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-[#1e5b49] transition hover:bg-[#e9f0e9] disabled:cursor-not-allowed disabled:opacity-50">{receiptDownloading ? "Preparing PDF…" : "Download receipt"}</button>
+              <Link href="/" className="inline-flex items-center justify-center rounded-full bg-[#17221e] px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:bg-[#1e5b49]">Return to HMSI</Link>
+            </div>
+            {receiptNotice && <p role="alert" className="mt-4 text-xs leading-5 text-red-700">{receiptNotice}</p>}
           </div>
         </section>
       </main>
