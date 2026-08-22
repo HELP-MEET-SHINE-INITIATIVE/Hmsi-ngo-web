@@ -4,6 +4,10 @@
     {
       "path": "/api/cron/cta-alert",
       "schedule": "0 9 * * 1"
+    },
+    {
+      "path": "/api/cron/training-alert",
+      "schedule": "0 8 * * 2"
     }
   ]
 }
