@@ -26,6 +26,11 @@ export default function HmsiAssistantPanel() {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [newDoc, setNewDoc] = useState({ title: '', category: 'governance', content: '' });
+  const [operatorPrompt, setOperatorPrompt] = useState('');
+  const [operatorTaskId, setOperatorTaskId] = useState('');
+  const [operatorResponse, setOperatorResponse] = useState('');
+  const [operatorAction, setOperatorAction] = useState<any>(null);
+  const [operatorBusy, setOperatorBusy] = useState(false);
 
   const selectedDocument = useMemo(() => documents.find((document) => document.id === selectedId) || null, [documents, selectedId]);
 
@@ -51,6 +56,23 @@ export default function HmsiAssistantPanel() {
   useEffect(() => { if (selectedId) loadDocument(selectedId).catch((loadError) => setError(loadError instanceof Error ? loadError.message : 'Unable to load this HMSI document.')); }, [selectedId]);
 
   useEffect(() => {
+    if (!operatorTaskId) return;
+    let active = true;
+    const poll = async () => {
+      try {
+        const result = await fetch(`/api/admin/assistant/operator/${operatorTaskId}`, { cache: 'no-store' }).then(readJson);
+        if (!active) return;
+        setOperatorAction(result.action || null);
+        setOperatorResponse(result.action?.preview?.assistant_response || result.response || '');
+        if (['pending_confirmation', 'executed', 'rejected', 'error'].includes(result.action?.status)) { setOperatorBusy(false); return; }
+        window.setTimeout(poll, 2500);
+      } catch (pollError) { if (active) { setOperatorBusy(false); setError(pollError instanceof Error ? pollError.message : 'Unable to read the operator response.'); } }
+    };
+    poll();
+    return () => { active = false; };
+  }, [operatorTaskId]);
+
+  useEffect(() => {
     if (!taskId) return;
     let active = true;
     const poll = async () => {
@@ -71,6 +93,30 @@ export default function HmsiAssistantPanel() {
     poll();
     return () => { active = false; };
   }, [taskId]);
+
+  const askOperator = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!operatorPrompt.trim()) return;
+    setError(''); setNotice(''); setOperatorResponse(''); setOperatorAction(null); setOperatorTaskId(''); setOperatorBusy(true);
+    try {
+      const result = await fetch('/api/admin/assistant/operator', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: operatorPrompt }) }).then(readJson);
+      setOperatorTaskId(result.task?.manus_task_id || '');
+    } catch (cause) { setOperatorBusy(false); setError(cause instanceof Error ? cause.message : 'Unable to start the HMSI operator.'); }
+  };
+
+  const confirmOperatorAction = async () => {
+    if (!operatorTaskId) return;
+    setOperatorBusy(true); setError(''); setNotice('');
+    try { const result = await fetch(`/api/admin/assistant/operator/${operatorTaskId}/confirm`, { method: 'POST' }).then(readJson); setOperatorAction(result.action || null); setOperatorResponse(result.action?.result ? JSON.stringify(result.action.result, null, 2) : 'Action completed.'); setNotice('The confirmed HMSI operator action completed.'); }
+    catch (cause) { setOperatorBusy(false); setError(cause instanceof Error ? cause.message : 'The operator action could not be completed.'); }
+  };
+
+  const rejectOperatorAction = async () => {
+    if (!operatorTaskId) return;
+    setOperatorBusy(true); setError('');
+    try { await fetch(`/api/admin/assistant/operator/${operatorTaskId}/confirm`, { method: 'DELETE' }).then(readJson); setOperatorAction((current: any) => ({ ...current, status: 'rejected' })); setNotice('Operator action rejected. Nothing was sent or published.'); setOperatorBusy(false); }
+    catch (cause) { setOperatorBusy(false); setError(cause instanceof Error ? cause.message : 'The operator action could not be rejected.'); }
+  };
 
   const askManus = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -105,6 +151,7 @@ export default function HmsiAssistantPanel() {
   };
 
   return <div className="space-y-6">
+    <section className="rounded-3xl border border-[#d9d6ce] bg-white p-6"><div className="flex items-start gap-4"><div className="rounded-2xl bg-[#e9f0e9] p-3 text-[#1e5b49]"><MessageSquareText size={24} /></div><div><p className="text-xs font-black uppercase tracking-[0.18em] text-[#b56b3b]">Admin operator chat</p><h2 className="mt-1 text-2xl font-black">Tell the HMSI portal what you need</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-[#66716a]">Manus can inspect approved operational context, draft contact replies, prepare newsletters, draft sourced publications, and propose room posts. Sending, publishing, or posting always pauses for your explicit confirmation.</p></div></div><form onSubmit={askOperator} className="mt-5 space-y-3"><textarea required rows={4} value={operatorPrompt} onChange={(event) => setOperatorPrompt(event.target.value)} placeholder="Examples: Summarise today’s open contact messages. Draft a reply to message ID … . Prepare a newsletter for active subscribers. Draft a sourced humanitarian-news publication. Propose a worker-room update." className="w-full resize-y rounded-2xl bg-[#f6f4ef] p-4 text-sm leading-6 outline-none focus:ring-2 focus:ring-[#1e5b49]" /><button disabled={operatorBusy || !operatorPrompt.trim()} className="flex items-center justify-center gap-2 rounded-full bg-[#1e5b49] px-5 py-3 text-xs font-black uppercase tracking-widest text-white disabled:opacity-50">{operatorBusy ? <Loader2 size={14} className="animate-spin" /> : <MessageSquareText size={14} />} {operatorBusy ? 'Operator is working…' : 'Ask HMSI operator'}</button></form>{operatorResponse && <div className="mt-5 rounded-2xl bg-[#f6f4ef] p-4 text-sm leading-6 whitespace-pre-wrap">{operatorResponse}</div>}{operatorAction?.preview && operatorAction.action_type !== 'none' && <div className="mt-5 rounded-2xl border border-[#e1ad45] bg-[#fff8e8] p-5"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-widest text-[#7a5b16]">Action preview</p><p className="mt-1 text-lg font-black capitalize">{String(operatorAction.action_type).replaceAll('_', ' ')}</p></div><span className="rounded-full bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#7a5b16]">{operatorAction.status}</span></div>{operatorAction.preview.recipient_scope && <p className="mt-3 text-sm font-bold text-[#7a5b16]">Audience: {operatorAction.preview.recipient_scope}</p>}{operatorAction.preview.subject && <p className="mt-3 text-sm font-black">Subject: {operatorAction.preview.subject}</p>}{operatorAction.preview.headline && <p className="mt-3 text-sm font-black">Headline: {operatorAction.preview.headline}</p>}{operatorAction.preview.content || operatorAction.preview.body ? <p className="mt-3 max-h-56 overflow-y-auto whitespace-pre-wrap rounded-2xl bg-white p-4 text-sm leading-6">{operatorAction.preview.content || operatorAction.preview.body}</p> : null}{Array.isArray(operatorAction.preview.source_urls) && operatorAction.preview.source_urls.length > 0 && <div className="mt-3 text-xs text-[#66716a]"><p className="font-black uppercase tracking-widest">Sources to review</p>{operatorAction.preview.source_urls.map((url: string) => <p key={url} className="mt-1 break-all">{url}</p>)}</div>}{operatorAction.status === 'pending_confirmation' && <div className="mt-4 flex flex-wrap gap-2"><button type="button" disabled={operatorBusy} onClick={confirmOperatorAction} className="rounded-full bg-[#1e5b49] px-4 py-2 text-xs font-black uppercase tracking-widest text-white">Confirm and execute</button><button type="button" disabled={operatorBusy} onClick={rejectOperatorAction} className="rounded-full border border-red-200 bg-white px-4 py-2 text-xs font-black uppercase tracking-widest text-red-600">Reject</button></div>}<p className="mt-3 text-xs leading-5 text-[#7a5b16]">Confirm only after checking recipient scope, wording, source links, and safeguarding/privacy implications. Previews expire after 30 minutes.</p></div>}</section>
     <div className="rounded-3xl border border-[#d9d6ce] bg-[#17221e] p-6 text-white"><div className="flex items-start gap-4"><div className="rounded-2xl bg-[#e1ad45] p-3 text-[#17221e]"><ShieldCheck size={24} /></div><div><p className="text-xs font-black uppercase tracking-[0.18em] text-[#e1ad45]">Secure HMSI Assistant</p><h2 className="mt-1 text-2xl font-black">Work with approved HMSI documents</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-white/70">Manus can analyse the selected document and propose practical drafts. This panel does not expose server files, secrets, payments, email delivery, or permission controls. Saving creates a new version and records an audit event.</p></div></div></div>
     {(error || notice) && <div className={`rounded-2xl border p-4 text-sm ${error ? 'border-red-100 bg-red-50 text-red-700' : 'border-emerald-100 bg-emerald-50 text-emerald-700'}`} role="status">{error || notice}</div>}
     <div className="grid gap-6 xl:grid-cols-[260px_1fr]">
