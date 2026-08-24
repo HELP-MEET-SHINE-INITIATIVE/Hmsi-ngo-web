@@ -15,7 +15,7 @@ export async function GET(request: Request) {
   const [fundraisers, volunteers, workers, assignments, donations, messageNotifications, featuredStories, newsArticles, fundraiserCampaigns] = await Promise.all([
     admin.from('fundraisers').select('id,title,description,category,target_amount,raised_amount,image_url,image_path,status,created_at').order('created_at', { ascending: false }),
     admin.from('volunteer_applications').select('id,name,email,phone,interest,message,status,created_at').order('created_at', { ascending: false }),
-    admin.from('workers').select('id,name,email,phone,role,status,created_at').order('created_at', { ascending: false }),
+    admin.from('workers').select('id,name,email,phone,role,status,onboarding_status,created_at').order('created_at', { ascending: false }),
     admin.from('work_assignments').select('id,title,description,kind,status,assigned_worker_id,fundraiser_id,due_at,created_at').order('created_at', { ascending: false }),
     admin.from('donations').select('id,fundraiser_id,donor_name,donor_email,is_anonymous,amount_ngn,amount_major,paystack_reference,status,currency,channel,paid_at,created_at').order('created_at', { ascending: false }).limit(200),
     admin.from('contact_message_notifications').select('id').limit(1),
