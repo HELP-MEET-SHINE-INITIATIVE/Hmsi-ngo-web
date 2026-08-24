@@ -2,10 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const [helper, webhook, donationRoute, adminRoute, ledger] = await Promise.all([
+const [helper, webhook, donationRoute, trackingSource, adminRoute, ledger] = await Promise.all([
   readFile(new URL('../lib/donationAcknowledgements.ts', import.meta.url), 'utf8'),
   readFile(new URL('../app/api/webhooks/resend/route.ts', import.meta.url), 'utf8'),
   readFile(new URL('../app/api/donations/route.ts', import.meta.url), 'utf8'),
+  readFile(new URL('../lib/donationTracking.ts', import.meta.url), 'utf8'),
   readFile(new URL('../app/api/admin/donations/route.ts', import.meta.url), 'utf8'),
   readFile(new URL('../components/DonationsLedger.tsx', import.meta.url), 'utf8'),
 ]);
@@ -26,10 +27,11 @@ test('Resend webhook verifies the raw body and Svix signature before any databas
 });
 
 test('verified donation dispatch records queued, sent, and failed acknowledgement states without blocking the ledger', () => {
-  assert.match(donationRoute, /eventType: 'queued'/);
-  assert.match(donationRoute, /eventType: 'sent'/);
-  assert.match(donationRoute, /eventType: 'failed'/);
-  assert.match(donationRoute, /providerMessageId: dispatch\.resendId \|\| null/);
+  assert.match(donationRoute, /dispatchDonationAcknowledgement/);
+  assert.match(trackingSource, /eventType: 'queued'/);
+  assert.match(trackingSource, /eventType: 'sent'/);
+  assert.match(trackingSource, /eventType: 'failed'/);
+  assert.match(trackingSource, /providerMessageId: result\.resendId \|\| null/);
 });
 
 test('protected donations ledger exposes acknowledgement status but not full payment references', () => {

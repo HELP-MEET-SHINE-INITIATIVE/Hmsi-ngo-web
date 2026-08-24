@@ -54,6 +54,7 @@ export default function DonateForm() {
   const [receiptNotice, setReceiptNotice] = useState("");
 
   const amountInMajorUnits = selectedAmount ?? Number(customAmount);
+  const fundraiserId = typeof window === 'undefined' ? '' : new URLSearchParams(window.location.search).get('fundraiser_id')?.trim().slice(0, 80) || '';
 
   const handleSuccess = async (response?: PaymentResponse) => {
     const reference = response?.reference ?? "";
@@ -72,6 +73,7 @@ export default function DonateForm() {
           amount: amountInMajorUnits,
           currency,
           paystack_reference: reference,
+          fundraiser_id: fundraiserId || undefined,
         }),
       });
       const ledgerResult = await ledgerResponse.json().catch(() => ({}));
@@ -180,6 +182,7 @@ export default function DonateForm() {
             variable_name: "donor_name",
             value: isAnonymous ? "Anonymous donor" : donorName,
           },
+          ...(fundraiserId ? [{ display_name: "HMSI Campaign", variable_name: "fundraiser_id", value: fundraiserId }] : []),
         ],
       },
       onSuccess: handleSuccess,

@@ -6,7 +6,8 @@ import { getSupabaseAdmin } from './supabaseAdmin';
 const COOKIE_NAME = 'hmsi_portal_session';
 const MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
 export type PortalRole = 'worker' | 'volunteer' | 'member';
-export type PortalIdentity = { authUserId: string; profileId: string; email: string; name: string; role: PortalRole; profilePhotoPath: string | null; profilePhotoUrl: string | null };
+export type PublisherRole = 'community_publisher' | 'humanitarian_activist' | 'independent_field_reporter';
+export type PortalIdentity = { authUserId: string; profileId: string; email: string; name: string; role: PortalRole; publisherRole: PublisherRole | null; profilePhotoPath: string | null; profilePhotoUrl: string | null };
 
 type PortalCookie = { accessToken: string; refreshToken?: string; exp: number };
 
@@ -36,11 +37,11 @@ async function findIdentity(user: User): Promise<PortalIdentity | null> {
   if (!admin || !user.email) return null;
   const email = user.email.trim().toLowerCase();
   const worker = await admin.from('workers').select('id,name,email,status,onboarding_status,auth_user_id,profile_photo_path,profile_photo_url').eq('auth_user_id', user.id).eq('email', email).maybeSingle();
-  if (worker.data && worker.data.status === 'active' && worker.data.onboarding_status === 'completed') return { authUserId: user.id, profileId: worker.data.id, email, name: worker.data.name, role: 'worker', profilePhotoPath: worker.data.profile_photo_path, profilePhotoUrl: worker.data.profile_photo_url };
-  const volunteer = await admin.from('volunteer_applications').select('id,name,email,status,account_status,applicant_role,auth_user_id,profile_photo_path,profile_photo_url').eq('auth_user_id', user.id).eq('email', email).maybeSingle();
-  if (volunteer.data && volunteer.data.status === 'approved' && volunteer.data.account_status === 'active' && volunteer.data.applicant_role === 'volunteer') return { authUserId: user.id, profileId: volunteer.data.id, email, name: volunteer.data.name, role: 'volunteer', profilePhotoPath: volunteer.data.profile_photo_path, profilePhotoUrl: volunteer.data.profile_photo_url };
+  if (worker.data && worker.data.status === 'active' && worker.data.onboarding_status === 'completed') return { authUserId: user.id, profileId: worker.data.id, email, name: worker.data.name, role: 'worker', publisherRole: null, profilePhotoPath: worker.data.profile_photo_path, profilePhotoUrl: worker.data.profile_photo_url };
+  const volunteer = await admin.from('volunteer_applications').select('id,name,email,status,account_status,applicant_role,publisher_role,auth_user_id,profile_photo_path,profile_photo_url').eq('auth_user_id', user.id).eq('email', email).maybeSingle();
+  if (volunteer.data && volunteer.data.status === 'approved' && volunteer.data.account_status === 'active' && volunteer.data.applicant_role === 'volunteer') return { authUserId: user.id, profileId: volunteer.data.id, email, name: volunteer.data.name, role: 'volunteer', publisherRole: volunteer.data.publisher_role as PublisherRole | null, profilePhotoPath: volunteer.data.profile_photo_path, profilePhotoUrl: volunteer.data.profile_photo_url };
   const member = await admin.from('hmsi_members').select('id,name,email,status,auth_user_id,profile_photo_path,profile_photo_url').eq('auth_user_id', user.id).eq('email', email).maybeSingle();
-  if (member.data && member.data.status === 'active') return { authUserId: user.id, profileId: member.data.id, email, name: member.data.name, role: 'member', profilePhotoPath: member.data.profile_photo_path, profilePhotoUrl: member.data.profile_photo_url };
+  if (member.data && member.data.status === 'active') return { authUserId: user.id, profileId: member.data.id, email, name: member.data.name, role: 'member', publisherRole: null, profilePhotoPath: member.data.profile_photo_path, profilePhotoUrl: member.data.profile_photo_url };
   return null;
 }
 

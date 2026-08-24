@@ -6,6 +6,7 @@ export const runtime = 'nodejs';
 
 const DEFAULT_PAGE_SIZE = 25;
 const MAX_PAGE_SIZE = 50;
+const ALLOWED_STATUSES = new Set(['success', 'pending', 'manual_verification']);
 
 function positiveInteger(value: string | null, fallback: number) {
   const parsed = Number.parseInt(value || '', 10);
@@ -25,11 +26,13 @@ export async function GET(request: Request) {
   const requestedLimit = positiveInteger(searchParams.get('limit'), DEFAULT_PAGE_SIZE);
   const limit = Math.min(requestedLimit, MAX_PAGE_SIZE);
   const from = (page - 1) * limit;
+  const requestedStatus = searchParams.get('status') || 'all';
+  const statuses = requestedStatus === 'all' ? ['success', 'pending', 'manual_verification'] : ALLOWED_STATUSES.has(requestedStatus) ? [requestedStatus] : ['success', 'pending', 'manual_verification'];
 
   const { data, error, count } = await admin
     .from('donations')
-    .select('id,fundraiser_id,donor_name,donor_email,is_anonymous,amount_ngn,amount_major,paystack_reference,currency,channel,paid_at,created_at,acknowledgement_status,acknowledgement_updated_at', { count: 'exact' })
-    .eq('status', 'success')
+    .select('id,fundraiser_id,donor_name,donor_email,is_anonymous,amount_ngn,amount_major,paystack_reference,status,currency,channel,payment_provider,payment_method,campaign_name_snapshot,paid_at,created_at,acknowledgement_status,acknowledgement_updated_at', { count: 'exact' })
+    .in('status', statuses)
     .order('created_at', { ascending: false })
     .range(from, from + limit - 1);
 
@@ -47,5 +50,6 @@ export async function GET(request: Request) {
   return NextResponse.json({
     donations,
     pagination: { page, limit, total, totalPages: Math.max(1, Math.ceil(total / limit)) },
+    status: requestedStatus,
   }, { headers: { 'Cache-Control': 'no-store, max-age=0' } });
 }

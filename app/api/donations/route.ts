@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../lib/supabaseAdmin';
-import { createDonorReceiptPdf } from '../../../lib/donorReceipt';
-import { sendResendEmailWithRetry } from '../../../lib/resendRetryQueue';
-import { recordDonationAcknowledgementEvent } from '../../../lib/donationAcknowledgements';
+import { dispatchDonationAcknowledgement, getFundraiserSnapshot, type DonationRecord } from '../../../lib/donationTracking';
 import { isHmsiPaymentCurrency, toMinorUnits } from '../../../lib/paystackCurrencies';
-import { HMSI_SENDERS, sendPresidentInternalAlert, verifiedDonationThankYouTemplate } from '../../../lib/hmsiNotifications';
+import { sendPresidentInternalAlert } from '../../../lib/hmsiNotifications';
 
 export const runtime = 'nodejs';
 
@@ -66,13 +64,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Paystack server verification is not configured.' }, { status: 503 });
   }
 
-  if (fundraiserId) {
-    const fundraiser = await admin.from('fundraisers').select('id').eq('id', fundraiserId).maybeSingle();
-    if (fundraiser.error) {
-      console.error('[Donations] Failed to check fundraiser:', fundraiser.error);
-      return NextResponse.json({ error: 'The fundraiser could not be verified.' }, { status: 503 });
-    }
-    if (!fundraiser.data) return badRequest('The selected fundraiser no longer exists.');
+  let fundraiserSnapshot: { fundraiserId: string | null; campaignName: string | null };
+  try {
+    fundraiserSnapshot = await getFundraiserSnapshot(admin, fundraiserId);
+  } catch (fundraiserError) {
+    return NextResponse.json({ error: fundraiserError instanceof Error ? fundraiserError.message : 'The fundraiser could not be verified.' }, { status: 400 });
   }
 
   let verificationResponse: Response;
@@ -100,7 +96,7 @@ export async function POST(request: Request) {
   }
 
   const donationRecord = {
-    fundraiser_id: fundraiserId,
+    fundraiser_id: fundraiserSnapshot.fundraiserId,
     donor_name: donorName,
     donor_email: donorEmail,
     is_anonymous: isAnonymous,
@@ -110,13 +106,17 @@ export async function POST(request: Request) {
     status: 'success',
     currency,
     channel: payment.channel || null,
+    payment_provider: 'paystack',
+    payment_method: payment.channel === 'bank' ? 'bank_transfer' : payment.channel === 'ussd' ? 'ussd' : 'card',
+    campaign_name_snapshot: fundraiserSnapshot.campaignName,
     paid_at: payment.paid_at || payment.created_at || null,
+    verified_at: new Date().toISOString(),
   };
 
-  const inserted = await admin.from('donations').insert(donationRecord).select('id,fundraiser_id,donor_name,donor_email,is_anonymous,amount_ngn,amount_major,paystack_reference,status,currency,channel,paid_at,created_at').single();
+  const inserted = await admin.from('donations').insert(donationRecord).select('*').single();
   if (inserted.error) {
     if (inserted.error.code === '23505') {
-      const existing = await admin.from('donations').select('id,fundraiser_id,donor_name,donor_email,is_anonymous,amount_ngn,amount_major,paystack_reference,status,currency,channel,paid_at,created_at').eq('paystack_reference', reference).maybeSingle();
+      const existing = await admin.from('donations').select('*').eq('paystack_reference', reference).maybeSingle();
       if (existing.data) return NextResponse.json({ donation: existing.data, duplicate: true });
     }
     console.error('[Donations] Failed to record verified donation:', inserted.error);
@@ -125,9 +125,9 @@ export async function POST(request: Request) {
 
   let fundraiserTotalUpdated = currency === 'NGN';
   const fundraiserTotalUpdateReason = currency === 'USD' ? 'USD donation recorded; the NGN fundraiser total was not converted automatically.' : undefined;
-  if (fundraiserId && currency === 'NGN') {
+  if (fundraiserSnapshot.fundraiserId && currency === 'NGN') {
     const totalUpdate = await admin.rpc('increment_fundraiser_raised_amount', {
-      p_fundraiser_id: fundraiserId,
+      p_fundraiser_id: fundraiserSnapshot.fundraiserId,
       p_amount: payment.amount / 100,
     });
     if (totalUpdate.error) {
@@ -136,76 +136,9 @@ export async function POST(request: Request) {
     }
   }
 
-  let receiptSent = false;
-  let receiptError = '';
-  const resendApiKey = process.env.RESEND_API_KEY?.trim();
-  const fromEmail = HMSI_SENDERS.admin;
-
-  if (resendApiKey && inserted.data?.donor_email) {
-    try {
-      await recordDonationAcknowledgementEvent({ admin, donationId: inserted.data.id, eventType: 'queued', eventSource: 'application' });
-      const acknowledgement = verifiedDonationThankYouTemplate({
-        name: inserted.data.is_anonymous ? 'supporter' : inserted.data.donor_name,
-        amountMajor: Number(inserted.data.amount_major),
-        currency: inserted.data.currency,
-        reference: inserted.data.paystack_reference,
-      });
-      const receiptPdf = await createDonorReceiptPdf({
-        donationId: inserted.data.id,
-        donorName: inserted.data.donor_name,
-        donorEmail: inserted.data.donor_email,
-        isAnonymous: inserted.data.is_anonymous,
-        amountMajor: Number(inserted.data.amount_major),
-        currency: inserted.data.currency,
-        paystackReference: inserted.data.paystack_reference,
-        channel: inserted.data.channel,
-        paidAt: inserted.data.paid_at,
-        createdAt: inserted.data.created_at,
-      });
-      const receiptBase64 = Buffer.from(receiptPdf).toString('base64');
-      const dispatch = await sendResendEmailWithRetry(
-        resendApiKey,
-        {
-          from: fromEmail,
-          to: [inserted.data.donor_email],
-          subject: 'HMSI verified donation acknowledgement',
-          html: acknowledgement.html,
-          text: acknowledgement.text,
-          attachments: [{ filename: `HMSI-donation-receipt-${inserted.data.paystack_reference}.pdf`, content: receiptBase64 }],
-          idempotencyKey: `donation_receipt_${inserted.data.paystack_reference}`,
-        },
-        { maxRetries: 3, baseDelayMs: 200, maxDelayMs: 2500 }
-      );
-      receiptSent = dispatch.ok;
-      if (dispatch.ok) {
-        await recordDonationAcknowledgementEvent({
-          admin,
-          donationId: inserted.data.id,
-          eventType: 'sent',
-          providerMessageId: dispatch.resendId || null,
-          eventSource: 'application',
-        });
-      } else {
-        receiptError = dispatch.error || 'Receipt email could not be delivered.';
-        await recordDonationAcknowledgementEvent({ admin, donationId: inserted.data.id, eventType: 'failed', eventSource: 'application', detail: 'dispatch_failed' });
-      }
-    } catch (receiptDispatchError) {
-      receiptError = receiptDispatchError instanceof Error ? receiptDispatchError.message : 'Receipt generation or delivery failed.';
-      console.error('[Donations] Receipt generation or delivery failed:', receiptDispatchError);
-      try {
-        await recordDonationAcknowledgementEvent({ admin, donationId: inserted.data.id, eventType: 'failed', eventSource: 'application', detail: 'dispatch_exception' });
-      } catch (auditError) {
-        console.error('[Donations] Receipt failure audit update failed:', auditError instanceof Error ? auditError.message : 'unknown');
-      }
-    }
-  } else if (!resendApiKey) {
-    receiptError = 'Receipt email delivery is not configured.';
-    try {
-      await recordDonationAcknowledgementEvent({ admin, donationId: inserted.data.id, eventType: 'failed', eventSource: 'application', detail: 'mailer_not_configured' });
-    } catch (auditError) {
-      console.error('[Donations] Mailer configuration audit update failed:', auditError instanceof Error ? auditError.message : 'unknown');
-    }
-  }
+  const acknowledgement = await dispatchDonationAcknowledgement({ admin, donation: inserted.data as DonationRecord });
+  const receiptSent = acknowledgement.sent;
+  const receiptError = acknowledgement.error || '';
 
   const majorDonationThresholdNgn = Number(process.env.HMSI_MAJOR_DONATION_THRESHOLD_NGN || '');
   if (currency === 'NGN' && Number.isFinite(majorDonationThresholdNgn) && majorDonationThresholdNgn > 0 && Number(inserted.data.amount_major) >= majorDonationThresholdNgn) {

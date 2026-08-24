@@ -17,6 +17,7 @@ export async function POST(request: Request) {
     const interest = String(body.interest || '').trim();
     const message = String(body.message || '').trim();
     const applicantRole = String(body.role || 'volunteer').trim().toLowerCase();
+    const publisherRole = String(body.publisherRole || '').trim().toLowerCase();
 
     if (!name || !email || !phone || !interest || !message) {
       return NextResponse.json({ error: 'Please complete all volunteer application fields.' }, { status: 400 });
@@ -27,6 +28,8 @@ export async function POST(request: Request) {
     if (!['volunteer', 'worker'].includes(applicantRole)) {
       return NextResponse.json({ error: 'Choose volunteer or worker.' }, { status: 400 });
     }
+    if (publisherRole && !['community_publisher', 'humanitarian_activist', 'independent_field_reporter'].includes(publisherRole)) return NextResponse.json({ error: 'Choose a valid publisher pathway.' }, { status: 400 });
+    if (publisherRole && applicantRole !== 'volunteer') return NextResponse.json({ error: 'Publisher pathways are available within the volunteer application.' }, { status: 400 });
 
     const admin = getSupabaseAdmin();
     if (!admin) throw new Error('Supabase is not configured.');
@@ -38,6 +41,7 @@ export async function POST(request: Request) {
       interest,
       message,
       applicant_role: applicantRole,
+      publisher_role: publisherRole || null,
       status: 'pending',
     }).select('id').single();
 

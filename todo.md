@@ -51,3 +51,6 @@
 - [x] Verify protected thank-you acknowledgement-log availability and updates for recent successful donations without exposing donor information.
 - [x] Add and apply a fail-safe donation acknowledgement audit schema, then verify it without altering existing donation records.
 - [x] Connect verified donation acknowledgement dispatch and Resend webhook events to the audit schema and protected admin ledger with idempotent processing.
+- [ ] Extend the donation model and admin ledger for verified multi-channel tracking, receipt details, campaign attribution, acknowledgement status, and bounded real-time refresh without exposing payment credentials or card data.
+- [ ] Add a verified provider-webhook trust boundary and an admin-only manual-donation intake path that requires explicit verification before fundraiser totals or donor acknowledgements are triggered.
+- [ ] Add a volunteer publisher-role taxonomy and a role-limited `/portal/submit-news` workflow that submits content only to the existing editorial review queue and never publishes directly.
