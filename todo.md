@@ -50,3 +50,4 @@
 - [x] Verify the production mailer configuration and email-service connection using non-delivery checks without exposing credentials or recipient data.
 - [x] Verify protected thank-you acknowledgement-log availability and updates for recent successful donations without exposing donor information.
 - [x] Add and apply a fail-safe donation acknowledgement audit schema, then verify it without altering existing donation records.
+- [ ] Connect verified donation acknowledgement dispatch and Resend webhook events to the audit schema and protected admin ledger with idempotent processing.

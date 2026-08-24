@@ -28,7 +28,7 @@ export async function GET(request: Request) {
 
   const { data, error, count } = await admin
     .from('donations')
-    .select('id,fundraiser_id,donor_name,donor_email,is_anonymous,amount_ngn,amount_major,paystack_reference,currency,channel,paid_at,created_at', { count: 'exact' })
+    .select('id,fundraiser_id,donor_name,donor_email,is_anonymous,amount_ngn,amount_major,paystack_reference,currency,channel,paid_at,created_at,acknowledgement_status,acknowledgement_updated_at', { count: 'exact' })
     .eq('status', 'success')
     .order('created_at', { ascending: false })
     .range(from, from + limit - 1);

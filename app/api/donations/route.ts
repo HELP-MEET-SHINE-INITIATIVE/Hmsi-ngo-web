@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../lib/supabaseAdmin';
 import { createDonorReceiptPdf } from '../../../lib/donorReceipt';
 import { sendResendEmailWithRetry } from '../../../lib/resendRetryQueue';
+import { recordDonationAcknowledgementEvent } from '../../../lib/donationAcknowledgements';
 import { isHmsiPaymentCurrency, toMinorUnits } from '../../../lib/paystackCurrencies';
 import { HMSI_SENDERS, sendPresidentInternalAlert, verifiedDonationThankYouTemplate } from '../../../lib/hmsiNotifications';
 
@@ -142,6 +143,7 @@ export async function POST(request: Request) {
 
   if (resendApiKey && inserted.data?.donor_email) {
     try {
+      await recordDonationAcknowledgementEvent({ admin, donationId: inserted.data.id, eventType: 'queued', eventSource: 'application' });
       const acknowledgement = verifiedDonationThankYouTemplate({
         name: inserted.data.is_anonymous ? 'supporter' : inserted.data.donor_name,
         amountMajor: Number(inserted.data.amount_major),
@@ -175,13 +177,34 @@ export async function POST(request: Request) {
         { maxRetries: 3, baseDelayMs: 200, maxDelayMs: 2500 }
       );
       receiptSent = dispatch.ok;
-      if (!dispatch.ok) receiptError = dispatch.error || 'Receipt email could not be delivered.';
+      if (dispatch.ok) {
+        await recordDonationAcknowledgementEvent({
+          admin,
+          donationId: inserted.data.id,
+          eventType: 'sent',
+          providerMessageId: dispatch.resendId || null,
+          eventSource: 'application',
+        });
+      } else {
+        receiptError = dispatch.error || 'Receipt email could not be delivered.';
+        await recordDonationAcknowledgementEvent({ admin, donationId: inserted.data.id, eventType: 'failed', eventSource: 'application', detail: 'dispatch_failed' });
+      }
     } catch (receiptDispatchError) {
       receiptError = receiptDispatchError instanceof Error ? receiptDispatchError.message : 'Receipt generation or delivery failed.';
       console.error('[Donations] Receipt generation or delivery failed:', receiptDispatchError);
+      try {
+        await recordDonationAcknowledgementEvent({ admin, donationId: inserted.data.id, eventType: 'failed', eventSource: 'application', detail: 'dispatch_exception' });
+      } catch (auditError) {
+        console.error('[Donations] Receipt failure audit update failed:', auditError instanceof Error ? auditError.message : 'unknown');
+      }
     }
   } else if (!resendApiKey) {
     receiptError = 'Receipt email delivery is not configured.';
+    try {
+      await recordDonationAcknowledgementEvent({ admin, donationId: inserted.data.id, eventType: 'failed', eventSource: 'application', detail: 'mailer_not_configured' });
+    } catch (auditError) {
+      console.error('[Donations] Mailer configuration audit update failed:', auditError instanceof Error ? auditError.message : 'unknown');
+    }
   }
 
   const majorDonationThresholdNgn = Number(process.env.HMSI_MAJOR_DONATION_THRESHOLD_NGN || '');
