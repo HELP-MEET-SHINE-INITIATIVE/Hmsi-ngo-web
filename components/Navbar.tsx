@@ -33,7 +33,9 @@ export default function Navbar() {
     setMenuOpen(false);
   }, [pathname]);
 
-  if (pathname === '/') return null;
+  // The private admin workspace owns its own protected navigation. Keep public
+  // site links out of that route so privileged tools remain inside the admin shell.
+  if (pathname === '/' || pathname === '/hmsi-control') return null;
 
   return (
     <header className="sticky top-0 z-50 border-b border-[#d9d6ce] bg-[#f6f4ef]/95 text-[#17221e] backdrop-blur-xl">
