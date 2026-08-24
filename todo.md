@@ -16,3 +16,6 @@
 - [x] Implement idempotent worker ID-card generation and secure email dispatch when an authorized admin creates an assignment.
 - [x] Add route regression tests, build validation, and deployment verification for assignment-triggered notifications.
 - [x] Review and harden volunteer/member password reset request and callback flows, add security tests, and validate deployment.
+- [ ] Review latest Resend notification delivery and API logs against the secured password-reset implementation without exposing PII or secrets.
+- [ ] Correct ID-card email rendering so every notice contains a non-empty worker ID number.
+- [ ] Send the confirmed ID-card access notices to the new worker and all verified active workers, then verify Resend delivery metadata.
