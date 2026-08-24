@@ -53,19 +53,36 @@ function getGeminiApiKey() {
   return process.env.GEMINI_API_KEY?.trim();
 }
 
-function schemaForGemini(schema: Record<string, unknown>): Record<string, unknown> {
-  const normalized: Record<string, unknown> = {};
-  for (const key of ['type', 'required', 'enum', 'description', 'nullable']) if (schema[key] !== undefined) normalized[key] = schema[key];
-  const type = schema.type;
-  if (Array.isArray(type)) {
-    const nonNullType = type.find((item) => item !== 'null');
-    normalized.type = nonNullType;
+const GEMINI_SCHEMA_KEYS = ['type', 'format', 'title', 'description', 'nullable', 'enum', 'maxItems', 'minItems', 'properties', 'required', 'propertyOrdering', 'items'] as const;
+
+type JsonSchema = Record<string, unknown>;
+function isRecord(value: unknown): value is JsonSchema { return typeof value === 'object' && value !== null && !Array.isArray(value); }
+
+function schemaForGemini(schema: JsonSchema): JsonSchema {
+  if (!isRecord(schema)) throw new Error('Gemini response schema contains an invalid schema node.');
+  const normalized: JsonSchema = {};
+  for (const key of GEMINI_SCHEMA_KEYS) if (schema[key] !== undefined && key !== 'properties' && key !== 'items') normalized[key] = schema[key];
+  const rawType = schema.type;
+  if (Array.isArray(rawType)) {
+    const nonNullTypes = rawType.filter((item) => item !== 'null');
+    if (nonNullTypes.length !== 1) throw new Error('Gemini response schema supports only one non-null type per node.');
+    normalized.type = nonNullTypes[0];
     normalized.nullable = true;
+  } else if (typeof rawType === 'string') {
+    normalized.type = rawType;
+  } else if (schema.properties) {
+    normalized.type = 'object';
+  } else if (schema.items) {
+    normalized.type = 'array';
   }
-  if (schema.properties && typeof schema.properties === 'object') {
-    normalized.properties = Object.fromEntries(Object.entries(schema.properties as Record<string, unknown>).map(([key, value]) => [key, schemaForGemini(value as Record<string, unknown>)]));
+  if (schema.properties !== undefined) {
+    if (!isRecord(schema.properties)) throw new Error('Gemini response schema properties must be an object.');
+    normalized.properties = Object.fromEntries(Object.entries(schema.properties).map(([key, value]) => [key, schemaForGemini(value as JsonSchema)]));
   }
-  if (schema.items && typeof schema.items === 'object') normalized.items = schemaForGemini(schema.items as Record<string, unknown>);
+  if (schema.items !== undefined) {
+    if (!isRecord(schema.items)) throw new Error('Gemini response schema items must be an object.');
+    normalized.items = schemaForGemini(schema.items);
+  }
   return normalized;
 }
 
@@ -73,9 +90,40 @@ function extractGeminiText(payload: GeminiResponse) {
   return payload.candidates?.[0]?.content?.parts?.map((part) => part.text).filter(Boolean).join('\n').trim() || '';
 }
 
-function parseStructured(text: string) {
+function validateStructuredOutput(value: unknown, schema: JsonSchema, path = 'root'): string | null {
+  const rawType = schema.type;
+  const types = Array.isArray(rawType) ? rawType : typeof rawType === 'string' ? [rawType] : [];
+  if (value === null && (schema.nullable === true || types.includes('null'))) return null;
+  if (schema.enum && Array.isArray(schema.enum) && !schema.enum.some((candidate) => Object.is(candidate, value))) return `${path} is not one of the allowed enum values.`;
+  if (types.length > 0 && !types.some((type) => {
+    if (type === 'object') return isRecord(value);
+    if (type === 'array') return Array.isArray(value);
+    if (type === 'string') return typeof value === 'string';
+    if (type === 'integer') return typeof value === 'number' && Number.isInteger(value);
+    if (type === 'number') return typeof value === 'number' && Number.isFinite(value);
+    if (type === 'boolean') return typeof value === 'boolean';
+    return true;
+  })) return `${path} has an invalid type.`;
+  if (isRecord(value)) {
+    if (Array.isArray(schema.required)) for (const key of schema.required) if (typeof key === 'string' && !(key in value)) return `${path}.${key} is required.`;
+    if (schema.additionalProperties === false && isRecord(schema.properties)) for (const key of Object.keys(value)) if (!(key in schema.properties)) return `${path}.${key} is not declared by the schema.`;
+    if (isRecord(schema.properties)) for (const [key, childSchema] of Object.entries(schema.properties)) if (key in value && isRecord(childSchema)) {
+      const error = validateStructuredOutput(value[key], childSchema, `${path}.${key}`);
+      if (error) return error;
+    }
+  }
+  if (Array.isArray(value) && isRecord(schema.items)) for (let index = 0; index < value.length; index += 1) {
+    const error = validateStructuredOutput(value[index], schema.items, `${path}[${index}]`);
+    if (error) return error;
+  }
+  return null;
+}
+
+function parseStructured(text: string, schema: JsonSchema) {
   try {
     const parsed = JSON.parse(text) as unknown;
+    const validationError = validateStructuredOutput(parsed, schema);
+    if (validationError) return { success: false, value: null, error: `Gemini returned JSON that does not match the requested schema: ${validationError}` } as const;
     return { success: true, value: parsed, error: null } as const;
   } catch {
     return { success: false, value: null, error: 'Gemini returned a non-JSON response for a structured request.' } as const;
@@ -101,7 +149,7 @@ async function geminiRequest(input: { prompt: string; structuredOutputSchema?: R
   if (!response.ok || payload.error) throw new Error(payload.error?.message || `Gemini API request failed (${response.status}).`);
   const text = extractGeminiText(payload);
   if (!text) throw new Error('Gemini returned an empty response.');
-  return { text, structuredOutput: input.structuredOutputSchema ? parseStructured(text) : null };
+  return { text, structuredOutput: input.structuredOutputSchema ? parseStructured(text, input.structuredOutputSchema) : null };
 }
 
 /**

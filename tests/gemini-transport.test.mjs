@@ -18,8 +18,11 @@ test('Gemini transport reads only the server-side standard credential', () => {
   assert.doesNotMatch(helperSource, /process\.env\.MANUS_API_KEY/);
   assert.match(helperSource, /generativelanguage\.googleapis\.com\/v1beta\/models/);
   assert.match(helperSource, /encodeURIComponent\(apiKey\)/);
-  assert.match(helperSource, /normalized: Record<string, unknown>/);
+  assert.match(helperSource, /normalized: JsonSchema/);
   assert.doesNotMatch(helperSource, /\.\.\.schema,\s*type:/);
+  assert.match(helperSource, /schema\.additionalProperties === false/);
+  assert.match(helperSource, /is not declared by the schema/);
+  assert.match(helperSource, /only one non-null type per node/);
 });
 
 test('admin chat returns a synchronous Gemini response and records a completed local task', () => {
