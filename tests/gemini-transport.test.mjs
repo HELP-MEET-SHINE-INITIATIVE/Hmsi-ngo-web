@@ -96,9 +96,7 @@ test('assignment delivery issues worker identity access without granting admin a
   assert.match(emailSource, /Worker ID number is required before sending an access email/);
   assert.match(emailSource, /Your HMSI ID number/);
   assert.match(accessNoticeRouteSource, /getAdminEmailFromCookie/);
-  assert.match(accessNoticeRouteSource, /body\.confirm !== true/);
-  assert.match(accessNoticeRouteSource, /onboarding_status.*completed/);
-  assert.match(accessNoticeRouteSource, /accessNoticeEmail/);
+  assert.match(accessNoticeRouteSource, /handleBulkWorkerAccessNotices/);
   assert.match(emailSource, /RESEND_API_KEY/);
   assert.match(emailSource, /messageId/);
   assert.doesNotMatch(assignmentsRouteSource, /HMSI_ADMIN_PASSWORD/);

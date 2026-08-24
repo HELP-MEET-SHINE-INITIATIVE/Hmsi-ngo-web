@@ -19,3 +19,5 @@
 - [ ] Review latest Resend notification delivery and API logs against the secured password-reset implementation without exposing PII or secrets.
 - [x] Correct ID-card email rendering so every notice contains a non-empty worker ID number.
 - [x] Send the confirmed ID-card access notices to the new worker and all verified active workers, then verify Resend delivery metadata.
+- [x] Run the complete regression suite and verify automated coverage of the admin-only bulk worker access-notice endpoint.
+- [x] Add mocked runtime integration tests for authorization, confirmation, eligible-worker selection, card reissue, delivery, and failure handling in the bulk access-notice endpoint.
