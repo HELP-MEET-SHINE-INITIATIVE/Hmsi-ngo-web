@@ -109,6 +109,9 @@ test('assignment delivery issues worker identity access without granting admin a
   assert.match(loginContentSource, /portal-activate/);
   assert.match(forgotPasswordSource, /api\/portal\/auth\/recover/);
   assert.match(emailSource, /RESEND_API_KEY/);
+  assert.match(emailSource, /OFFICIAL_PORTAL_FROM = 'HMSI Portal <no-reply@hmsi\.org\.ng>'/);
+  assert.match(emailSource, /from: OFFICIAL_PORTAL_FROM/);
+  assert.doesNotMatch(emailSource, /process\.env\.RESEND_FROM_EMAIL/);
   assert.match(emailSource, /messageId/);
   assert.doesNotMatch(assignmentsRouteSource, /HMSI_ADMIN_PASSWORD/);
 });

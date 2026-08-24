@@ -1,10 +1,11 @@
 function escapeHtml(value: string) { return value.replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character] || character); }
 
+export const OFFICIAL_PORTAL_FROM = 'HMSI Portal <no-reply@hmsi.org.ng>';
+
 export async function sendPortalEmail(input: { to: string; subject: string; text: string; html?: string }) {
   const apiKey = process.env.RESEND_API_KEY?.trim();
-  const from = process.env.RESEND_FROM_EMAIL?.trim();
-  if (!apiKey || !from) return { sent: false, reason: 'email_not_configured' as const };
-  const response = await fetch('https://api.resend.com/emails', { method: 'POST', headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ from, to: [input.to], subject: input.subject, text: input.text, html: input.html || `<p>${escapeHtml(input.text).replace(/\n/g, '<br>')}</p>` }) });
+  if (!apiKey) return { sent: false, reason: 'email_not_configured' as const };
+  const response = await fetch('https://api.resend.com/emails', { method: 'POST', headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ from: OFFICIAL_PORTAL_FROM, to: [input.to], subject: input.subject, text: input.text, html: input.html || `<p>${escapeHtml(input.text).replace(/\n/g, '<br>')}</p>` }) });
   const payload = await response.json().catch(() => ({})) as { id?: string; message?: string };
   if (!response.ok) throw new Error(payload.message || `Email delivery failed (${response.status}).`);
   return { sent: true, messageId: typeof payload.id === 'string' ? payload.id : null } as const;

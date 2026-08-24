@@ -25,3 +25,6 @@
 - [x] Create a presentation deck on bulk worker access-notice API design, safeguards, integration, and runtime validation.
 - [x] Review and harden bulk access-notice authentication and authorization controls, and clarify worker, volunteer, and member portal sign-in identification.
 - [x] Repair the shared portal password-recovery entry and add role-specific sign-in guidance without exposing role eligibility.
+- [ ] Audit recent password-recovery delivery without exposing recipient data, and configure official-email-only sender and president correspondence controls after exact addresses are approved.
+- [x] Enforce `HMSI Portal <no-reply@hmsi.org.ng>` as the sole portal-mail sender.
+- [ ] Complete Supabase Auth SMTP configuration after the official Resend SMTP credential and president reply-to address are supplied.
