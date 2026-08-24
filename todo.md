@@ -51,10 +51,10 @@
 - [x] Verify protected thank-you acknowledgement-log availability and updates for recent successful donations without exposing donor information.
 - [x] Add and apply a fail-safe donation acknowledgement audit schema, then verify it without altering existing donation records.
 - [x] Connect verified donation acknowledgement dispatch and Resend webhook events to the audit schema and protected admin ledger with idempotent processing.
-- [ ] Extend the donation model and admin ledger for verified multi-channel tracking, receipt details, campaign attribution, acknowledgement status, and bounded real-time refresh without exposing payment credentials or card data.
-- [ ] Add a verified provider-webhook trust boundary and an admin-only manual-donation intake path that requires explicit verification before fundraiser totals or donor acknowledgements are triggered.
-- [ ] Add a volunteer publisher-role taxonomy and a role-limited `/portal/submit-news` workflow that submits content only to the existing editorial review queue and never publishes directly.
-- [ ] Extend `/portal/submit-news` with rich-text content, controlled category selection, direct image upload or validated Google Drive media links, submitter attribution, and the approved editorial-review confirmation message.
-- [ ] Extend administrator editorial review with request-revisions feedback, contributor-visible revision state, and protected re-submission while retaining administrator-only publishing.
-- [ ] Align the protected editorial queue and article model with the publisher dispatch terminology while preserving compatibility with existing pending-review records and public news rendering.
-- [ ] Add a protected administrator control to assign or remove publisher pathways for approved active volunteers after onboarding.
+- [x] Extend the donation model and admin ledger for verified multi-channel tracking, receipt details, campaign attribution, acknowledgement status, and bounded real-time refresh without exposing payment credentials or card data.
+- [x] Add a verified provider-webhook trust boundary and an admin-only manual-donation intake path that requires explicit verification before fundraiser totals or donor acknowledgements are triggered.
+- [x] Add a volunteer publisher-role taxonomy and a role-limited `/portal/submit-news` workflow that submits content only to the existing editorial review queue and never publishes directly.
+- [x] Extend `/portal/submit-news` with rich-text content, controlled category selection, direct image upload or validated Google Drive media links, submitter attribution, and the approved editorial-review confirmation message.
+- [x] Extend administrator editorial review with request-revisions feedback, contributor-visible revision state, and protected re-submission while retaining administrator-only publishing.
+- [x] Align the protected editorial queue and article model with the publisher dispatch terminology while preserving compatibility with existing pending-review records and public news rendering.
+- [x] Add a protected administrator control to assign or remove publisher pathways for approved active volunteers after onboarding.
