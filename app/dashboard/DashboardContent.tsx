@@ -108,7 +108,7 @@ export default function DashboardContent() {
   }
 
   if (viewer.role === 'worker') {
-    return <div className="min-h-screen bg-[#f6f4ef] text-[#17221e]"><HmsiRoomFlashPlacements /><header className="flex items-center justify-between border-b border-[#d9d6ce] bg-white px-5 py-4 sm:px-8"><div><p className="text-xs font-black uppercase tracking-[0.18em] text-[#b56b3b]">HMSI restricted workspace</p><p className="mt-1 text-sm font-bold">{viewer.name}</p></div><button onClick={async () => { await fetch('/api/worker/session', { method: 'DELETE' }); await fetch('/api/member/session', { method: 'DELETE' }); logout(); }} className="rounded-full border border-red-200 px-4 py-2 text-xs font-black uppercase tracking-widest text-red-600">Sign out</button></header><div className="mx-auto max-w-4xl px-5 pt-8 sm:px-8"><HmsiIdCardPanel /><WorkspaceOpportunities viewerRole="worker" /><WorkerRoomContributorStudio /></div><WorkerAssistantPanel /></div>;
+    return <div className="min-h-screen bg-[#f6f4ef] text-[#17221e]"><HmsiRoomFlashPlacements /><header className="flex items-center justify-between border-b border-[#d9d6ce] bg-white px-5 py-4 sm:px-8"><div><p className="text-xs font-black uppercase tracking-[0.18em] text-[#b56b3b]">HMSI restricted workspace</p><p className="mt-1 text-sm font-bold">{viewer.name}</p></div><div className="flex items-center gap-2"><Link href="/portal/submissions" className="rounded-full bg-[#e9f0e9] px-4 py-2 text-xs font-black uppercase tracking-widest text-[#1e5b49]">File submissions</Link><button onClick={async () => { await fetch('/api/worker/session', { method: 'DELETE' }); await fetch('/api/member/session', { method: 'DELETE' }); logout(); }} className="rounded-full border border-red-200 px-4 py-2 text-xs font-black uppercase tracking-widest text-red-600">Sign out</button></div></header><div className="mx-auto max-w-4xl px-5 pt-8 sm:px-8"><HmsiIdCardPanel /><WorkspaceOpportunities viewerRole="worker" /><WorkerRoomContributorStudio /></div><WorkerAssistantPanel /></div>;
   }
 
   if (viewer.role === 'member') return <MemberWorkspace name={viewer.name} logout={logout} />;
@@ -215,6 +215,7 @@ export default function DashboardContent() {
           
           <div className="flex items-center gap-4">
             {viewer.role === 'admin' && <Link href="/hmsi-control" className="hidden rounded-full bg-[#1e5b49] px-3 py-2 text-[10px] font-black uppercase tracking-widest text-white sm:inline-flex">Admin dashboard</Link>}
+            {viewer.role !== 'admin' && <Link href="/portal/submissions" className="hidden rounded-full bg-[#e9f0e9] px-3 py-2 text-[10px] font-black uppercase tracking-widest text-[#1e5b49] sm:inline-flex">File submissions</Link>}
             <button onClick={() => setActivePanel('notifications')} className="p-2 rounded-full hover:bg-[#f6f4ef] text-[#66716a] relative" aria-label="Open notifications">
               <Bell size={20} />
               {viewer.role === 'worker' && messageUnreadCount > 0 && <span className="absolute -right-1 -top-1 min-w-4 rounded-full bg-red-500 px-1 text-center text-[9px] font-black leading-4 text-white">{messageUnreadCount}</span>}

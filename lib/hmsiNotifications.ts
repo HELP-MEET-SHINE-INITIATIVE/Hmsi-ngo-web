@@ -46,6 +46,16 @@ export function workerWelcomeTemplate(input: { name: string; role: 'worker' | 'v
   return { html, text: `Dear ${input.name},\n\nWelcome to Help Meet Shine Initiative. Your HMSI ${roleLabel} status is active. Complete your onboarding here: ${input.dashboardUrl}\n\nDo not forward this secure link.` };
 }
 
+export function hmsiDriveFilesIngestedTemplate(input: { name: string; submissionsUrl: string }) {
+  const html = officialShell({
+    eyebrow: 'HMSI File Intake',
+    title: 'Your submitted files have been archived',
+    body: `<p style="margin-top:0">Dear ${escapeHtml(input.name)},</p><p>HMSI administration has confirmed that your submitted files have been secured in the approved HMSI archive.</p><p>Your portal status now shows <strong>Files Ingested / Downloaded</strong>. You may keep the original files in your personal Google Drive or delete them if you need to free storage.</p><p><a href="${escapeHtml(input.submissionsUrl)}" style="display:inline-block;background:#1e5b49;color:#ffffff;padding:12px 18px;text-decoration:none;font-weight:700">Open my file submissions</a></p><p>Please do not send replacement files unless HMSI administration asks you to do so.</p>`,
+    footer: 'HMSI Administration · Official secure file-intake correspondence',
+  });
+  return { html, text: `Dear ${input.name},\n\nHMSI administration has confirmed that your submitted files have been secured in the approved HMSI archive. Your portal now shows Files Ingested / Downloaded. You may keep or delete the original files from your personal Google Drive.\n\nOpen your submissions: ${input.submissionsUrl}` };
+}
+
 export function presidentAlertTemplate(input: { title: string; summary: string; rows: HmsiAlertRow[]; portalUrl?: string }) {
   const rows = input.rows.map((row) => `<tr><td style="padding:10px 0;border-bottom:1px solid #e2e6df;color:#66716a;width:42%">${escapeHtml(row.label)}</td><td style="padding:10px 0;border-bottom:1px solid #e2e6df;color:#17221e;font-weight:700">${escapeHtml(row.value)}</td></tr>`).join('');
   const portal = input.portalUrl ? `<p><a href="${escapeHtml(input.portalUrl)}" style="display:inline-block;background:#1e5b49;color:#ffffff;padding:12px 18px;text-decoration:none;font-weight:700">Open HMSI administration</a></p>` : '';

@@ -39,3 +39,5 @@
 - [x] Add protected `/admin/editorial` and `/admin/articles` routes with an editorial queue, content-management views, inspection controls, and optimistic review actions.
 - [x] Add admin-only article-management API handlers and editorial audit fields for review, draft, publish, reject, archive, and deletion states.
 - [x] Add a safe ten-day article archival policy, scheduled reconciliation route, tests, production validation, and deployment verification.
+- [x] Build the selected personal Google Drive submission, administrator intake-routing, ingestion-status, notification, and privacy-cleanup workflow for HMSI portal users.
+- [x] Require named-HMSI-administrator viewer sharing for personal Drive submissions and expose submitted links only in the protected administrator intake-routing view.
