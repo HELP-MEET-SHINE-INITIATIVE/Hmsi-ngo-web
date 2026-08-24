@@ -22,3 +22,6 @@
 - [x] Run the complete regression suite and verify automated coverage of the admin-only bulk worker access-notice endpoint.
 - [x] Add mocked runtime integration tests for authorization, confirmation, eligible-worker selection, card reissue, delivery, and failure handling in the bulk access-notice endpoint.
 - [x] Document the secure bulk worker access-notice API contract, response semantics, safeguards, and administrative integration pattern.
+- [x] Create a presentation deck on bulk worker access-notice API design, safeguards, integration, and runtime validation.
+- [x] Review and harden bulk access-notice authentication and authorization controls, and clarify worker, volunteer, and member portal sign-in identification.
+- [x] Repair the shared portal password-recovery entry and add role-specific sign-in guidance without exposing role eligibility.

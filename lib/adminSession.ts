@@ -72,7 +72,11 @@ export function getAdminEmailFromCookie(cookieHeader: string | null) {
   const expected = Buffer.from(expectedSignature);
   if (supplied.length !== expected.length || !timingSafeEqual(supplied, expected)) return null;
 
-  return Buffer.from(encodedEmail, 'base64url').toString('utf8');
+  const decodedEmail = Buffer.from(encodedEmail, 'base64url').toString('utf8').trim().toLowerCase();
+  const suppliedEmail = digest(decodedEmail);
+  const configuredEmail = digest(config.email);
+  if (!decodedEmail || suppliedEmail.length !== configuredEmail.length || !timingSafeEqual(suppliedEmail, configuredEmail)) return null;
+  return decodedEmail;
 }
 
 export function adminCookieOptions() {

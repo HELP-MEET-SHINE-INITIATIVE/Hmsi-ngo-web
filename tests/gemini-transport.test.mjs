@@ -21,6 +21,9 @@ const profileRouteSource = await readFile(new URL('../app/api/portal/profile/rou
 const assignmentsRouteSource = await readFile(new URL('../app/api/admin/assignments/route.ts', import.meta.url), 'utf8');
 const emailSource = await readFile(new URL('../lib/portalEmail.ts', import.meta.url), 'utf8');
 const accessNoticeRouteSource = await readFile(new URL('../app/api/admin/workers/access-notices/route.ts', import.meta.url), 'utf8');
+const adminSessionSource = await readFile(new URL('../lib/adminSession.ts', import.meta.url), 'utf8');
+const loginContentSource = await readFile(new URL('../app/login/LoginContent.tsx', import.meta.url), 'utf8');
+const forgotPasswordSource = await readFile(new URL('../app/forgot-password/page.tsx', import.meta.url), 'utf8');
 
 test('Gemini transport reads only the server-side standard credential', () => {
   assert.match(helperSource, /process\.env\.GEMINI_API_KEY/);
@@ -97,6 +100,14 @@ test('assignment delivery issues worker identity access without granting admin a
   assert.match(emailSource, /Your HMSI ID number/);
   assert.match(accessNoticeRouteSource, /getAdminEmailFromCookie/);
   assert.match(accessNoticeRouteSource, /handleBulkWorkerAccessNotices/);
+  assert.match(adminSessionSource, /const decodedEmail/);
+  assert.match(adminSessionSource, /timingSafeEqual\(suppliedEmail, configuredEmail\)/);
+  assert.match(loginContentSource, /Which portal is yours/);
+  assert.match(loginContentSource, /Approved and active workers/);
+  assert.match(loginContentSource, /Approved active volunteers/);
+  assert.match(loginContentSource, /Active HMSI members/);
+  assert.match(loginContentSource, /portal-activate/);
+  assert.match(forgotPasswordSource, /api\/portal\/auth\/recover/);
   assert.match(emailSource, /RESEND_API_KEY/);
   assert.match(emailSource, /messageId/);
   assert.doesNotMatch(assignmentsRouteSource, /HMSI_ADMIN_PASSWORD/);

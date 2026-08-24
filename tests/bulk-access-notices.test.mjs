@@ -2,10 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { handleBulkWorkerAccessNotices } from '../lib/bulkWorkerAccessNotices.mjs';
 
-function makeRequest(body, cookie = 'hmsi_admin=session') {
+function makeRequest(body, cookie = 'hmsi_admin=session', extraHeaders = {}) {
   return new Request('https://www.hmsi.org.ng/api/admin/workers/access-notices', {
     method: 'POST',
-    headers: cookie ? { cookie, 'content-type': 'application/json' } : { 'content-type': 'application/json' },
+    headers: { ...(cookie ? { cookie } : {}), 'content-type': 'application/json', ...extraHeaders },
     body: JSON.stringify(body),
   });
 }
@@ -75,6 +75,22 @@ test('requires explicit confirmation before selecting eligible workers', async (
   const response = await handleBulkWorkerAccessNotices(makeRequest({ confirm: false }), harness.dependencies);
   assert.equal(response.status, 400);
   assert.deepEqual(await json(response), { error: 'Explicit confirmation is required before sending access notices.' });
+  assert.deepEqual(harness.calls.workerFilters, []);
+});
+
+test('rejects a foreign-origin bulk dispatch even when an admin session is present', async () => {
+  const harness = makeDependencies();
+  const response = await handleBulkWorkerAccessNotices(makeRequest({ confirm: true }, 'hmsi_admin=session', { origin: 'https://attacker.invalid', 'sec-fetch-site': 'cross-site' }), harness.dependencies);
+  assert.equal(response.status, 403);
+  assert.deepEqual(await json(response), { error: 'Cross-site administrative requests are not permitted.' });
+  assert.deepEqual(harness.calls.workerFilters, []);
+});
+
+test('rejects a browser-marked cross-site bulk dispatch without an Origin header', async () => {
+  const harness = makeDependencies();
+  const response = await handleBulkWorkerAccessNotices(makeRequest({ confirm: true }, 'hmsi_admin=session', { 'sec-fetch-site': 'cross-site' }), harness.dependencies);
+  assert.equal(response.status, 403);
+  assert.deepEqual(await json(response), { error: 'Cross-site administrative requests are not permitted.' });
   assert.deepEqual(harness.calls.workerFilters, []);
 });
 

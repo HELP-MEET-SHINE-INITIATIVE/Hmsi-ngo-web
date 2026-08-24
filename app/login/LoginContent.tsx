@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Lock, Mail, ArrowRight, AlertCircle } from "lucide-react";
+import { Lock, Mail, ArrowRight, AlertCircle, BriefcaseBusiness, HeartHandshake, IdCard, KeyRound } from "lucide-react";
 import { useAuth } from "../../lib/auth";
 
 export default function LoginContent() {
@@ -42,8 +42,18 @@ export default function LoginContent() {
         <div className="text-center mb-10">
           <Link href="/" className="mb-6 inline-flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl bg-[#272178] shadow-sm" aria-label="HMSI home"><Image src="/logo.png" alt="HMSI logo" width={56} height={56} className="h-full w-full object-cover" /></Link>
           <h1 className="text-3xl font-black tracking-tight text-[#17221e]">Welcome back</h1>
-          <p className="mt-2 text-[#66716a]">Sign in to your HMSI volunteer or approved worker portal</p>
+          <p className="mt-2 text-[#66716a]">Sign in to your active HMSI worker, volunteer, or member portal</p>
         </div>
+
+        <section aria-labelledby="portal-role-guide" className="mb-6 border border-[#d9d6ce] bg-[#eef3ed] p-5">
+          <div className="flex items-center gap-2"><IdCard size={18} className="text-[#1e5b49]" /><h2 id="portal-role-guide" className="text-sm font-black text-[#17221e]">Which portal is yours?</h2></div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <div><BriefcaseBusiness size={17} className="text-[#1e5b49]" /><p className="mt-1 text-xs font-black text-[#17221e]">Worker</p><p className="mt-1 text-xs leading-5 text-[#66716a]">Approved and active workers</p></div>
+            <div><HeartHandshake size={17} className="text-[#1e5b49]" /><p className="mt-1 text-xs font-black text-[#17221e]">Volunteer</p><p className="mt-1 text-xs leading-5 text-[#66716a]">Approved active volunteers</p></div>
+            <div><IdCard size={17} className="text-[#1e5b49]" /><p className="mt-1 text-xs font-black text-[#17221e]">Member</p><p className="mt-1 text-xs leading-5 text-[#66716a]">Active HMSI members</p></div>
+          </div>
+          <p className="mt-4 border-t border-[#d9d6ce] pt-3 text-xs leading-5 text-[#66716a]">Use the same secure sign-in form below. HMSI verifies your approved role on the server and opens only the matching portal.</p>
+        </section>
 
         <div className="bg-white rounded-3xl p-8 shadow-[0_24px_70px_rgba(23,34,30,0.08)] border border-[#d9d6ce]">
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -64,7 +74,8 @@ export default function LoginContent() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-12 pr-4 py-3.5 rounded-xl border border-[#d9d6ce] bg-[#f6f4ef]/50 focus:bg-white focus:border-[#1e5b49] outline-none transition-all"
-                  placeholder="worker@hmsi.org.ng"
+                  autoComplete="email"
+                  placeholder="you@example.com"
                 />
               </div>
             </div>
@@ -76,6 +87,7 @@ export default function LoginContent() {
                 <input
                   type="password"
                   required
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-12 pr-4 py-3.5 rounded-xl border border-[#d9d6ce] bg-[#f6f4ef]/50 focus:bg-white focus:border-[#1e5b49] outline-none transition-all"
@@ -96,9 +108,8 @@ export default function LoginContent() {
           </form>
 
           <div className="mt-8 pt-8 border-t border-[#f6f4ef] text-center">
-            <p className="text-sm text-[#66716a]">
-              Volunteer? <Link href="/signup" className="font-bold text-[#1e5b49] hover:underline">Create an account</Link><span className="mx-2 text-[#d9d6ce]">·</span>Worker? <Link href="/worker-apply" className="font-bold text-[#1e5b49] hover:underline">Apply for approval</Link>
-            </p>
+            <p className="text-sm text-[#66716a]">First access with an HMSI ID card? <Link href="/portal-activate" className="font-bold text-[#1e5b49] hover:underline">Activate your portal access</Link></p>
+            <p className="mt-3 text-sm text-[#66716a]">New volunteer? <Link href="/signup" className="font-bold text-[#1e5b49] hover:underline">Apply</Link><span className="mx-2 text-[#d9d6ce]">·</span>New worker? <Link href="/worker-apply" className="font-bold text-[#1e5b49] hover:underline">Apply</Link><span className="mx-2 text-[#d9d6ce]">·</span>New member? <Link href="/member-apply" className="font-bold text-[#1e5b49] hover:underline">Apply</Link></p>
           </div>
         </div>
       </div>
