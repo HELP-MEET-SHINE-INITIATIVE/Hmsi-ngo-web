@@ -1,0 +1,128 @@
+{
+  "info": {
+    "name": "HMSI Admin Approval and Assignment Mutations",
+    "description": "Opt-in, fail-closed functional tests for the HMSI admin session, worker approval, directory synchronization, assignee eligibility, assignment creation, validation, and authorization boundaries. Use only with synthetic test records. Never commit credentials or real PII.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "https://www.hmsi.org.ng" },
+    { "key": "runMutations", "value": "false" },
+    { "key": "allowProductionMutations", "value": "false" },
+    { "key": "adminEmail", "value": "" },
+    { "key": "adminPassword", "value": "" },
+    { "key": "testApplicationId", "value": "" },
+    { "key": "testWorkerEmail", "value": "" },
+    { "key": "testWorkerId", "value": "" },
+    { "key": "completedWorkerId", "value": "" },
+    { "key": "createdAssignmentId", "value": "" }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const run = pm.collectionVariables.get('runMutations') === 'true';",
+          "const allowProd = pm.collectionVariables.get('allowProductionMutations') === 'true';",
+          "const base = pm.collectionVariables.get('baseUrl') || '';",
+          "const isProduction = /hmsi\\.org\\.ng/i.test(base);",
+          "if (run && isProduction && !allowProd) { throw new Error('Fail-closed: production mutations require allowProductionMutations=true after explicit approval.'); }",
+          "if (run && !pm.collectionVariables.get('adminEmail')) throw new Error('Missing adminEmail. Set it only in a secure local Postman environment.');",
+          "if (run && !pm.collectionVariables.get('adminPassword')) throw new Error('Missing adminPassword. Set it only in a secure local Postman environment and mark it secret.');"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - Unauthenticated admin APIs reject access",
+      "item": [
+        {
+          "name": "Overview returns 401",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/admin/overview" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Unauthenticated overview is rejected', () => pm.response.to.have.status(401));"] } }]
+        },
+        {
+          "name": "Workers returns 401",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/admin/workers" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Unauthenticated workers list is rejected', () => pm.response.to.have.status(401));"] } }]
+        },
+        {
+          "name": "Assignment POST returns 401",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"title\": \"UNAUTHORIZED_TEST_MUST_NOT_CREATE\",\n  \"description\": \"Synthetic negative authorization test.\",\n  \"kind\": \"job\",\n  \"workerId\": \"not-a-real-id\"\n}" }, "url": "{{baseUrl}}/api/admin/assignments" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Unauthenticated assignment mutation is rejected', () => pm.response.to.have.status(401));"] } }]
+        }
+      ]
+    },
+    {
+      "name": "02 - Authenticated read baseline",
+      "item": [
+        {
+          "name": "Admin session login",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}" }, "url": "{{baseUrl}}/api/admin/session" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Admin login succeeds', () => pm.response.to.have.status(200));", "pm.test('Session response does not expose a password', () => pm.expect(pm.response.text()).not.to.match(/password/i));"] } }]
+        },
+        {
+          "name": "Overview contains onboarding status",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/admin/overview" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Overview succeeds', () => pm.response.to.have.status(200));", "const json = pm.response.json();", "pm.test('Overview includes workers', () => pm.expect(json).to.have.property('workers'));", "pm.test('Worker rows expose onboarding_status', () => pm.expect((json.workers || []).every(w => Object.prototype.hasOwnProperty.call(w, 'onboarding_status'))).to.eql(true));"] } }]
+        },
+        {
+          "name": "Workers list exposes approved candidates",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/admin/workers" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Workers list succeeds', () => pm.response.to.have.status(200));", "const json = pm.response.json();", "pm.test('Workers list is an array', () => pm.expect(json.workers).to.be.an('array'));", "pm.test('Worker rows include identity and eligibility fields', () => pm.expect((json.workers || []).every(w => ['id','name','email','phone','status','onboarding_status'].every(k => Object.prototype.hasOwnProperty.call(w, k))).to.eql(true));"] } }]
+        }
+      ]
+    },
+    {
+      "name": "03 - Approval mutation (opt-in)",
+      "item": [
+        {
+          "name": "Approve synthetic worker application",
+          "request": { "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"status\": \"approved\"\n}" }, "url": "{{baseUrl}}/api/admin/volunteers/{{testApplicationId}}" },
+          "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": ["if (pm.collectionVariables.get('runMutations') !== 'true') throw new Error('Skipped by safety guard: set runMutations=true to execute approval mutation.');", "if (!pm.collectionVariables.get('testApplicationId')) throw new Error('Set a synthetic testApplicationId before running approval mutation tests.');"] } }, { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Approval mutation succeeds', () => pm.expect([200, 201]).to.include(pm.response.code));", "const json = pm.response.json();", "pm.test('Approval response is not a false success', () => pm.expect(json.volunteer?.status || json.application?.status).to.eql('approved'));", "if (json.workerId) pm.collectionVariables.set('testWorkerId', json.workerId);"] } }]
+        },
+        {
+          "name": "Re-read workers after approval",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/admin/workers" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Workers list refresh succeeds', () => pm.response.to.have.status(200));", "const workers = pm.response.json().workers || [];", "const email = pm.collectionVariables.get('testWorkerEmail');", "const worker = workers.find(w => (pm.collectionVariables.get('testWorkerId') && w.id === pm.collectionVariables.get('testWorkerId')) || (email && w.email === email));", "if (worker) pm.collectionVariables.set('testWorkerId', worker.id);", "pm.test('Approved worker appears in directory when workerId is supplied', () => pm.expect(Boolean(worker)).to.eql(true));", "if (worker) pm.test('Worker exposes onboarding status', () => pm.expect(worker).to.have.property('onboarding_status')); "] } }]
+        }
+      ]
+    },
+    {
+      "name": "04 - Assignment mutation and validation (opt-in)",
+      "item": [
+        {
+          "name": "Create assignment for completed-onboarding worker",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"title\": \"AUTOMATED_TEST_ASSIGNMENT_DELETE_AFTER_RUN\",\n  \"description\": \"Synthetic functional-test assignment; remove or archive immediately after the run.\",\n  \"kind\": \"job\",\n  \"workerId\": \"{{completedWorkerId}}\"\n}" }, "url": "{{baseUrl}}/api/admin/assignments" },
+          "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": ["if (pm.collectionVariables.get('runMutations') !== 'true') throw new Error('Skipped by safety guard: set runMutations=true to execute assignment mutation.');", "if (!pm.collectionVariables.get('completedWorkerId')) throw new Error('Set completedWorkerId to an existing synthetic active worker with onboarding_status=completed.');"] } }, { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Assignment creation succeeds', () => pm.response.to.have.status(201));", "const json = pm.response.json();", "pm.test('Assignment response contains assignment', () => pm.expect(json.assignment).to.be.an('object'));", "pm.collectionVariables.set('createdAssignmentId', json.assignment.id);"] } }]
+        },
+        {
+          "name": "Reject incomplete assignment payload",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"title\": \"\",\n  \"description\": \"\",\n  \"kind\": \"invalid\",\n  \"workerId\": \"\"\n}" }, "url": "{{baseUrl}}/api/admin/assignments" },
+          "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": ["if (pm.collectionVariables.get('runMutations') !== 'true') throw new Error('Skipped by safety guard: set runMutations=true to execute negative mutation test.');"] } }, { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Invalid assignment is rejected', () => pm.response.to.have.status(400));"] } }]
+        },
+        {
+          "name": "Reject non-completed worker",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"title\": \"AUTOMATED_TEST_SHOULD_REJECT\",\n  \"description\": \"Synthetic negative test.\",\n  \"kind\": \"job\",\n  \"workerId\": \"{{testWorkerId}}\"\n}" }, "url": "{{baseUrl}}/api/admin/assignments" },
+          "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": ["if (pm.collectionVariables.get('runMutations') !== 'true') throw new Error('Skipped by safety guard: set runMutations=true to execute negative mutation test.');", "if (!pm.collectionVariables.get('testWorkerId')) throw new Error('Set testWorkerId to the approved worker under test.');"] } }, { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Incomplete-onboarding worker is rejected', () => pm.expect([400, 409]).to.include(pm.response.code));"] } }]
+        }
+      ]
+    },
+    {
+      "name": "05 - Session cleanup",
+      "item": [
+        {
+          "name": "Mark created assignment completed for cleanup",
+          "request": { "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"id\": \"{{createdAssignmentId}}\",\n  \"status\": \"completed\"\n}" }, "url": "{{baseUrl}}/api/admin/assignments" },
+          "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": ["if (pm.collectionVariables.get('runMutations') !== 'true') throw new Error('Skipped by safety guard: set runMutations=true to execute cleanup mutation.');", "if (!pm.collectionVariables.get('createdAssignmentId')) pm.execution.skipRequest();"] } }, { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Created test assignment cleanup succeeds', () => pm.response.to.have.status(200));"] } }]
+        },
+        {
+          "name": "Sign out",
+          "request": { "method": "DELETE", "header": [], "url": "{{baseUrl}}/api/admin/session" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Admin session cleanup succeeds', () => pm.response.to.have.status(200));"] } }]
+        }
+      ]
+    }
+  ]
+}
