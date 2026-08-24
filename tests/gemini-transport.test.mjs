@@ -24,6 +24,10 @@ const accessNoticeRouteSource = await readFile(new URL('../app/api/admin/workers
 const adminSessionSource = await readFile(new URL('../lib/adminSession.ts', import.meta.url), 'utf8');
 const loginContentSource = await readFile(new URL('../app/login/LoginContent.tsx', import.meta.url), 'utf8');
 const forgotPasswordSource = await readFile(new URL('../app/forgot-password/page.tsx', import.meta.url), 'utf8');
+const notificationSource = await readFile(new URL('../lib/hmsiNotifications.ts', import.meta.url), 'utf8');
+const volunteerSource = await readFile(new URL('../app/api/volunteer/route.ts', import.meta.url), 'utf8');
+const donationSource = await readFile(new URL('../app/api/donations/route.ts', import.meta.url), 'utf8');
+const trainingAlertSource = await readFile(new URL('../app/api/cron/training-alert/route.ts', import.meta.url), 'utf8');
 
 test('Gemini transport reads only the server-side standard credential', () => {
   assert.match(helperSource, /process\.env\.GEMINI_API_KEY/);
@@ -108,12 +112,29 @@ test('assignment delivery issues worker identity access without granting admin a
   assert.match(loginContentSource, /Active HMSI members/);
   assert.match(loginContentSource, /portal-activate/);
   assert.match(forgotPasswordSource, /api\/portal\/auth\/recover/);
-  assert.match(emailSource, /RESEND_API_KEY/);
-  assert.match(emailSource, /OFFICIAL_PORTAL_FROM = 'HMSI Portal <no-reply@hmsi\.org\.ng>'/);
-  assert.match(emailSource, /from: OFFICIAL_PORTAL_FROM/);
-  assert.doesNotMatch(emailSource, /process\.env\.RESEND_FROM_EMAIL/);
-  assert.match(emailSource, /messageId/);
+  assert.match(notificationSource, /RESEND_API_KEY/);
+  assert.match(emailSource, /OFFICIAL_PORTAL_FROM = HMSI_SENDERS\.onboarding/);
+  assert.match(emailSource, /sender: 'onboarding'/);
+  assert.match(notificationSource, /messageId/);
   assert.doesNotMatch(assignmentsRouteSource, /HMSI_ADMIN_PASSWORD/);
+});
+
+test('official notification routing uses verified HMSI identities and president-safe templates', () => {
+  assert.match(notificationSource, /admin@hmsi\.org\.ng/);
+  assert.match(notificationSource, /onboarding@hmsi\.org\.ng/);
+  assert.match(notificationSource, /noreply@hmsi\.org\.ng/);
+  assert.match(notificationSource, /president@hmsi\.org\.ng/);
+  assert.match(notificationSource, /Dear Mr\. President,/);
+  assert.match(notificationSource, /passwordResetTemplate/);
+  assert.match(notificationSource, /workerWelcomeTemplate/);
+  assert.match(notificationSource, /presidentAlertTemplate/);
+  assert.match(notificationSource, /sendResendEmailWithRetry/);
+  assert.match(volunteerSource, /sendPresidentInternalAlert/);
+  assert.match(volunteerSource, /president_volunteer_registration/);
+  assert.match(donationSource, /HMSI_MAJOR_DONATION_THRESHOLD_NGN/);
+  assert.match(donationSource, /sendPresidentInternalAlert/);
+  assert.match(trainingAlertSource, /Critical training and safeguarding alert/);
+  assert.match(trainingAlertSource, /HMSI_SENDERS\.admin/);
 });
 
 test('newsroom research uses stored Gemini structured output and keeps drafts pending approval', () => {

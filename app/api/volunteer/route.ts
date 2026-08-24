@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdmin, hasSupabaseConfig } from '../../../lib/supabaseAdmin';
+import { sendPresidentInternalAlert } from '../../../lib/hmsiNotifications';
 
 export const runtime = 'nodejs';
 
@@ -30,7 +31,7 @@ export async function POST(request: Request) {
     const admin = getSupabaseAdmin();
     if (!admin) throw new Error('Supabase is not configured.');
 
-    const { error } = await admin.from('volunteer_applications').insert({
+    const { data: application, error } = await admin.from('volunteer_applications').insert({
       name,
       email,
       phone,
@@ -38,9 +39,24 @@ export async function POST(request: Request) {
       message,
       applicant_role: applicantRole,
       status: 'pending',
-    });
+    }).select('id').single();
 
-    if (error) throw error;
+    if (error || !application) throw error || new Error('Volunteer application could not be created.');
+    try {
+      await sendPresidentInternalAlert({
+        title: 'New volunteer registration received',
+        summary: 'A new HMSI volunteer application is ready for authorised review.',
+        rows: [
+          { label: 'Applicant pathway', value: applicantRole === 'worker' ? 'Worker applicant' : 'Volunteer applicant' },
+          { label: 'Application status', value: 'Pending review' },
+          { label: 'Action required', value: 'Review the application in HMSI administration.' },
+        ],
+        portalUrl: 'https://www.hmsi.org.ng/admin',
+        idempotencyKey: `president_volunteer_registration_${application.id}`,
+      });
+    } catch (alertError) {
+      console.error('[Volunteer] President registration alert failed:', alertError instanceof Error ? alertError.message : 'unknown');
+    }
     return NextResponse.json({ ok: true }, { status: 201 });
   } catch (error) {
     console.error('[Volunteer] Failed to save application:', error);

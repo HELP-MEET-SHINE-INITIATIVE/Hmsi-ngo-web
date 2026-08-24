@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../../lib/supabaseAdmin';
 import { getTrainingAnalyticsOverview, type RegionalTrainingMetric, type TrainingAnalyticsOverview } from '../../../../lib/trainingAnalytics';
 import { sendResendEmailWithRetry } from '../../../../lib/resendRetryQueue';
+import { HMSI_SENDERS, sendPresidentInternalAlert } from '../../../../lib/hmsiNotifications';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -174,7 +175,7 @@ export async function GET(request: Request) {
   }
 
   const apiKey = process.env.RESEND_API_KEY?.trim();
-  const fromEmail = process.env.RESEND_FROM_EMAIL?.trim() || 'contact@hmsi.org.ng';
+  const fromEmail = HMSI_SENDERS.admin;
 
   if (!apiKey) {
     return NextResponse.json({ error: 'Resend API key is not configured.' }, { status: 503 });
@@ -240,6 +241,24 @@ export async function GET(request: Request) {
       }
 
       return NextResponse.json({ error: 'Failed to dispatch alert via Resend after retries.', details: dispatch.error }, { status: 502 });
+    }
+
+    if (emailData.isRed) {
+      try {
+        await sendPresidentInternalAlert({
+          title: 'Critical training and safeguarding alert',
+          summary: 'The weekly training analysis reported a RED status requiring executive awareness and authorised follow-up.',
+          rows: [
+            { label: 'Global completion', value: `${analytics.summary.globalCompletionRate}%` },
+            { label: 'Regional offices requiring attention', value: String(attentionOffices.length) },
+            { label: 'Overall status', value: 'RED — action required' },
+          ],
+          portalUrl: 'https://www.hmsi.org.ng/hmsi-control',
+          idempotencyKey: `president_training_critical_${new Date().toISOString().slice(0, 10)}`,
+        });
+      } catch (alertError) {
+        console.error('[Training Cron Alert] President critical alert failed:', alertError instanceof Error ? alertError.message : 'unknown');
+      }
     }
 
     // Record alert in training_alert_logs table

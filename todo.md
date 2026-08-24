@@ -25,6 +25,9 @@
 - [x] Create a presentation deck on bulk worker access-notice API design, safeguards, integration, and runtime validation.
 - [x] Review and harden bulk access-notice authentication and authorization controls, and clarify worker, volunteer, and member portal sign-in identification.
 - [x] Repair the shared portal password-recovery entry and add role-specific sign-in guidance without exposing role eligibility.
-- [ ] Audit recent password-recovery delivery without exposing recipient data, and configure official-email-only sender and president correspondence controls after exact addresses are approved.
-- [x] Enforce `HMSI Portal <no-reply@hmsi.org.ng>` as the sole portal-mail sender.
-- [ ] Complete Supabase Auth SMTP configuration after the official Resend SMTP credential and president reply-to address are supplied.
+- [x] Audit recent password-recovery delivery without exposing recipient data, and configure official-email-only sender and president correspondence controls after exact addresses are approved.
+- [x] Enforce `HMSI Portal <no-reply@hmsi.org.ng>` as the sole portal-mail sender (superseded by the subsequently approved multi-sender policy).
+- [x] Complete Supabase Auth SMTP configuration after the official Resend SMTP credential and president reply-to address are supplied.
+- [x] Implement verified HMSI sender identities and server-side event routing for onboarding, auth, administration, and presidential internal alerts.
+- [x] Add professional password-reset, worker-welcome, and president-facing admin-alert templates with regression coverage and no unapproved live dispatch.
+- [ ] Align the live Supabase reset-email HTML body with the already implemented HMSI password-reset template through the dashboard code editor.

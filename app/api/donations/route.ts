@@ -3,6 +3,7 @@ import { getSupabaseAdmin } from '../../../lib/supabaseAdmin';
 import { createDonorReceiptPdf } from '../../../lib/donorReceipt';
 import { sendResendEmailWithRetry } from '../../../lib/resendRetryQueue';
 import { isHmsiPaymentCurrency, toMinorUnits } from '../../../lib/paystackCurrencies';
+import { HMSI_SENDERS, sendPresidentInternalAlert } from '../../../lib/hmsiNotifications';
 
 export const runtime = 'nodejs';
 
@@ -137,7 +138,7 @@ export async function POST(request: Request) {
   let receiptSent = false;
   let receiptError = '';
   const resendApiKey = process.env.RESEND_API_KEY?.trim();
-  const fromEmail = process.env.RESEND_FROM_EMAIL?.trim() || 'contact@hmsi.org.ng';
+  const fromEmail = HMSI_SENDERS.admin;
 
   if (resendApiKey && inserted.data?.donor_email) {
     try {
@@ -175,6 +176,27 @@ export async function POST(request: Request) {
     }
   } else if (!resendApiKey) {
     receiptError = 'Receipt email delivery is not configured.';
+  }
+
+  const majorDonationThresholdNgn = Number(process.env.HMSI_MAJOR_DONATION_THRESHOLD_NGN || '');
+  if (currency === 'NGN' && Number.isFinite(majorDonationThresholdNgn) && majorDonationThresholdNgn > 0 && Number(inserted.data.amount_major) >= majorDonationThresholdNgn) {
+    try {
+      const amount = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 2 }).format(Number(inserted.data.amount_major));
+      await sendPresidentInternalAlert({
+        title: 'Verified major donation received',
+        summary: 'A verified donation has met the configured HMSI major-donation notification threshold.',
+        rows: [
+          { label: 'Verified amount', value: amount },
+          { label: 'Payment channel', value: inserted.data.channel || 'Not reported' },
+          { label: 'Donor privacy mode', value: inserted.data.is_anonymous ? 'Anonymous' : 'Named donor' },
+          { label: 'Payment reference suffix', value: `…${inserted.data.paystack_reference.slice(-6)}` },
+        ],
+        portalUrl: 'https://www.hmsi.org.ng/admin',
+        idempotencyKey: `president_major_donation_${inserted.data.paystack_reference}`,
+      });
+    } catch (alertError) {
+      console.error('[Donations] President major-donation alert failed:', alertError instanceof Error ? alertError.message : 'unknown');
+    }
   }
 
   return NextResponse.json({ donation: inserted.data, fundraiserTotalUpdated, fundraiserTotalUpdateReason, receiptSent, receiptError: receiptError || undefined }, { status: 201 });

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getAdminEmailFromCookie } from '../../../../../lib/adminSession';
 import { getSupabaseAdmin } from '../../../../../lib/supabaseAdmin';
 import { createOnboardingInvitation } from '../../../../../lib/onboarding';
-import { sendResendEmailWithRetry } from '../../../../../lib/resendRetryQueue';
+import { sendHmsiNotification, workerWelcomeTemplate } from '../../../../../lib/hmsiNotifications';
 
 export const runtime = 'nodejs';
 const ALLOWED_STATUSES = new Set(['pending', 'approved', 'rejected']);
@@ -58,16 +58,13 @@ export async function PATCH(
       let emailSent = false;
       let emailError = '';
       if (resendApiKey) {
-        const emailResult = await sendResendEmailWithRetry(resendApiKey, {
-          from: process.env.RESEND_FROM_EMAIL?.trim() || 'contact@hmsi.org.ng',
-          to: [invitation.email],
-          subject: 'HMSI onboarding invitation',
-          html: `<p>Dear ${application.name},</p><p>Your HMSI ${invitation.role} application has been approved. Please complete your onboarding tasks here: <a href="${onboardingUrl}">${onboardingUrl}</a></p><p>This link expires in 30 days. Please do not forward it; contact contact@hmsi.org.ng if you need help.</p>`,
-          text: `Your HMSI ${invitation.role} application has been approved. Complete your onboarding tasks here: ${onboardingUrl}. This link expires in 30 days. Do not forward it. For help, contact contact@hmsi.org.ng.`,
-          idempotencyKey: `onboarding_invitation_${invitation.invitationId}`,
-        }, { maxRetries: 3, baseDelayMs: 200, maxDelayMs: 2500 });
-        emailSent = emailResult.ok;
-        if (!emailResult.ok) emailError = emailResult.error || 'Onboarding invitation email could not be delivered.';
+        try {
+          const emailContent = workerWelcomeTemplate({ name: application.name, role: invitation.role, dashboardUrl: onboardingUrl });
+          const emailResult = await sendHmsiNotification({ sender: 'onboarding', to: [invitation.email], subject: 'Welcome to HMSI — complete your onboarding', ...emailContent, idempotencyKey: `onboarding_invitation_${invitation.invitationId}` });
+          emailSent = emailResult.sent;
+        } catch (dispatchError) {
+          emailError = dispatchError instanceof Error ? dispatchError.message : 'Onboarding invitation email could not be delivered.';
+        }
       } else {
         emailError = 'Onboarding email delivery is not configured.';
       }
