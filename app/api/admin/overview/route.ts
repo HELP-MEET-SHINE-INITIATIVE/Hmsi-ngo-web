@@ -12,12 +12,11 @@ export async function GET(request: Request) {
   const admin = getSupabaseAdmin();
   if (!admin) return NextResponse.json({ error: 'Supabase is not configured on the server.' }, { status: 503 });
 
-  const [fundraisers, volunteers, workers, assignments, donations, messageNotifications, featuredStories, newsArticles, fundraiserCampaigns] = await Promise.all([
+  const [fundraisers, volunteers, workers, assignments, messageNotifications, featuredStories, newsArticles, fundraiserCampaigns] = await Promise.all([
     admin.from('fundraisers').select('id,title,description,category,target_amount,raised_amount,image_url,image_path,status,created_at').order('created_at', { ascending: false }),
     admin.from('volunteer_applications').select('id,name,email,phone,interest,message,status,created_at').order('created_at', { ascending: false }),
     admin.from('workers').select('id,name,email,phone,role,status,onboarding_status,created_at').order('created_at', { ascending: false }),
     admin.from('work_assignments').select('id,title,description,kind,status,assigned_worker_id,fundraiser_id,due_at,created_at').order('created_at', { ascending: false }),
-    admin.from('donations').select('id,fundraiser_id,donor_name,donor_email,is_anonymous,amount_ngn,amount_major,paystack_reference,status,currency,channel,paid_at,created_at').order('created_at', { ascending: false }).limit(200),
     admin.from('contact_message_notifications').select('id').limit(1),
     admin.from('featured_story_drafts').select('id').limit(1),
     admin.from('news_articles').select('id').limit(1),
@@ -42,19 +41,10 @@ export async function GET(request: Request) {
   const volunteerRows = volunteersWithRole.error ? volunteers.data || [] : volunteersWithRole.data || [];
   if (volunteersWithRole.error) migrationWarnings.push('Run supabase/role_opportunities_community_patch.sql to add applicant roles.');
   if (opportunities.error || opportunityApplications.error) migrationWarnings.push('Run supabase/role_opportunities_community_patch.sql to enable opportunities and opportunity applications.');
-  if (donations.error) migrationWarnings.push('Run supabase/donations_patch.sql to record and view verified Paystack donations.');
   if (messageNotifications.error) migrationWarnings.push('Run supabase/messaging_patch.sql to show contact messages and enable admin/worker replies.');
   if (featuredStories.error) migrationWarnings.push('Run supabase/featured_stories_patch.sql to enable homepage featured-story submissions and approvals.');
   if (newsArticles.error) migrationWarnings.push('Run supabase/newsroom_patch.sql to enable news submissions and approvals.');
   if (fundraiserCampaigns.error) migrationWarnings.push('Run supabase/fundraiser_campaigns_patch.sql to enable organisation and programme campaign labels.');
-
-  const donationRows = donations.error ? [] : donations.data || [];
-  const successfulDonations = donationRows.filter((donation) => donation.status === 'success');
-  const donationSummary = {
-    count: successfulDonations.length,
-    totalAmountNgn: successfulDonations.filter((donation) => donation.currency === 'NGN').reduce((total, donation) => total + Number(donation.amount_major || donation.amount_ngn || 0), 0),
-    totalAmountByCurrency: successfulDonations.reduce<Record<string, number>>((totals, donation) => { const currency = donation.currency || 'NGN'; totals[currency] = (totals[currency] || 0) + Number(donation.amount_major || donation.amount_ngn || 0); return totals; }, {}),
-  };
 
   return NextResponse.json({
     fundraisers: (fundraisers.data || []).map((fundraiser) => ({ ...fundraiser, ...(fundraiserCampaigns.data || []).find((campaign) => campaign.id === fundraiser.id) })),
@@ -63,8 +53,6 @@ export async function GET(request: Request) {
     assignments: assignments.data || [],
     opportunities: opportunities.error ? [] : opportunities.data || [],
     opportunityApplications: opportunityApplications.error ? [] : opportunityApplications.data || [],
-    donations: donationRows,
-    donationSummary,
     migrationWarnings,
   });
 }

@@ -46,6 +46,19 @@ export function workerWelcomeTemplate(input: { name: string; role: 'worker' | 'v
   return { html, text: `Dear ${input.name},\n\nWelcome to Help Meet Shine Initiative. Your HMSI ${roleLabel} status is active. Complete your onboarding here: ${input.dashboardUrl}\n\nDo not forward this secure link.` };
 }
 
+export function verifiedDonationThankYouTemplate(input: { name: string; amountMajor: number; currency: string; reference: string }) {
+  const currency = input.currency === 'USD' ? 'USD' : 'NGN';
+  const amount = new Intl.NumberFormat(currency === 'USD' ? 'en-US' : 'en-NG', { style: 'currency', currency, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(input.amountMajor);
+  const referenceSuffix = input.reference ? `…${input.reference.slice(-6)}` : 'not available';
+  const html = officialShell({
+    eyebrow: 'HMSI Donation Acknowledgement',
+    title: 'Thank you for your verified donation',
+    body: `<p style="margin-top:0">Dear ${escapeHtml(input.name)},</p><p>Thank you for your verified donation of <strong>${escapeHtml(amount)}</strong> to Help Meet Shine Initiative. Your support helps HMSI respond with dignity, strengthen local solutions, and sustain practical community work.</p><p>We have received Paystack confirmation for this payment. Your reference ending <strong>${escapeHtml(referenceSuffix)}</strong> is recorded in our protected donation ledger, and your acknowledgement is attached for your records.</p><p>This acknowledgement confirms a verified payment. It is not a tax-exemption certificate or a statement that the donation is tax-deductible.</p><p style="margin-bottom:0">With appreciation,<br /><strong>Help Meet Shine Initiative</strong></p>`,
+    footer: 'HMSI Administration · Official verified-donation correspondence',
+  });
+  return { html, text: `Dear ${input.name},\n\nThank you for your verified donation of ${amount} to Help Meet Shine Initiative. Your Paystack payment has been confirmed and your payment reference ending ${referenceSuffix} is recorded in the protected HMSI donation ledger. Your acknowledgement is attached.\n\nThis acknowledgement confirms a verified payment. It is not a tax-exemption certificate or a statement that the donation is tax-deductible.\n\nWith appreciation,\nHelp Meet Shine Initiative` };
+}
+
 export function hmsiDriveFilesIngestedTemplate(input: { name: string; submissionsUrl: string }) {
   const html = officialShell({
     eyebrow: 'HMSI File Intake',

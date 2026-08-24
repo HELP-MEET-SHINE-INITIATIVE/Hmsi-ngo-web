@@ -41,3 +41,9 @@
 - [x] Add a safe ten-day article archival policy, scheduled reconciliation route, tests, production validation, and deployment verification.
 - [x] Build the selected personal Google Drive submission, administrator intake-routing, ingestion-status, notification, and privacy-cleanup workflow for HMSI portal users.
 - [x] Require named-HMSI-administrator viewer sharing for personal Drive submissions and expose submitted links only in the protected administrator intake-routing view.
+- [x] Restore the production Paystack donation checkout by verifying and correcting the `NEXT_PUBLIC_PAYSTACK_KEY` configuration without exposing payment credentials.
+- [x] Review production server logs for hidden errors during Paystack donation initialization without exposing credentials or donor data.
+- [ ] Verify an isolated Paystack test-mode staging environment and run an end-to-end popup test only if it cannot create a production charge or donor record.
+- [x] Perform production-safe Paystack donation-flow verification without submitting a payment, donor data, or donation record.
+- [x] Prepare an approved verified-donation thank-you acknowledgement, confirm the latest successful donation safely, and assess displaying successful donations in the protected admin dashboard.
+- [x] Implement a protected, paginated admin dashboard view for successful donations with privacy-conscious record handling and automatic verified-donation acknowledgements.

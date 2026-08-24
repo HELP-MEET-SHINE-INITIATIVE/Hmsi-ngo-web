@@ -3,7 +3,7 @@ import { getSupabaseAdmin } from '../../../lib/supabaseAdmin';
 import { createDonorReceiptPdf } from '../../../lib/donorReceipt';
 import { sendResendEmailWithRetry } from '../../../lib/resendRetryQueue';
 import { isHmsiPaymentCurrency, toMinorUnits } from '../../../lib/paystackCurrencies';
-import { HMSI_SENDERS, sendPresidentInternalAlert } from '../../../lib/hmsiNotifications';
+import { HMSI_SENDERS, sendPresidentInternalAlert, verifiedDonationThankYouTemplate } from '../../../lib/hmsiNotifications';
 
 export const runtime = 'nodejs';
 
@@ -142,6 +142,12 @@ export async function POST(request: Request) {
 
   if (resendApiKey && inserted.data?.donor_email) {
     try {
+      const acknowledgement = verifiedDonationThankYouTemplate({
+        name: inserted.data.is_anonymous ? 'supporter' : inserted.data.donor_name,
+        amountMajor: Number(inserted.data.amount_major),
+        currency: inserted.data.currency,
+        reference: inserted.data.paystack_reference,
+      });
       const receiptPdf = await createDonorReceiptPdf({
         donationId: inserted.data.id,
         donorName: inserted.data.donor_name,
@@ -161,8 +167,8 @@ export async function POST(request: Request) {
           from: fromEmail,
           to: [inserted.data.donor_email],
           subject: 'HMSI verified donation acknowledgement',
-          html: `<p>Dear ${inserted.data.is_anonymous ? 'supporter' : inserted.data.donor_name},</p><p>Thank you for your verified donation to Help Meet Shine Initiative. Your donation acknowledgement is attached as a PDF.</p><p>This acknowledgement confirms the verified Paystack payment and is not a tax-exemption certificate or a statement that the donation is tax-deductible.</p><p>For questions, contact <a href="mailto:contact@hmsi.org.ng">contact@hmsi.org.ng</a>.</p>`,
-          text: `Thank you for your verified donation to Help Meet Shine Initiative. Your donation acknowledgement is attached. This acknowledgement is not a tax-exemption certificate or a statement that the donation is tax-deductible. For questions, contact contact@hmsi.org.ng.`,
+          html: acknowledgement.html,
+          text: acknowledgement.text,
           attachments: [{ filename: `HMSI-donation-receipt-${inserted.data.paystack_reference}.pdf`, content: receiptBase64 }],
           idempotencyKey: `donation_receipt_${inserted.data.paystack_reference}`,
         },
