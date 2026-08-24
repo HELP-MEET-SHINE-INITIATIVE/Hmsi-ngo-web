@@ -47,3 +47,6 @@
 - [x] Perform production-safe Paystack donation-flow verification without submitting a payment, donor data, or donation record.
 - [x] Prepare an approved verified-donation thank-you acknowledgement, confirm the latest successful donation safely, and assess displaying successful donations in the protected admin dashboard.
 - [x] Implement a protected, paginated admin dashboard view for successful donations with privacy-conscious record handling and automatic verified-donation acknowledgements.
+- [x] Verify the production mailer configuration and email-service connection using non-delivery checks without exposing credentials or recipient data.
+- [x] Verify protected thank-you acknowledgement-log availability and updates for recent successful donations without exposing donor information.
+- [x] Add and apply a fail-safe donation acknowledgement audit schema, then verify it without altering existing donation records.
