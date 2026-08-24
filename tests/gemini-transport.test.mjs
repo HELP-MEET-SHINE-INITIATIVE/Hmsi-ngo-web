@@ -18,6 +18,7 @@ const activateRouteSource = await readFile(new URL('../app/api/portal/auth/activ
 const recoverRouteSource = await readFile(new URL('../app/api/portal/auth/recover/route.ts', import.meta.url), 'utf8');
 const profileRouteSource = await readFile(new URL('../app/api/portal/profile/route.ts', import.meta.url), 'utf8');
 const assignmentsRouteSource = await readFile(new URL('../app/api/admin/assignments/route.ts', import.meta.url), 'utf8');
+const emailSource = await readFile(new URL('../lib/portalEmail.ts', import.meta.url), 'utf8');
 
 test('Gemini transport reads only the server-side standard credential', () => {
   assert.match(helperSource, /process\.env\.GEMINI_API_KEY/);
@@ -80,6 +81,11 @@ test('assignment delivery issues worker identity access without granting admin a
   assert.match(assignmentsRouteSource, /onboarding_status/);
   assert.match(assignmentsRouteSource, /sendPortalEmail/);
   assert.match(assignmentsRouteSource, /activationCode/);
+  assert.match(assignmentsRouteSource, /idempotency-key/);
+  assert.match(assignmentsRouteSource, /notification_status/);
+  assert.match(assignmentsRouteSource, /notification_message_id/);
+  assert.match(emailSource, /RESEND_API_KEY/);
+  assert.match(emailSource, /messageId/);
   assert.doesNotMatch(assignmentsRouteSource, /HMSI_ADMIN_PASSWORD/);
 });
 

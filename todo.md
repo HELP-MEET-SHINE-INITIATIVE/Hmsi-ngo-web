@@ -5,8 +5,13 @@
 - [x] Migrate the legacy newsroom research route and frontend result handling to Gemini while preserving approval safeguards.
 - [x] Add worker/newsroom regression coverage, validate the build, and verify harmless live requests.
 - [x] Review newsroom Gemini schema normalization for future structured-output compatibility and strengthen coverage where needed.
-- [ ] Implement built-in Supabase Auth mapping for approved workers, volunteers, and members.
-- [ ] Add secure worker identity-card activation, sign-in, sign-out, and role-limited portal access.
-- [ ] Add volunteer/member password recovery and portal profile-photo upload flows.
-- [ ] Add assignment identity-card notification email delivery and correct remaining stale Assistant error text.
-- [ ] Add authorization tests, validate the production build, configure required secrets, and verify live flows.
+- [x] Implement built-in Supabase Auth mapping for approved workers, volunteers, and members.
+- [x] Add secure worker identity-card activation, sign-in, sign-out, and role-limited portal access.
+- [x] Add volunteer/member password recovery and portal profile-photo upload flows.
+- [x] Add assignment identity-card notification email delivery and correct remaining stale Assistant error text.
+- [x] Add authorization tests, validate the production build, configure required secrets, and verify live flows.
+- [ ] Audit Resend configuration and delivery logs for assignment notification emails without exposing secrets or PII.
+- [ ] Implement reusable secure Resend templates and notification routing for HMSI events.
+- [ ] Add safe delivery logging, regression tests, and Resend configuration documentation.
+- [x] Implement idempotent worker ID-card generation and secure email dispatch when an authorized admin creates an assignment.
+- [x] Add route regression tests, build validation, and deployment verification for assignment-triggered notifications.
