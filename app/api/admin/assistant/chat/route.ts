@@ -42,24 +42,23 @@ export async function POST(request: Request) {
   ].join(' ');
   const fullPrompt = `${systemGuardrails}\n\nSELECTED HMSI DOCUMENTS:\n${context}\n\nADMIN REQUEST:\n${limitPrompt(prompt)}\n\nReturn a concise, practical response. If proposing a document edit, clearly label it as a draft suggestion and identify the affected document.`;
 
-  let task: any;
+  let task: Awaited<ReturnType<typeof createManusAssistantTask>>;
   try {
     task = await createManusAssistantTask({ prompt: fullPrompt, title: `HMSI Assistant: ${prompt.slice(0, 90)}` });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Manus Assistant is unavailable.';
-    return jsonError(message, message.includes('MANUS_API_KEY') ? 503 : 502);
+    const message = error instanceof Error ? error.message : 'Gemini Assistant is unavailable.';
+    return jsonError(message, message.includes('GEMINI_API_KEY') ? 503 : 502);
   }
-  if (!task?.task_id) return jsonError('Manus did not return a task id.', 502);
 
   const taskRecord = await admin.from('hmsi_assistant_tasks').insert({
     manus_task_id: task.task_id,
     requested_by_email: adminEmail,
     prompt_summary: prompt.slice(0, 500),
     document_ids: documentIds,
-    status: 'running',
+    status: 'stopped',
   }).select('id,manus_task_id,prompt_summary,status,created_at').single();
-  if (taskRecord.error) return jsonError('The Manus task started, but HMSI could not record its audit state.', 503);
+  if (taskRecord.error) return jsonError('Gemini responded, but HMSI could not record its audit state.', 503);
 
-  await recordAssistantAudit({ actorEmail: adminEmail, action: 'assistant_task_created', manusTaskId: task.task_id, details: { documentIds, promptLength: prompt.length } });
-  return NextResponse.json({ task: taskRecord.data, taskUrl: task.task_url || null });
+  await recordAssistantAudit({ actorEmail: adminEmail, action: 'assistant_task_created', manusTaskId: task.task_id, details: { provider: 'gemini', documentIds, promptLength: prompt.length } });
+  return NextResponse.json({ task: taskRecord.data, response: task.response_text, provider: 'gemini' });
 }
