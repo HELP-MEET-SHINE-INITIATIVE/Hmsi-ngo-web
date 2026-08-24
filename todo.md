@@ -31,3 +31,7 @@
 - [x] Implement verified HMSI sender identities and server-side event routing for onboarding, auth, administration, and presidential internal alerts.
 - [x] Add professional password-reset, worker-welcome, and president-facing admin-alert templates with regression coverage and no unapproved live dispatch.
 - [ ] Align the live Supabase reset-email HTML body with the already implemented HMSI password-reset template through the dashboard code editor.
+- [x] Configure and verify required Vercel production notification environment variables, including the approved `HMSI_MAJOR_DONATION_THRESHOLD_NGN=1000000` value.
+- [x] Verify `RESEND_API_KEYY` and `RESEND_FROM_EMAILL` are unused; retain them in Vercel Production and Preview by explicit user decision while preserving the standard active Resend keys.
+- [x] Verify the current Vercel production deployment and recent notification-route runtime health without modifying HMSI configuration.
+- [x] Add a primary image field to the admin news publishing workflow and render it consistently on public news headline cards and articles.

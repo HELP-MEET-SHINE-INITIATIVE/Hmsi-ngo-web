@@ -68,6 +68,9 @@ export async function POST(request: Request) {
   }
 
   const isAdmin = viewer.role === 'admin';
+  if (isAdmin && !imageUrl) {
+    return NextResponse.json({ error: 'Choose a primary news image before publishing. It will be used on the public headline card and article page.' }, { status: 400 });
+  }
   const { data: article, error } = await admin.from('news_articles').insert({
     headline,
     summary,
@@ -104,34 +107,44 @@ export async function PATCH(request: Request) {
 
   const payload = await request.json().catch(() => ({}));
   const id = cleanText(payload.id, 80);
-  const action = payload.action === 'approve' || payload.action === 'reject' || payload.action === 'publish' ? payload.action : '';
+  const action = payload.action === 'approve' || payload.action === 'reject' || payload.action === 'publish' || payload.action === 'save_image' ? payload.action : '';
   const reason = cleanText(payload.reason, 500);
+  const suppliedImageUrl = cleanText(payload.image_url, 500) || null;
   if (!id || !action) return NextResponse.json({ error: 'A news article and review action are required.' }, { status: 400 });
   if (action === 'reject' && reason.length < 3) return NextResponse.json({ error: 'Add a short reason when requesting changes or rejecting news.' }, { status: 400 });
+  if (action === 'save_image' && !suppliedImageUrl) return NextResponse.json({ error: 'Choose a primary news image before saving.' }, { status: 400 });
 
-  const { data: existing, error: lookupError } = await admin.from('news_articles').select('id,status,verification_status').eq('id', id).maybeSingle();
+  const { data: existing, error: lookupError } = await admin.from('news_articles').select('id,status,verification_status,image_url').eq('id', id).maybeSingle();
   if (lookupError || !existing) return NextResponse.json({ error: 'News article not found.' }, { status: 404 });
-  if (existing.status === 'published') return NextResponse.json({ error: 'Published news cannot be changed from this review action.' }, { status: 409 });
+  if (existing.status === 'published' && action !== 'save_image') return NextResponse.json({ error: 'Published news can only have its primary image updated from this review action.' }, { status: 409 });
 
   const isPublishing = action === 'publish';
+  const isSavingImage = action === 'save_image';
   if (isPublishing && existing.status !== 'approved') return NextResponse.json({ error: 'Approve the news article before publishing it.' }, { status: 409 });
+  const primaryImageUrl = suppliedImageUrl || existing.image_url || null;
+  if (isPublishing && !primaryImageUrl) return NextResponse.json({ error: 'Add a primary news image before publishing. It will be used on the public headline card and article page.' }, { status: 400 });
   const nextStatus = action === 'reject' ? 'rejected' : isPublishing ? 'published' : 'approved';
 
-  const { data: article, error } = await admin.from('news_articles').update({
+  const updates = isSavingImage ? {
+    image_url: primaryImageUrl,
+  } : {
     status: nextStatus,
+    image_url: primaryImageUrl,
     rejection_reason: action === 'reject' ? reason : null,
     verification_status: action === 'reject' ? 'candidate' : 'admin_verified',
     approved_by: action === 'reject' ? null : viewer.email,
     approved_at: action === 'reject' ? null : new Date().toISOString(),
     reviewed_at: new Date().toISOString(),
     published_at: isPublishing ? new Date().toISOString() : null,
-  }).eq('id', id).select('id,headline,status').single();
+  };
+
+  const { data: article, error } = await admin.from('news_articles').update(updates).eq('id', id).select('id,headline,status,image_url').single();
 
   if (error || !article) {
     console.error('[News] Failed to review article:', error?.message);
     return NextResponse.json({ error: 'Unable to update this news article.' }, { status: 500 });
   }
 
-  await recordEvent(admin, id, action === 'reject' ? 'rejected' : isPublishing ? 'published' : 'approved', viewer, reason);
-  return NextResponse.json({ article, message: action === 'reject' ? 'News rejected and returned with a revision reason.' : isPublishing ? 'News published.' : 'News approved. Publish it when ready.' });
+  await recordEvent(admin, id, action === 'reject' ? 'rejected' : isSavingImage ? 'primary_image_updated' : isPublishing ? 'published' : 'approved', viewer, reason);
+  return NextResponse.json({ article, message: action === 'reject' ? 'News rejected and returned with a revision reason.' : isSavingImage ? 'Primary news image saved. Public headline surfaces will use it.' : isPublishing ? 'News published with its primary image.' : 'News approved. Add or confirm the primary image, then publish it when ready.' });
 }

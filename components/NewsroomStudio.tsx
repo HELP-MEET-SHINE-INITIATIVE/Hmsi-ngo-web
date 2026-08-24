@@ -1,17 +1,40 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-import { CheckCircle2, Newspaper, Send, XCircle } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { CheckCircle2, ImagePlus, Newspaper, Save, Send, XCircle } from 'lucide-react';
 import OptionalImageUpload from './OptionalImageUpload';
 
 type NewsViewer = { email: string; name: string; role: 'admin' | 'worker' | 'volunteer' | 'member' };
-type NewsArticle = { id: string; headline: string; summary: string; body: string; category: string; image_url: string | null; author_name: string; author_role: string; status: string; rejection_reason: string | null; created_at: string; published_at: string | null; source_name?: string | null; source_url?: string | null; source_urls?: string[]; source_published_at?: string | null; verification_status?: string; verification_notes?: string | null; verified_source_count?: number };
+type NewsArticle = {
+  id: string;
+  headline: string;
+  summary: string;
+  body: string;
+  category: string;
+  image_url: string | null;
+  author_name: string;
+  author_role: string;
+  status: string;
+  rejection_reason: string | null;
+  created_at: string;
+  published_at: string | null;
+  source_name?: string | null;
+  source_url?: string | null;
+  source_urls?: string[];
+  source_published_at?: string | null;
+  verification_status?: string;
+  verification_notes?: string | null;
+  verified_source_count?: number;
+};
+
+type ReviewAction = 'approve' | 'reject' | 'publish' | 'save_image';
 
 const emptyForm = { headline: '', summary: '', body: '', category: 'HMSI news', image_url: '' };
 
 export default function NewsroomStudio({ viewer }: { viewer: NewsViewer }) {
   const [articles, setArticles] = useState<NewsArticle[]>([]);
   const [form, setForm] = useState(emptyForm);
+  const [articleImages, setArticleImages] = useState<Record<string, string>>({});
   const [reviewingId, setReviewingId] = useState<string | null>(null);
   const [reason, setReason] = useState('');
   const [notice, setNotice] = useState('');
@@ -25,10 +48,20 @@ export default function NewsroomStudio({ viewer }: { viewer: NewsViewer }) {
     const response = await fetch(`/api/news?email=${encodeURIComponent(viewer.email)}&role=${viewer.role}`, { cache: 'no-store' });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Unable to load newsroom.');
-    setArticles(result.articles || []);
+    const nextArticles = result.articles || [];
+    setArticles(nextArticles);
+    setArticleImages((current) => {
+      const next = { ...current };
+      nextArticles.forEach((article: NewsArticle) => {
+        if (next[article.id] === undefined) next[article.id] = article.image_url || '';
+      });
+      return next;
+    });
   }, [viewer.email, viewer.role]);
 
-  useEffect(() => { loadArticles().catch((loadError) => setError(loadError instanceof Error ? loadError.message : 'Unable to load newsroom.')); }, [loadArticles]);
+  useEffect(() => {
+    loadArticles().catch((loadError) => setError(loadError instanceof Error ? loadError.message : 'Unable to load newsroom.'));
+  }, [loadArticles]);
 
   useEffect(() => {
     if (!researchTaskId || viewer.role !== 'admin') return;
@@ -40,11 +73,25 @@ export default function NewsroomStudio({ viewer }: { viewer: NewsViewer }) {
         if (!response.ok) throw new Error(result.error || 'Unable to read the research task.');
         if (!active) return;
         if (result.task?.status === 'stopped') {
-          setResearchBusy(false); setResearchTaskId(''); await loadArticles(); setNotice(`${Number(result.drafts || 0)} sourced humanitarian-news draft${Number(result.drafts || 0) === 1 ? '' : 's'} added for administrator review.`); return;
+          setResearchBusy(false);
+          setResearchTaskId('');
+          await loadArticles();
+          setNotice(`${Number(result.drafts || 0)} sourced humanitarian-news draft${Number(result.drafts || 0) === 1 ? '' : 's'} added for administrator review.`);
+          return;
         }
-        if (result.task?.status === 'error') { setResearchBusy(false); setResearchTaskId(''); setError(result.error || 'Humanitarian-news research failed.'); return; }
+        if (result.task?.status === 'error') {
+          setResearchBusy(false);
+          setResearchTaskId('');
+          setError(result.error || 'Humanitarian-news research failed.');
+          return;
+        }
         window.setTimeout(poll, 3000);
-      } catch (researchError) { if (active) { setResearchBusy(false); setResearchTaskId(''); setError(researchError instanceof Error ? researchError.message : 'Unable to read humanitarian-news research.'); } }
+      } catch (researchError) {
+        if (!active) return;
+        setResearchBusy(false);
+        setResearchTaskId('');
+        setError(researchError instanceof Error ? researchError.message : 'Unable to read humanitarian-news research.');
+      }
     };
     poll();
     return () => { active = false; };
@@ -52,6 +99,10 @@ export default function NewsroomStudio({ viewer }: { viewer: NewsViewer }) {
 
   const submitArticle = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (viewer.role === 'admin' && !form.image_url) {
+      setError('Choose a primary news image before publishing. It will appear on the headline card and article page.');
+      return;
+    }
     setError('');
     setNotice('');
     setIsBusy(true);
@@ -70,7 +121,9 @@ export default function NewsroomStudio({ viewer }: { viewer: NewsViewer }) {
   };
 
   const startResearch = async () => {
-    setError(''); setNotice(''); setResearchBusy(true);
+    setError('');
+    setNotice('');
+    setResearchBusy(true);
     try {
       const response = await fetch('/api/admin/news/research', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ scope: researchScope }) });
       const result = await response.json();
@@ -78,20 +131,36 @@ export default function NewsroomStudio({ viewer }: { viewer: NewsViewer }) {
       setResearchTaskId(result.task?.manus_task_id || '');
       if (!result.task?.manus_task_id) setResearchBusy(false);
       setNotice('Gemini is researching current humanitarian developments. Candidates will remain unpublished until reviewed.');
-    } catch (researchError) { setResearchBusy(false); setError(researchError instanceof Error ? researchError.message : 'Unable to start Gemini humanitarian-news research.'); }
+    } catch (researchError) {
+      setResearchBusy(false);
+      setError(researchError instanceof Error ? researchError.message : 'Unable to start Gemini humanitarian-news research.');
+    }
   };
 
-  const reviewArticle = async (id: string, action: 'approve' | 'reject' | 'publish') => {
-    if (action === 'reject' && reason.trim().length < 3) { setError('Add a short revision reason before rejecting this news.'); return; }
+  const reviewArticle = async (article: NewsArticle, action: ReviewAction) => {
+    if (action === 'reject' && reason.trim().length < 3) {
+      setError('Add a short revision reason before rejecting this news.');
+      return;
+    }
+    const imageUrl = articleImages[article.id] ?? article.image_url ?? '';
+    if ((action === 'publish' || action === 'save_image') && !imageUrl) {
+      setError('Choose a primary news image first. The public news headline and article will use this same image.');
+      return;
+    }
     setError('');
     setNotice('');
     setIsBusy(true);
     try {
-      const response = await fetch('/api/news', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, action, reason: reason.trim() }) });
+      const response = await fetch('/api/news', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: article.id, action, reason: reason.trim(), image_url: imageUrl || undefined }),
+      });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Unable to update news.');
       setReviewingId(null);
       setReason('');
+      if (result.article?.image_url) setArticleImages((current) => ({ ...current, [article.id]: result.article.image_url }));
       await loadArticles();
       setNotice(result.message || 'News updated.');
     } catch (reviewError) {
@@ -101,7 +170,67 @@ export default function NewsroomStudio({ viewer }: { viewer: NewsViewer }) {
     }
   };
 
-  const statusLabel: Record<string, string> = { pending_admin_approval: 'Waiting for admin approval', approved: 'Approved — ready to publish', rejected: 'Needs revision', published: 'Published', draft: 'Draft' };
+  const statusLabel: Record<string, string> = {
+    pending_admin_approval: 'Waiting for admin approval',
+    approved: 'Approved — ready to publish',
+    rejected: 'Needs revision',
+    published: 'Published',
+    draft: 'Draft',
+  };
 
-  return <div className="space-y-6"><div><h2 className="inline-flex items-center gap-2 text-2xl font-black"><Newspaper size={24} className="text-[#b56b3b]" /> Newsroom</h2><p className="mt-2 text-sm leading-6 text-[#66716a]">{viewer.role === 'admin' ? 'Research sourced humanitarian developments, then review and publish only verified, suitable items.' : 'Submit factual news or field-event updates. An administrator must approve them before they become public.'}</p></div>{viewer.role === 'admin' && <section className="rounded-3xl border border-[#d9d6ce] bg-[#e9f0e9] p-5"><p className="text-xs font-black uppercase tracking-widest text-[#1e5b49]">Governed global research</p><p className="mt-2 text-sm leading-6 text-[#66716a]">Gemini checks official humanitarian sources and credible corroboration, but every result is held as an unpublished draft. Review the source links and verification notes before approval and publication.</p><div className="mt-4 flex flex-col gap-3 md:flex-row"><input value={researchScope} onChange={(event) => setResearchScope(event.target.value)} maxLength={500} className="min-w-0 flex-1 rounded-2xl bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#1e5b49]" aria-label="Humanitarian-news research scope" /><button type="button" disabled={researchBusy} onClick={startResearch} className="rounded-full bg-[#1e5b49] px-5 py-3 text-xs font-black uppercase tracking-widest text-white disabled:opacity-50">{researchBusy ? 'Researching…' : 'Research global humanitarian news'}</button></div></section>}{(error || notice) && <div className={`rounded-2xl border p-4 text-sm ${error ? 'border-red-100 bg-red-50 text-red-700' : 'border-emerald-100 bg-emerald-50 text-emerald-700'}`} role="status">{error || notice}</div>}<form onSubmit={submitArticle} className="grid gap-4 rounded-3xl border border-[#d9d6ce] bg-white p-6 md:grid-cols-2"><input required minLength={8} placeholder="News headline" value={form.headline} onChange={(event) => setForm({ ...form, headline: event.target.value })} className="rounded-2xl bg-[#f6f4ef] px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#1e5b49] md:col-span-2" /><input required minLength={20} placeholder="Short factual summary for the homepage" value={form.summary} onChange={(event) => setForm({ ...form, summary: event.target.value })} className="rounded-2xl bg-[#f6f4ef] px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#1e5b49] md:col-span-2" /><textarea required minLength={50} rows={7} placeholder="Write the full news update" value={form.body} onChange={(event) => setForm({ ...form, body: event.target.value })} className="resize-none rounded-2xl bg-[#f6f4ef] px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#1e5b49] md:col-span-2" /><input placeholder="Category, e.g. Field update" value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value })} className="rounded-2xl bg-[#f6f4ef] px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#1e5b49]" /><div className="md:col-span-2"><OptionalImageUpload viewer={{ email: viewer.email, role: viewer.role }} value={form.image_url} onChange={(imageUrl) => setForm({ ...form, image_url: imageUrl })} /></div><button disabled={isBusy} className="inline-flex items-center justify-center gap-2 rounded-full bg-[#1e5b49] py-3 text-xs font-black uppercase tracking-widest text-white disabled:opacity-50 md:col-span-2"><Send size={15} />{viewer.role === 'admin' ? 'Publish news' : 'Submit news for approval'}</button></form><div className="space-y-4"><h3 className="text-xl font-black">{viewer.role === 'admin' ? 'News review queue' : 'Your news submissions'}</h3>{articles.length === 0 ? <div className="rounded-3xl border border-dashed border-[#d9d6ce] bg-white p-10 text-center text-sm text-[#66716a]">No news articles yet.</div> : articles.map((article) => <article key={article.id} className="rounded-3xl border border-[#d9d6ce] bg-white p-6"><div className="flex flex-col justify-between gap-4 md:flex-row"><div className="min-w-0"><div className="mb-3 flex flex-wrap items-center gap-2"><span className="rounded-full bg-[#e9f0e9] px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#1e5b49]">{statusLabel[article.status] || article.status}</span><span className="rounded-full bg-[#f6f4ef] px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#66716a]">{article.author_role}</span></div><h4 className="text-xl font-black">{article.headline}</h4><p className="mt-2 text-sm leading-6 text-[#66716a]">{article.summary}</p><p className="mt-3 text-xs font-bold uppercase tracking-widest text-[#b56b3b]">By {article.author_name} · {new Date(article.created_at).toLocaleString()}</p>{article.source_url && <div className="mt-4 rounded-2xl bg-[#f6f4ef] p-4 text-xs leading-5 text-[#66716a]"><p className="font-black uppercase tracking-widest text-[#1e5b49]">Source review · {article.verification_status === 'source_checked' ? 'Source checked — human review still required' : 'Candidate — human confirmation required'}</p><p className="mt-1">{article.source_name || 'Named source unavailable'}{article.verified_source_count ? ` · ${article.verified_source_count} source${article.verified_source_count === 1 ? '' : 's'} counted` : ''}</p><a href={article.source_url} target="_blank" rel="noreferrer" className="mt-1 block break-all underline">{article.source_url}</a>{article.verification_notes && <p className="mt-2">{article.verification_notes}</p>}</div>}{article.rejection_reason && <p className="mt-4 rounded-2xl bg-red-50 p-4 text-sm text-red-700">Revision note: {article.rejection_reason}</p>}</div>{viewer.role === 'admin' && article.status !== 'published' && <div className="flex shrink-0 flex-wrap items-start gap-2"><button disabled={isBusy} onClick={() => reviewArticle(article.id, article.status === 'approved' ? 'publish' : 'approve')} className="inline-flex items-center gap-1 rounded-full bg-[#1e5b49] px-4 py-2 text-xs font-black uppercase tracking-widest text-white disabled:opacity-50"><CheckCircle2 size={14} />{article.status === 'approved' ? 'Publish' : 'Approve'}</button><button disabled={isBusy} onClick={() => { setReviewingId(article.id); setReason(''); }} className="inline-flex items-center gap-1 rounded-full border border-red-200 px-4 py-2 text-xs font-black uppercase tracking-widest text-red-600 disabled:opacity-50"><XCircle size={14} />Reject</button></div>}</div>{viewer.role === 'admin' && reviewingId === article.id && <div className="mt-5 rounded-2xl border border-red-100 bg-red-50 p-4"><label htmlFor={`news-reason-${article.id}`} className="text-xs font-black uppercase tracking-widest text-red-700">Why should this news be revised?</label><textarea id={`news-reason-${article.id}`} required minLength={3} rows={3} value={reason} onChange={(event) => setReason(event.target.value)} className="mt-3 w-full resize-none rounded-2xl bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-red-400" /><div className="mt-3 flex gap-2"><button type="button" disabled={isBusy} onClick={() => reviewArticle(article.id, 'reject')} className="rounded-full bg-red-600 px-4 py-2 text-xs font-black uppercase tracking-widest text-white disabled:opacity-50">Confirm rejection</button><button type="button" onClick={() => setReviewingId(null)} className="rounded-full border border-[#d9d6ce] bg-white px-4 py-2 text-xs font-black uppercase tracking-widest text-[#66716a]">Cancel</button></div></div>}</article>)}</div></div>;
+  const introduction = useMemo(() => viewer.role === 'admin'
+    ? 'Research sourced humanitarian developments, then review and publish only verified, suitable items. Every public article needs one primary image.'
+    : 'Submit factual news or field-event updates. An administrator must approve them before they become public.', [viewer.role]);
+
+  return <div className="space-y-6">
+    <div>
+      <h2 className="inline-flex items-center gap-2 text-2xl font-black"><Newspaper size={24} className="text-[#b56b3b]" /> Newsroom</h2>
+      <p className="mt-2 text-sm leading-6 text-[#66716a]">{introduction}</p>
+    </div>
+
+    {viewer.role === 'admin' && <section className="rounded-3xl border border-[#d9d6ce] bg-[#e9f0e9] p-5">
+      <p className="text-xs font-black uppercase tracking-widest text-[#1e5b49]">Governed global research</p>
+      <p className="mt-2 text-sm leading-6 text-[#66716a]">Gemini checks official humanitarian sources and credible corroboration, but every result is held as an unpublished draft. Review the source links, verification notes, and primary image before approval and publication.</p>
+      <div className="mt-4 flex flex-col gap-3 md:flex-row">
+        <input value={researchScope} onChange={(event) => setResearchScope(event.target.value)} maxLength={500} className="min-w-0 flex-1 rounded-2xl bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#1e5b49]" aria-label="Humanitarian-news research scope" />
+        <button type="button" disabled={researchBusy} onClick={startResearch} className="rounded-full bg-[#1e5b49] px-5 py-3 text-xs font-black uppercase tracking-widest text-white disabled:opacity-50">{researchBusy ? 'Researching…' : 'Research global humanitarian news'}</button>
+      </div>
+    </section>}
+
+    {(error || notice) && <div className={`rounded-2xl border p-4 text-sm ${error ? 'border-red-100 bg-red-50 text-red-700' : 'border-emerald-100 bg-emerald-50 text-emerald-700'}`} role="status">{error || notice}</div>}
+
+    <form onSubmit={submitArticle} className="grid gap-4 rounded-3xl border border-[#d9d6ce] bg-white p-6 md:grid-cols-2">
+      <input required minLength={8} placeholder="News headline" value={form.headline} onChange={(event) => setForm({ ...form, headline: event.target.value })} className="rounded-2xl bg-[#f6f4ef] px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#1e5b49] md:col-span-2" />
+      <input required minLength={20} placeholder="Short factual summary for the homepage" value={form.summary} onChange={(event) => setForm({ ...form, summary: event.target.value })} className="rounded-2xl bg-[#f6f4ef] px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#1e5b49] md:col-span-2" />
+      <textarea required minLength={50} rows={7} placeholder="Write the full news update" value={form.body} onChange={(event) => setForm({ ...form, body: event.target.value })} className="resize-none rounded-2xl bg-[#f6f4ef] px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#1e5b49] md:col-span-2" />
+      <input placeholder="Category, e.g. Field update" value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value })} className="rounded-2xl bg-[#f6f4ef] px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#1e5b49]" />
+      <div className="md:col-span-2"><OptionalImageUpload viewer={{ email: viewer.email, role: viewer.role }} value={form.image_url} onChange={(imageUrl) => setForm({ ...form, image_url: imageUrl })} label="Primary news image" helpText={viewer.role === 'admin' ? 'Required for direct publication. This image becomes the public headline-card background and article hero. JPG, PNG, or WEBP up to 8 MB.' : 'Add a consented, accurate image where available. The administrator will confirm the primary public image before publication.'} /></div>
+      <button disabled={isBusy} className="inline-flex items-center justify-center gap-2 rounded-full bg-[#1e5b49] py-3 text-xs font-black uppercase tracking-widest text-white disabled:opacity-50 md:col-span-2"><Send size={15} />{viewer.role === 'admin' ? 'Publish news with primary image' : 'Submit news for approval'}</button>
+    </form>
+
+    <div className="space-y-4">
+      <h3 className="text-xl font-black">{viewer.role === 'admin' ? 'News review queue' : 'Your news submissions'}</h3>
+      {articles.length === 0 ? <div className="rounded-3xl border border-dashed border-[#d9d6ce] bg-white p-10 text-center text-sm text-[#66716a]">No news articles yet.</div> : articles.map((article) => {
+        const primaryImage = articleImages[article.id] ?? article.image_url ?? '';
+        const imageChanged = primaryImage !== (article.image_url || '');
+        return <article key={article.id} className="rounded-3xl border border-[#d9d6ce] bg-white p-6">
+          <div className="flex flex-col justify-between gap-4 md:flex-row">
+            <div className="min-w-0">
+              <div className="mb-3 flex flex-wrap items-center gap-2"><span className="rounded-full bg-[#e9f0e9] px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#1e5b49]">{statusLabel[article.status] || article.status}</span><span className="rounded-full bg-[#f6f4ef] px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#66716a]">{article.author_role}</span></div>
+              <h4 className="text-xl font-black">{article.headline}</h4>
+              <p className="mt-2 text-sm leading-6 text-[#66716a]">{article.summary}</p>
+              <p className="mt-3 text-xs font-bold uppercase tracking-widest text-[#b56b3b]">By {article.author_name} · {new Date(article.created_at).toLocaleString()}</p>
+              {article.source_url && <div className="mt-4 rounded-2xl bg-[#f6f4ef] p-4 text-xs leading-5 text-[#66716a]"><p className="font-black uppercase tracking-widest text-[#1e5b49]">Source review · {article.verification_status === 'source_checked' ? 'Source checked — human review still required' : 'Candidate — human confirmation required'}</p><p className="mt-1">{article.source_name || 'Named source unavailable'}{article.verified_source_count ? ` · ${article.verified_source_count} source${article.verified_source_count === 1 ? '' : 's'} counted` : ''}</p><a href={article.source_url} target="_blank" rel="noreferrer" className="mt-1 block break-all underline">{article.source_url}</a>{article.verification_notes && <p className="mt-2">{article.verification_notes}</p>}</div>}
+              {article.rejection_reason && <p className="mt-4 rounded-2xl bg-red-50 p-4 text-sm text-red-700">Revision note: {article.rejection_reason}</p>}
+            </div>
+            {viewer.role === 'admin' && article.status !== 'published' && <div className="flex shrink-0 flex-wrap items-start gap-2"><button disabled={isBusy} onClick={() => reviewArticle(article, article.status === 'approved' ? 'publish' : 'approve')} className="inline-flex items-center gap-1 rounded-full bg-[#1e5b49] px-4 py-2 text-xs font-black uppercase tracking-widest text-white disabled:opacity-50"><CheckCircle2 size={14} />{article.status === 'approved' ? 'Publish with main image' : 'Approve'}</button><button disabled={isBusy} onClick={() => { setReviewingId(article.id); setReason(''); }} className="inline-flex items-center gap-1 rounded-full border border-red-200 px-4 py-2 text-xs font-black uppercase tracking-widest text-red-600 disabled:opacity-50"><XCircle size={14} />Reject</button></div>}
+          </div>
+
+          {viewer.role === 'admin' && <div className="mt-5 border-t border-[#eeeae2] pt-5"><div className="mb-3 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[#1e5b49]"><ImagePlus size={15} /> Primary news image</div><OptionalImageUpload viewer={{ email: viewer.email, role: viewer.role }} value={primaryImage} onChange={(imageUrl) => setArticleImages((current) => ({ ...current, [article.id]: imageUrl }))} label="Public headline and article image" helpText="This image is used on the public news headline card, homepage news background, and the full article. Add it before publishing; published articles can be corrected here." />{imageChanged && <button type="button" disabled={isBusy} onClick={() => reviewArticle(article, 'save_image')} className="mt-3 inline-flex items-center gap-2 rounded-full bg-[#17221e] px-4 py-2 text-xs font-black uppercase tracking-widest text-white disabled:opacity-50"><Save size={14} /> Save main image</button>}</div>}
+
+          {viewer.role === 'admin' && reviewingId === article.id && <div className="mt-5 rounded-2xl border border-red-100 bg-red-50 p-4"><label htmlFor={`news-reason-${article.id}`} className="text-xs font-black uppercase tracking-widest text-red-700">Why should this news be revised?</label><textarea id={`news-reason-${article.id}`} required minLength={3} rows={3} value={reason} onChange={(event) => setReason(event.target.value)} className="mt-3 w-full resize-none rounded-2xl bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-red-400" /><div className="mt-3 flex gap-2"><button type="button" disabled={isBusy} onClick={() => reviewArticle(article, 'reject')} className="rounded-full bg-red-600 px-4 py-2 text-xs font-black uppercase tracking-widest text-white disabled:opacity-50">Confirm rejection</button><button type="button" onClick={() => setReviewingId(null)} className="rounded-full border border-[#d9d6ce] bg-white px-4 py-2 text-xs font-black uppercase tracking-widest text-[#66716a]">Cancel</button></div></div>}
+        </article>;
+      })}
+    </div>
+  </div>;
 }
