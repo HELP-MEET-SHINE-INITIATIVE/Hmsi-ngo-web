@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { getAdminEmailFromCookie } from './adminSession';
 import { getSupabaseAdmin } from './supabaseAdmin';
 
-const GEMINI_MODEL = process.env.GEMINI_MODEL?.trim() || 'gemini-2.5-flash';
+const GEMINI_MODEL = process.env.GEMINI_MODEL?.trim() || 'gemini-3.6-flash';
 const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 const MAX_DOCUMENT_CONTENT = 120_000;
 const MAX_PROMPT_LENGTH = 8_000;
