@@ -58,3 +58,5 @@
 - [x] Extend administrator editorial review with request-revisions feedback, contributor-visible revision state, and protected re-submission while retaining administrator-only publishing.
 - [x] Align the protected editorial queue and article model with the publisher dispatch terminology while preserving compatibility with existing pending-review records and public news rendering.
 - [x] Add a protected administrator control to assign or remove publisher pathways for approved active volunteers after onboarding.
+- [ ] Run a complete end-to-end volunteer news submission, revision, approval, and publication integration test against an isolated staging deployment with disposable test identities and cleanup verification.
+- [x] Run isolated mock-mode end-to-end verification of volunteer submission, editorial queue, revision/status transitions, administrator approval, and publication boundaries without live database or external side effects.
