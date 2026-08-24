@@ -20,6 +20,10 @@
     {
       "path": "/api/cron/training-alert",
       "schedule": "0 8 * * 2"
+    },
+    {
+      "path": "/api/cron/editorial-archive",
+      "schedule": "0 2 * * *"
     }
   ]
 }

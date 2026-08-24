@@ -35,3 +35,7 @@
 - [x] Verify `RESEND_API_KEYY` and `RESEND_FROM_EMAILL` are unused; retain them in Vercel Production and Preview by explicit user decision while preserving the standard active Resend keys.
 - [x] Verify the current Vercel production deployment and recent notification-route runtime health without modifying HMSI configuration.
 - [x] Add a primary image field to the admin news publishing workflow and render it consistently on public news headline cards and articles.
+- [x] Document a fail-safe image-path tracking, replacement cleanup, and scheduled orphan-reconciliation design before any destructive storage change is authorized.
+- [x] Add protected `/admin/editorial` and `/admin/articles` routes with an editorial queue, content-management views, inspection controls, and optimistic review actions.
+- [x] Add admin-only article-management API handlers and editorial audit fields for review, draft, publish, reject, archive, and deletion states.
+- [x] Add a safe ten-day article archival policy, scheduled reconciliation route, tests, production validation, and deployment verification.
