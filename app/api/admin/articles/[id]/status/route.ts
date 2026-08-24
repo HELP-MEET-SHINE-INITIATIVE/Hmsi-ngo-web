@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../../../../lib/supabaseAdmin';
 import { ARTICLE_SELECT, allowedAction, cleanText, getEditorialAdmin, hasSameOrigin } from '../../../../../../lib/editorialAdmin';
+import { editorialRevisionRequestedTemplate, sendHmsiNotification } from '../../../../../../lib/hmsiNotifications';
 
 export const runtime = 'nodejs';
 
@@ -34,7 +35,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     const action = allowedAction(payload.action);
     const reason = cleanText(payload.reason, 500);
     if (!articleId || !action) return error('An article and a valid editorial action are required.');
-    if (action === 'reject' && reason.length < 3) return error('Add a short reason before rejecting an article.');
+    if ((action === 'reject' || action === 'request_revisions') && reason.length < 3) return error('Add clear editorial feedback before continuing.');
 
     const { data: existing, error: lookupError } = await admin.from('news_articles').select(ARTICLE_SELECT).eq('id', articleId).maybeSingle();
     if (lookupError) throw lookupError;
@@ -51,6 +52,10 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       update = { ...update, status: 'published', approved_by: actor, approved_at: now, published_at: now, rejection_reason: null, scheduled_archive_at: null, archive_reason: null };
       eventAction = 'published';
       message = 'Article approved and published.';
+    } else if (action === 'request_revisions') {
+      update = { ...update, status: 'revision_requested', revision_feedback: reason, revision_requested_at: now, rejection_reason: null };
+      eventAction = 'revision_requested';
+      message = 'Revision feedback saved for the contributor. The dispatch is ready for protected re-submission.';
     } else if (action === 'reject') {
       update = { ...update, status: 'rejected', rejection_reason: reason };
       eventAction = 'rejected';
@@ -65,7 +70,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       const body = cleanText(payload.body, 12000);
       const category = cleanText(payload.category, 100) || existing.category;
       if (headline.length < 5 || summary.length < 20 || body.length < 40) return error('Add a headline, a summary of at least 20 characters, and article content of at least 40 characters.');
-      update = { ...update, headline, summary, body, category, status: 'draft', rejection_reason: null };
+      update = { ...update, headline, summary, body, category, status: 'draft', rejection_reason: null, revision_feedback: null, revision_requested_at: null };
       eventAction = action === 'edit' ? 'edited' : 'saved_draft';
       message = action === 'edit' ? 'Article edits saved as a draft.' : 'Article saved in the draft queue.';
     }
@@ -74,6 +79,15 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     if (updateError || !article) throw updateError || new Error('Article update failed.');
 
     await recordEvent(admin, articleId, eventAction, actor, reason || undefined);
+    if (action === 'request_revisions' && existing.author_role === 'volunteer' && existing.author_email) {
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() || 'https://www.hmsi.org.ng';
+        const content = editorialRevisionRequestedTemplate({ name: existing.author_name, headline: existing.headline, feedback: reason, workspaceUrl: `${baseUrl}/portal/submit-news` });
+        await sendHmsiNotification({ sender: 'admin', to: [existing.author_email], subject: `HMSI Editorial Team: revisions requested for ${existing.headline}`, ...content, idempotencyKey: `editorial_revision_${articleId}_${new Date(now).getTime()}` });
+      } catch (notificationError) {
+        console.error('[Editorial] Revision notification was not delivered:', notificationError instanceof Error ? notificationError.message : 'unknown');
+      }
+    }
     return NextResponse.json({ article, message }, { headers: { 'Cache-Control': 'no-store, max-age=0' } });
   } catch (cause) {
     console.error('[Editorial] Failed to update article:', cause instanceof Error ? cause.message : 'unknown');

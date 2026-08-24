@@ -3,9 +3,11 @@ import { getAdminEmailFromCookie } from '../../../../../lib/adminSession';
 import { getSupabaseAdmin } from '../../../../../lib/supabaseAdmin';
 import { createOnboardingInvitation } from '../../../../../lib/onboarding';
 import { sendHmsiNotification, workerWelcomeTemplate } from '../../../../../lib/hmsiNotifications';
+import { hasSameOrigin } from '../../../../../lib/editorialAdmin';
 
 export const runtime = 'nodejs';
 const ALLOWED_STATUSES = new Set(['pending', 'approved', 'rejected']);
+const PUBLISHER_ROLES = new Set(['community_publisher', 'humanitarian_activist', 'independent_field_reporter']);
 
 export async function PATCH(
   request: Request,
@@ -14,6 +16,7 @@ export async function PATCH(
   if (!getAdminEmailFromCookie(request.headers.get('cookie'))) {
     return NextResponse.json({ error: 'Admin authentication required.' }, { status: 401 });
   }
+  if (!hasSameOrigin(request)) return NextResponse.json({ error: 'Cross-site volunteer updates are not allowed.' }, { status: 403 });
 
   const admin = getSupabaseAdmin();
   if (!admin) return NextResponse.json({ error: 'Supabase is not configured on the server.' }, { status: 503 });
@@ -23,21 +26,28 @@ export async function PATCH(
     const body = await request.json();
     const accessStatus = body.accessStatus === 'banned' || body.accessStatus === 'active' ? body.accessStatus : null;
     const status = String(body.status || '').toLowerCase();
-    if (!accessStatus && !ALLOWED_STATUSES.has(status)) return NextResponse.json({ error: 'Invalid volunteer status.' }, { status: 400 });
+    const publisherRole = body.publisherRole === null || body.publisherRole === '' ? null : PUBLISHER_ROLES.has(body.publisherRole) ? body.publisherRole : undefined;
+    if (!accessStatus && !ALLOWED_STATUSES.has(status) && publisherRole === undefined) return NextResponse.json({ error: 'Invalid volunteer update.' }, { status: 400 });
 
     const { data: application, error: applicationError } = await admin
       .from('volunteer_applications')
-      .select('id,name,email,phone,applicant_role')
+      .select('id,name,email,phone,applicant_role,status,account_status,publisher_role')
       .eq('id', id)
       .maybeSingle();
     if (applicationError) throw applicationError;
     if (!application) return NextResponse.json({ error: 'This application was not found.' }, { status: 404 });
 
+    const canManagePublisherRole = publisherRole !== undefined && application.applicant_role === 'volunteer' && (status === 'approved' || application.status === 'approved') && (accessStatus === 'active' || application.account_status === 'active');
+    if (publisherRole !== undefined && !canManagePublisherRole) return NextResponse.json({ error: 'Publisher pathways can be assigned only to approved active volunteer accounts.' }, { status: 409 });
+    const updateValues: Record<string, unknown> = {};
+    if (accessStatus) updateValues.account_status = accessStatus;
+    if (ALLOWED_STATUSES.has(status)) { updateValues.status = status; updateValues.reviewed_at = new Date().toISOString(); }
+    if (publisherRole !== undefined) updateValues.publisher_role = publisherRole;
     const { data, error } = await admin
       .from('volunteer_applications')
-      .update(accessStatus ? { account_status: accessStatus } : { status, reviewed_at: new Date().toISOString() })
+      .update(updateValues)
       .eq('id', id)
-      .select('id,status,account_status,applicant_role')
+      .select('id,status,account_status,applicant_role,publisher_role')
       .single();
 
     if (error) throw error;

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getNewsletterViewer, getNewsletterViewerPayload } from '../../../../lib/newsletterAccess';
+import { getPortalIdentity } from '../../../../lib/portalAuth';
 import { optimizeUploadedImage } from '../../../../lib/optimizeImage';
 import { getSupabaseAdmin, getSupabaseStorageBucket, hasSupabaseConfig } from '../../../../lib/supabaseAdmin';
 
@@ -8,14 +9,17 @@ export const maxDuration = 60;
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+const PUBLISHER_ROLES = new Set(['community_publisher', 'humanitarian_activist', 'independent_field_reporter']);
 
 export async function POST(request: Request) {
   if (!hasSupabaseConfig()) return NextResponse.json({ error: 'Image uploads are not configured yet.' }, { status: 503 });
   const admin = getSupabaseAdmin();
   if (!admin) return NextResponse.json({ error: 'Image uploads are not configured yet.' }, { status: 503 });
 
-  const viewer = await getNewsletterViewer(request, admin, getNewsletterViewerPayload(request));
-  if (!viewer) return NextResponse.json({ error: 'Only the administrator and approved active HMSI members, workers, or volunteers can upload images.' }, { status: 403 });
+  const portalIdentity = await getPortalIdentity(request);
+  const publisher = portalIdentity?.role === 'volunteer' && portalIdentity.publisherRole && PUBLISHER_ROLES.has(portalIdentity.publisherRole) ? portalIdentity : null;
+  const viewer = publisher ? { email: publisher.email, name: publisher.name, role: 'publisher-volunteer' } : await getNewsletterViewer(request, admin, getNewsletterViewerPayload(request));
+  if (!viewer) return NextResponse.json({ error: 'Only an HMSI administrator or an approved publisher volunteer can upload a dispatch image.' }, { status: 403 });
 
   const formData = await request.formData().catch(() => null);
   const image = formData?.get('image');

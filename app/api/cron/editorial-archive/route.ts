@@ -3,7 +3,7 @@ import { getSupabaseAdmin } from '../../../../lib/supabaseAdmin';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
-const ELIGIBLE_STATUSES = ['draft', 'pending_admin_approval', 'approved', 'rejected'];
+const ELIGIBLE_STATUSES = ['draft', 'pending_admin_approval', 'pending_editorial_review', 'revision_requested', 'approved', 'rejected'];
 
 function isAuthorized(request: Request) {
   const secret = process.env.CRON_SECRET?.trim();

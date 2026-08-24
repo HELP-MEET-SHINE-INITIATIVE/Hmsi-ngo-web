@@ -5,11 +5,11 @@ import { ARTICLE_SELECT, getEditorialAdmin } from '../../../../lib/editorialAdmi
 export const runtime = 'nodejs';
 
 const FILTERS: Record<string, string[]> = {
-  pending: ['pending_admin_approval'],
+  pending: ['pending_admin_approval', 'pending_editorial_review'],
   published: ['published'],
-  drafts: ['draft', 'rejected'],
+  drafts: ['draft', 'revision_requested', 'rejected'],
   archived: ['archived'],
-  all: ['draft', 'pending_admin_approval', 'approved', 'rejected', 'published', 'archived'],
+  all: ['draft', 'pending_admin_approval', 'pending_editorial_review', 'revision_requested', 'approved', 'rejected', 'published', 'archived'],
 };
 
 export async function GET(request: Request) {
@@ -35,4 +35,3 @@ export async function GET(request: Request) {
 
   return NextResponse.json({ articles: data || [], filter, reviewer: actor }, { headers: { 'Cache-Control': 'no-store, max-age=0' } });
 }
-

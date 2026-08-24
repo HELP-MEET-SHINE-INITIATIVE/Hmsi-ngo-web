@@ -71,8 +71,14 @@ test('publisher role migration and portal API permit submission only for approve
   assert.match(portalAuth, /publisherRole/);
   assert.match(portalAuth, /publisher_role/);
   assert.match(publisherApi, /identity\.role !== 'volunteer'/);
-  assert.match(publisherApi, /pending_admin_approval/);
+  assert.match(publisherApi, /pending_editorial_review/);
+  assert.match(publisherApi, /revision_requested/);
+  assert.match(publisherApi, /safeDriveUrl/);
+  assert.match(publisherApi, /author_role: 'volunteer'/);
+  assert.match(publisherUi, /Your dispatch has been submitted to the HMSI Editorial Team for review/);
+  assert.match(publisherUi, /Direct photo upload/);
+  assert.match(publisherUi, /Revise & re-submit/);
   assert.match(publisherApi, /author_role: 'volunteer'/);
   assert.doesNotMatch(publisherApi, /status:\s*'published'/);
-  assert.match(publisherUi, /never publishes a story directly to the public HMSI feed/);
+  assert.match(publisherUi, /Only HMSI administrators can publish to the public news feed/);
 });

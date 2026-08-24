@@ -26,7 +26,7 @@ export async function GET(request: Request) {
   const viewer = await getViewer(request, admin);
   let query = admin
     .from('news_articles')
-    .select('id,headline,summary,body,category,image_url,author_name,author_email,author_role,status,rejection_reason,approved_by,approved_at,published_at,source_name,source_url,source_urls,source_published_at,verification_status,verification_notes,verified_source_count,research_task_id,reviewed_at,created_at,updated_at')
+    .select('id,headline,summary,body,body_format,category,image_url,author_name,author_email,author_role,status,rejection_reason,approved_by,approved_at,published_at,source_name,source_url,source_urls,source_published_at,verification_status,verification_notes,verified_source_count,research_task_id,reviewed_at,created_at,updated_at')
     .order('published_at', { ascending: false, nullsFirst: false });
 
   if (requestedId) {

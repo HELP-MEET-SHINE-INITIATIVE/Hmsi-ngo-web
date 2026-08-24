@@ -61,6 +61,16 @@ export function verifiedDonationThankYouTemplate(input: { name: string; amountMa
   return { html, text: `Dear ${input.name},\n\nThank you for your verified donation of ${amount}${input.campaignName ? ` for ${input.campaignName}` : ''} to Help Meet Shine Initiative. Your payment has been confirmed. Receipt summary: Amount ${amount}; currency ${currency}; reference ending ${referenceSuffix}.${campaignText} Your acknowledgement is attached.\n\nThis acknowledgement confirms a verified payment. It is not a tax-exemption certificate or a statement that the donation is tax-deductible.\n\nWith appreciation,\nHelp Meet Shine Initiative` };
 }
 
+export function editorialRevisionRequestedTemplate(input: { name: string; headline: string; feedback: string; workspaceUrl: string }) {
+  const html = officialShell({
+    eyebrow: 'HMSI Editorial Team',
+    title: 'Revisions requested for your dispatch',
+    body: `<p style="margin-top:0">Dear ${escapeHtml(input.name)},</p><p>The HMSI Editorial Team has requested revisions for your dispatch <strong>${escapeHtml(input.headline)}</strong>.</p><p><strong>Editor feedback:</strong> ${escapeHtml(input.feedback)}</p><p><a href="${escapeHtml(input.workspaceUrl)}" style="display:inline-block;background:#1e5b49;color:#ffffff;padding:12px 18px;text-decoration:none;font-weight:700">Revise my dispatch</a></p><p>Please use the protected publisher workspace to revise and re-submit your dispatch for review.</p>`,
+    footer: 'HMSI Administration · Official editorial correspondence',
+  });
+  return { html, text: `Dear ${input.name},\n\nHMSI Editorial Team has requested revisions for your dispatch: ${input.headline}.\n\nEditor feedback: ${input.feedback}\n\nRevise and re-submit: ${input.workspaceUrl}` };
+}
+
 export function hmsiDriveFilesIngestedTemplate(input: { name: string; submissionsUrl: string }) {
   const html = officialShell({
     eyebrow: 'HMSI File Intake',
