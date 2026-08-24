@@ -64,10 +64,20 @@ export async function signInPortal(email: string, password: string) {
   return { identity, accessToken: result.data.session.access_token, refreshToken: result.data.session.refresh_token };
 }
 
+export function getRecoveryRedirect(siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.hmsi.org.ng') {
+  const url = new URL(siteUrl);
+  const allowedHosts = new Set(['hmsi.org.ng', 'www.hmsi.org.ng']);
+  if (url.protocol !== 'https:' || !allowedHosts.has(url.hostname)) throw new Error('Invalid HMSI recovery URL configuration.');
+  return `${url.origin}/reset-password`;
+}
+
 export async function requestPortalPasswordReset(email: string, redirectTo: string) {
   const client = getPublicClient();
   if (!client) throw new Error('Supabase Auth is not configured on the HMSI server.');
-  await client.auth.resetPasswordForEmail(email.trim().toLowerCase(), { redirectTo });
+  const redirect = new URL(redirectTo);
+  const allowedHosts = new Set(['hmsi.org.ng', 'www.hmsi.org.ng']);
+  if (redirect.protocol !== 'https:' || !allowedHosts.has(redirect.hostname) || redirect.pathname !== '/reset-password' || redirect.search || redirect.hash) throw new Error('Invalid HMSI recovery redirect.');
+  await client.auth.resetPasswordForEmail(email.trim().toLowerCase(), { redirectTo: redirect.toString() });
 }
 
 export function activationCodeMatches(supplied: string, expectedHash: string) {

@@ -15,3 +15,4 @@
 - [ ] Add safe delivery logging, regression tests, and Resend configuration documentation.
 - [x] Implement idempotent worker ID-card generation and secure email dispatch when an authorized admin creates an assignment.
 - [x] Add route regression tests, build validation, and deployment verification for assignment-triggered notifications.
+- [x] Review and harden volunteer/member password reset request and callback flows, add security tests, and validate deployment.

@@ -16,6 +16,7 @@ const portalAuthSource = await readFile(new URL('../lib/portalAuth.ts', import.m
 const loginRouteSource = await readFile(new URL('../app/api/portal/auth/login/route.ts', import.meta.url), 'utf8');
 const activateRouteSource = await readFile(new URL('../app/api/portal/auth/activate/route.ts', import.meta.url), 'utf8');
 const recoverRouteSource = await readFile(new URL('../app/api/portal/auth/recover/route.ts', import.meta.url), 'utf8');
+const resetPageSource = await readFile(new URL('../app/reset-password/page.tsx', import.meta.url), 'utf8');
 const profileRouteSource = await readFile(new URL('../app/api/portal/profile/route.ts', import.meta.url), 'utf8');
 const assignmentsRouteSource = await readFile(new URL('../app/api/admin/assignments/route.ts', import.meta.url), 'utf8');
 const emailSource = await readFile(new URL('../lib/portalEmail.ts', import.meta.url), 'utf8');
@@ -71,6 +72,13 @@ test('built-in portal Auth is server-backed and role-scoped', () => {
   assert.match(activateRouteSource, /admin\.auth\.admin\.createUser/);
   assert.match(activateRouteSource, /activationCodeMatches/);
   assert.match(portalAuthSource, /resetPasswordForEmail/);
+  assert.match(portalAuthSource, /allowedHosts/);
+  assert.match(recoverRouteSource, /If an eligible HMSI account exists/);
+  assert.match(recoverRouteSource, /Cache-Control.*no-store/);
+  assert.match(recoverRouteSource, /MAX_REQUESTS_PER_EMAIL/);
+  assert.match(resetPageSource, /history\.replaceState/);
+  assert.match(resetPageSource, /Passwords do not match/);
+  assert.match(resetPageSource, /client\.auth\.signOut/);
   assert.match(profileRouteSource, /auth_user_id/);
   assert.match(profileRouteSource, /MAX_BYTES = 5 \* 1024 \* 1024/);
   assert.match(profileRouteSource, /ALLOWED_TYPES/);
