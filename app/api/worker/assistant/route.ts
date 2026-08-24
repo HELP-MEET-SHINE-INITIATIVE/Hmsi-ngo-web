@@ -46,12 +46,11 @@ export async function POST(request: Request) {
     'Respond in a short, practical format. Clearly label any handover or message as a draft that was not sent or saved.',
   ].join('\n\n');
 
-  let task: any;
+  let task: Awaited<ReturnType<typeof createManusAssistantTask>>;
   try { task = await createManusAssistantTask({ prompt, title: `HMSI worker assistance: ${workflow}` }); }
-  catch (cause) { const message = cause instanceof Error ? cause.message : 'Manus worker assistance is unavailable.'; return error(message, message.includes('MANUS_API_KEY') ? 503 : 502); }
-  if (!task?.task_id) return error('Manus did not return a worker-assistance task id.', 502);
-  const taskRecord = await admin.from('hmsi_assistant_tasks').insert({ manus_task_id: task.task_id, requested_by_email: session.email, prompt_summary: `Worker workflow: ${workflow}`, document_ids: [], actor_role: 'worker', worker_id: session.workerId, status: 'running' }).select('id,manus_task_id,prompt_summary,status,created_at').single();
-  if (taskRecord.error || !taskRecord.data) return error('Worker assistance started, but its audit record could not be saved.', 503);
-  await recordAssistantAudit({ actorEmail: session.email, actorRole: 'worker', action: 'worker_assistant_task_created', manusTaskId: task.task_id, details: { workerId: session.workerId, workflow, assignmentCount: safeAssignments.length } });
-  return NextResponse.json({ task: taskRecord.data });
+  catch (cause) { const message = cause instanceof Error ? cause.message : 'Gemini worker assistance is unavailable.'; return error(message, message.includes('GEMINI_API_KEY') ? 503 : 502); }
+  const taskRecord = await admin.from('hmsi_assistant_tasks').insert({ manus_task_id: task.task_id, requested_by_email: session.email, prompt_summary: `Worker workflow: ${workflow}`, document_ids: [], actor_role: 'worker', worker_id: session.workerId, status: 'stopped' }).select('id,manus_task_id,prompt_summary,status,created_at').single();
+  if (taskRecord.error || !taskRecord.data) return error('Gemini responded, but its worker audit record could not be saved.', 503);
+  await recordAssistantAudit({ actorEmail: session.email, actorRole: 'worker', action: 'worker_assistant_task_created', manusTaskId: task.task_id, details: { provider: 'gemini', workerId: session.workerId, workflow, assignmentCount: safeAssignments.length } });
+  return NextResponse.json({ task: taskRecord.data, response: task.response_text, provider: 'gemini' });
 }

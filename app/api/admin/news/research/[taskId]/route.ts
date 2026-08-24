@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { extractManusTaskState, getAssistantAdminEmail, getAssistantSupabase, getManusAssistantMessages, recordAssistantAudit } from '../../../../../../lib/hmsiAssistant';
+import { getAssistantAdminEmail, getAssistantSupabase, recordAssistantAudit } from '../../../../../../lib/hmsiAssistant';
 
 export const runtime = 'nodejs';
 
@@ -21,18 +21,14 @@ export async function GET(request: Request, context: Params) {
   if (task.error) return jsonError('The research task could not be loaded.', 503);
   if (!task.data) return jsonError('Research task not found.', 404);
 
-  let payload: any;
-  try { payload = await getManusAssistantMessages(taskId); }
-  catch (error) { const message = error instanceof Error ? error.message : 'Manus research status is unavailable.'; return jsonError(message, 502); }
-  const state = extractManusTaskState(payload);
-  const structured = state.structuredOutput;
-  const nextStatus = ['running', 'waiting', 'error'].includes(state.status) ? state.status : 'stopped';
+  const structured = task.data.result;
+  const nextStatus = task.data.status;
   const candidates = structured?.success && structured.value && typeof structured.value === 'object' && Array.isArray((structured.value as any).candidates) ? (structured.value as any).candidates : [];
 
   if (nextStatus === 'stopped' && structured && !structured.success) {
     await admin.from('hmsi_news_research_tasks').update({ status: 'error', error_message: structured.error || 'Structured research output failed.', updated_at: new Date().toISOString() }).eq('id', task.data.id);
     await recordAssistantAudit({ actorEmail: adminEmail, action: 'humanitarian_news_research_failed', manusTaskId: taskId, details: { error: structured.error || 'Structured research output failed.' } });
-    return NextResponse.json({ task: { ...task.data, status: 'error' }, candidates: [], response: state.text, error: structured.error || 'Structured research output failed.' });
+    return NextResponse.json({ task: { ...task.data, status: 'error' }, candidates: [], response: '', error: structured.error || 'Structured research output failed.' });
   }
 
   if (nextStatus === 'stopped' && structured?.success) {
@@ -75,5 +71,5 @@ export async function GET(request: Request, context: Params) {
   }
 
   if (nextStatus !== task.data.status) await admin.from('hmsi_news_research_tasks').update({ status: nextStatus, updated_at: new Date().toISOString() }).eq('id', task.data.id);
-  return NextResponse.json({ task: { ...task.data, status: nextStatus }, candidates: [], response: state.text });
+  return NextResponse.json({ task: { ...task.data, status: nextStatus }, candidates: [], response: '' });
 }

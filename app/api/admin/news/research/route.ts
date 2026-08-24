@@ -25,13 +25,12 @@ export async function POST(request: Request) {
     `RESEARCH SCOPE: ${limitPrompt(scope)}`,
   ].join('\n\n');
 
-  let task: any;
+  let task: Awaited<ReturnType<typeof createManusAssistantTask>>;
   try { task = await createManusAssistantTask({ prompt, title: `HMSI humanitarian news research: ${scope.slice(0, 70)}`, structuredOutputSchema: humanitarianNewsSchema }); }
-  catch (error) { const message = error instanceof Error ? error.message : 'Manus research is unavailable.'; return jsonError(message, message.includes('MANUS_API_KEY') ? 503 : 502); }
-  if (!task?.task_id) return jsonError('Manus did not return a research task id.', 502);
+  catch (error) { const message = error instanceof Error ? error.message : 'Gemini research is unavailable.'; return jsonError(message, message.includes('GEMINI_API_KEY') ? 503 : 502); }
 
-  const record = await admin.from('hmsi_news_research_tasks').insert({ manus_task_id: task.task_id, requested_by_email: adminEmail, scope, status: 'running' }).select('id,manus_task_id,scope,status,created_at').single();
-  if (record.error || !record.data) return jsonError('The research task started, but HMSI could not record it.', 503);
-  await recordAssistantAudit({ actorEmail: adminEmail, action: 'humanitarian_news_research_started', manusTaskId: task.task_id, details: { scope } });
-  return NextResponse.json({ task: record.data }, { status: 201 });
+  const record = await admin.from('hmsi_news_research_tasks').insert({ manus_task_id: task.task_id, requested_by_email: adminEmail, scope, status: 'stopped', result: task.structured_output }).select('id,manus_task_id,scope,status,result,created_at').single();
+  if (record.error || !record.data) return jsonError('Gemini responded, but HMSI could not record the research task.', 503);
+  await recordAssistantAudit({ actorEmail: adminEmail, action: 'humanitarian_news_research_started', manusTaskId: task.task_id, details: { provider: 'gemini', scope } });
+  return NextResponse.json({ task: record.data, provider: 'gemini' }, { status: 201 });
 }

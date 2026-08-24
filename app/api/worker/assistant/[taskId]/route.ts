@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { extractManusTaskState, getAssistantSupabase, getManusAssistantMessages, recordAssistantAudit } from '../../../../../lib/hmsiAssistant';
+import { getAssistantSupabase, recordAssistantAudit } from '../../../../../lib/hmsiAssistant';
 import { getWorkerSessionFromCookie } from '../../../../../lib/workerSession';
 
 export const runtime = 'nodejs';
@@ -17,14 +17,7 @@ export async function GET(request: Request, context: Params) {
   if (task.error) return error('Worker task could not be loaded.', 503);
   if (!task.data) return error('Worker task not found.', 404);
 
-  let payload: any;
-  try { payload = await getManusAssistantMessages(taskId); }
-  catch (cause) { const message = cause instanceof Error ? cause.message : 'Manus worker assistance is temporarily unavailable.'; return error(message, 502); }
-  const state = extractManusTaskState(payload);
-  const nextStatus = ['running', 'waiting', 'error'].includes(state.status) ? state.status : 'stopped';
-  if (nextStatus !== task.data.status) {
-    await admin.from('hmsi_assistant_tasks').update({ status: nextStatus, updated_at: new Date().toISOString() }).eq('id', task.data.id).eq('worker_id', session.workerId);
-    if (nextStatus !== 'running') await recordAssistantAudit({ actorEmail: session.email, actorRole: 'worker', action: 'worker_assistant_task_status_read', manusTaskId: taskId, details: { status: nextStatus, eventCount: state.eventCount } });
-  }
-  return NextResponse.json({ task: { ...task.data, status: nextStatus }, response: state.text });
+  const nextStatus = task.data.status === 'error' ? 'error' : 'stopped';
+  await recordAssistantAudit({ actorEmail: session.email, actorRole: 'worker', action: 'worker_assistant_task_status_read', manusTaskId: taskId, details: { provider: 'gemini', status: nextStatus, synchronous: true } });
+  return NextResponse.json({ task: { ...task.data, status: nextStatus }, response: '', provider: 'gemini', message: 'Gemini responses are returned synchronously when the worker workflow is submitted.' });
 }
