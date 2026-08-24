@@ -54,19 +54,19 @@ function getGeminiApiKey() {
 }
 
 function schemaForGemini(schema: Record<string, unknown>): Record<string, unknown> {
+  const normalized: Record<string, unknown> = {};
+  for (const key of ['type', 'required', 'enum', 'description', 'nullable']) if (schema[key] !== undefined) normalized[key] = schema[key];
   const type = schema.type;
   if (Array.isArray(type)) {
     const nonNullType = type.find((item) => item !== 'null');
-    return { ...schema, type: nonNullType, nullable: true };
+    normalized.type = nonNullType;
+    normalized.nullable = true;
   }
   if (schema.properties && typeof schema.properties === 'object') {
-    return {
-      ...schema,
-      properties: Object.fromEntries(Object.entries(schema.properties as Record<string, unknown>).map(([key, value]) => [key, schemaForGemini(value as Record<string, unknown>)])),
-    };
+    normalized.properties = Object.fromEntries(Object.entries(schema.properties as Record<string, unknown>).map(([key, value]) => [key, schemaForGemini(value as Record<string, unknown>)]));
   }
-  if (schema.items && typeof schema.items === 'object') return { ...schema, items: schemaForGemini(schema.items as Record<string, unknown>) };
-  return schema;
+  if (schema.items && typeof schema.items === 'object') normalized.items = schemaForGemini(schema.items as Record<string, unknown>);
+  return normalized;
 }
 
 function extractGeminiText(payload: GeminiResponse) {
