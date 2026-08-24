@@ -10,7 +10,7 @@ export async function sendPortalEmail(input: { to: string; subject: string; text
   return { sent: true, messageId: typeof payload.id === 'string' ? payload.id : null } as const;
 }
 
-function portalLink(path: string) { return `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.hmsi.org.ng'}${path}`; }
+function portalLink(path: string) { return `${(process.env.NEXT_PUBLIC_SITE_URL || 'https://www.hmsi.org.ng').replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`; }
 
 export function assignmentEmail(input: { workerName: string; assignmentTitle: string; assignmentDescription: string; dueAt: string | null; memberNumber: string | null; activationCode?: string; activated: boolean }) {
   if (!input.memberNumber?.trim()) throw new Error('Worker ID number is required before sending an access email.');
