@@ -1,20 +1,20 @@
 import { NextResponse } from 'next/server';
 import { getAdminEmailFromCookie } from '../../../../lib/adminSession';
 import { getSupabaseAdmin } from '../../../../lib/supabaseAdmin';
+import { createCredentialCode, createMemberNumber, hashCredentialCode } from '../../../../lib/hmsiCredentials';
+import { assignmentEmail, sendPortalEmail } from '../../../../lib/portalEmail';
 
 export const runtime = 'nodejs';
 const ALLOWED_KINDS = new Set(['assistance', 'job']);
 const ALLOWED_STATUSES = new Set(['assigned', 'in_progress', 'completed']);
-
-function isAdmin(request: Request) {
-  return Boolean(getAdminEmailFromCookie(request.headers.get('cookie')));
-}
+function isAdmin(request: Request) { return Boolean(getAdminEmailFromCookie(request.headers.get('cookie'))); }
+function error(message: string, status = 400) { return NextResponse.json({ error: message }, { status }); }
 
 export async function POST(request: Request) {
-  if (!isAdmin(request)) return NextResponse.json({ error: 'Admin authentication required.' }, { status: 401 });
+  const adminEmail = getAdminEmailFromCookie(request.headers.get('cookie'));
+  if (!adminEmail) return error('Admin authentication required.', 401);
   const admin = getSupabaseAdmin();
-  if (!admin) return NextResponse.json({ error: 'Supabase is not configured on the server.' }, { status: 503 });
-
+  if (!admin) return error('Supabase is not configured on the server.', 503);
   try {
     const body = await request.json();
     const title = String(body.title || '').trim();
@@ -23,50 +23,51 @@ export async function POST(request: Request) {
     const workerId = String(body.workerId || '').trim();
     const fundraiserId = String(body.fundraiserId || '').trim() || null;
     const dueAt = body.dueAt ? new Date(body.dueAt).toISOString() : null;
-
-    if (!title || !description || !workerId || !ALLOWED_KINDS.has(kind)) {
-      return NextResponse.json({ error: 'Title, description, type, and worker are required.' }, { status: 400 });
-    }
-
-    const worker = await admin.from('workers').select('id,status,onboarding_status').eq('id', workerId).maybeSingle();
+    if (!title || !description || !workerId || !ALLOWED_KINDS.has(kind)) return error('Title, description, type, and worker are required.');
+    const worker = await admin.from('workers').select('id,name,email,role,status,onboarding_status').eq('id', workerId).maybeSingle();
     if (worker.error) throw worker.error;
-    if (!worker.data || worker.data.status !== 'active') return NextResponse.json({ error: 'Choose an active worker.' }, { status: 400 });
-    if (worker.data.onboarding_status !== 'completed') return NextResponse.json({ error: 'This worker must complete HMSI onboarding before receiving an assignment.' }, { status: 409 });
+    if (!worker.data || worker.data.status !== 'active') return error('Choose an active worker.');
+    if (worker.data.onboarding_status !== 'completed') return error('This worker must complete HMSI onboarding before receiving an assignment.', 409);
+    const inserted = await admin.from('work_assignments').insert({ title, description, kind, assigned_worker_id: workerId, fundraiser_id: fundraiserId, due_at: dueAt, status: 'assigned' }).select('id,title,description,kind,status,assigned_worker_id,fundraiser_id,due_at,created_at').single();
+    if (inserted.error || !inserted.data) throw inserted.error || new Error('Assignment was not created.');
 
-    const { data, error } = await admin.from('work_assignments').insert({
-      title,
-      description,
-      kind,
-      assigned_worker_id: workerId,
-      fundraiser_id: fundraiserId,
-      due_at: dueAt,
-      status: 'assigned',
-    }).select('id,title,description,kind,status,assigned_worker_id,fundraiser_id,due_at,created_at').single();
-
-    if (error) throw error;
-    return NextResponse.json({ assignment: data }, { status: 201 });
-  } catch (error) {
-    console.error('[Admin] Failed to create assignment:', error);
-    return NextResponse.json({ error: 'We could not create this assignment.' }, { status: 500 });
+    const activeCard = await admin.from('hmsi_id_cards').select('id,member_number,activated_at,activation_code_expires_at').eq('holder_role', 'worker').eq('holder_id', workerId).eq('status', 'active').order('issued_at', { ascending: false }).limit(1).maybeSingle();
+    let memberNumber: string | null = activeCard.data?.member_number || null;
+    let activationCode: string | undefined;
+    let activated = Boolean(activeCard.data?.activated_at);
+    if (!activeCard.data || !activated) {
+      await admin.from('hmsi_id_cards').update({ status: 'revoked' }).eq('holder_role', 'worker').eq('holder_id', workerId).eq('status', 'active');
+      activationCode = createCredentialCode();
+      memberNumber = createMemberNumber('worker');
+      const card = await admin.from('hmsi_id_cards').insert({ holder_role: 'worker', holder_id: workerId, holder_name: worker.data.name, holder_email: worker.data.email.trim().toLowerCase(), member_number: memberNumber, role_display: worker.data.role === 'coordinator' ? 'HMSI Worker Coordinator' : 'HMSI Worker', activation_code_hash: hashCredentialCode(activationCode), activation_code_expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), status: 'active', issued_by: adminEmail }).select('id').single();
+      if (card.error) throw card.error;
+      activated = false;
+    }
+    const emailContent = assignmentEmail({ workerName: worker.data.name, assignmentTitle: title, assignmentDescription: description, dueAt, memberNumber, activationCode, activated });
+    let notification: { sent: boolean; reason?: string } = { sent: false, reason: 'email_not_configured' };
+    try { notification = await sendPortalEmail({ to: worker.data.email, subject: `New HMSI assignment: ${title}`, ...emailContent }); }
+    catch (emailError) { console.error('[Admin] Assignment email failed:', emailError instanceof Error ? emailError.message : 'unknown'); notification = { sent: false, reason: 'email_delivery_failed' }; }
+    return NextResponse.json({ assignment: inserted.data, notification }, { status: 201 });
+  } catch (cause) {
+    console.error('[Admin] Failed to create assignment:', cause instanceof Error ? cause.message : 'unknown');
+    return error('We could not create this assignment.', 500);
   }
 }
 
 export async function PATCH(request: Request) {
-  if (!isAdmin(request)) return NextResponse.json({ error: 'Admin authentication required.' }, { status: 401 });
+  if (!isAdmin(request)) return error('Admin authentication required.', 401);
   const admin = getSupabaseAdmin();
-  if (!admin) return NextResponse.json({ error: 'Supabase is not configured on the server.' }, { status: 503 });
-
+  if (!admin) return error('Supabase is not configured on the server.', 503);
   try {
     const body = await request.json();
     const id = String(body.id || '').trim();
     const status = String(body.status || '').toLowerCase();
-    if (!id || !ALLOWED_STATUSES.has(status)) return NextResponse.json({ error: 'Assignment and valid status are required.' }, { status: 400 });
-
-    const { data, error } = await admin.from('work_assignments').update({ status, updated_at: new Date().toISOString() }).eq('id', id).select('id,status').single();
-    if (error) throw error;
-    return NextResponse.json({ assignment: data });
-  } catch (error) {
-    console.error('[Admin] Failed to update assignment:', error);
-    return NextResponse.json({ error: 'We could not update this assignment.' }, { status: 500 });
+    if (!id || !ALLOWED_STATUSES.has(status)) return error('Assignment and valid status are required.');
+    const updated = await admin.from('work_assignments').update({ status, updated_at: new Date().toISOString() }).eq('id', id).select('id,status').single();
+    if (updated.error) throw updated.error;
+    return NextResponse.json({ assignment: updated.data });
+  } catch (cause) {
+    console.error('[Admin] Failed to update assignment:', cause instanceof Error ? cause.message : 'unknown');
+    return error('We could not update this assignment.', 500);
   }
 }

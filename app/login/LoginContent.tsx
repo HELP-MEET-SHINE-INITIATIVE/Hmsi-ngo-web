@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Lock, Mail, ArrowRight, AlertCircle } from "lucide-react";
 import { useAuth } from "../../lib/auth";
-import { loadData } from "../../lib/data";
 
 export default function LoginContent() {
   const [email, setEmail] = useState("");
@@ -24,8 +23,9 @@ export default function LoginContent() {
     try {
       const success = await login(email, password);
       if (success) {
-        const signedInUser = loadData().users.find((candidate: any) => candidate.email === email);
-        router.push(signedInUser?.role === 'worker' ? '/worker-dashboard' : '/dashboard');
+        const response = await fetch('/api/portal/profile', { credentials: 'include' });
+        const profile = response.ok ? (await response.json()).profile : null;
+        router.push(profile?.role === 'worker' ? '/worker-dashboard' : profile?.role === 'member' ? '/member-room' : '/dashboard');
       } else {
         setError("Invalid email or password. Please try again.");
       }
@@ -82,6 +82,7 @@ export default function LoginContent() {
                   placeholder="••••••••"
                 />
               </div>
+              <div className="mt-2 text-right"><Link href="/forgot-password" className="text-xs font-bold text-[#1e5b49] hover:underline">Forgot password?</Link></div>
             </div>
 
             <button

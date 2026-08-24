@@ -12,6 +12,12 @@ const workerPanelSource = await readFile(new URL('../components/WorkerAssistantP
 const newsroomRouteSource = await readFile(new URL('../app/api/admin/news/research/route.ts', import.meta.url), 'utf8');
 const newsroomTaskSource = await readFile(new URL('../app/api/admin/news/research/[taskId]/route.ts', import.meta.url), 'utf8');
 const newsroomPanelSource = await readFile(new URL('../components/NewsroomStudio.tsx', import.meta.url), 'utf8');
+const portalAuthSource = await readFile(new URL('../lib/portalAuth.ts', import.meta.url), 'utf8');
+const loginRouteSource = await readFile(new URL('../app/api/portal/auth/login/route.ts', import.meta.url), 'utf8');
+const activateRouteSource = await readFile(new URL('../app/api/portal/auth/activate/route.ts', import.meta.url), 'utf8');
+const recoverRouteSource = await readFile(new URL('../app/api/portal/auth/recover/route.ts', import.meta.url), 'utf8');
+const profileRouteSource = await readFile(new URL('../app/api/portal/profile/route.ts', import.meta.url), 'utf8');
+const assignmentsRouteSource = await readFile(new URL('../app/api/admin/assignments/route.ts', import.meta.url), 'utf8');
 
 test('Gemini transport reads only the server-side standard credential', () => {
   assert.match(helperSource, /process\.env\.GEMINI_API_KEY/);
@@ -54,6 +60,27 @@ test('worker Assistant uses synchronous Gemini responses', () => {
   assert.match(workerTaskSource, /provider: 'gemini'/);
   assert.doesNotMatch(workerPanelSource, /api\/worker\/assistant\/\$\{taskId\}/);
   assert.match(workerPanelSource, /Your Gemini assistance response is ready/);
+});
+
+test('built-in portal Auth is server-backed and role-scoped', () => {
+  assert.match(portalAuthSource, /auth\.getUser/);
+  assert.match(portalAuthSource, /PortalRole = 'worker' \| 'volunteer' \| 'member'/);
+  assert.match(portalAuthSource, /onboarding_status.*completed/);
+  assert.match(loginRouteSource, /attachPortalSession/);
+  assert.match(activateRouteSource, /admin\.auth\.admin\.createUser/);
+  assert.match(activateRouteSource, /activationCodeMatches/);
+  assert.match(portalAuthSource, /resetPasswordForEmail/);
+  assert.match(profileRouteSource, /auth_user_id/);
+  assert.match(profileRouteSource, /MAX_BYTES = 5 \* 1024 \* 1024/);
+  assert.match(profileRouteSource, /ALLOWED_TYPES/);
+});
+
+test('assignment delivery issues worker identity access without granting admin access', () => {
+  assert.match(assignmentsRouteSource, /getAdminEmailFromCookie/);
+  assert.match(assignmentsRouteSource, /onboarding_status/);
+  assert.match(assignmentsRouteSource, /sendPortalEmail/);
+  assert.match(assignmentsRouteSource, /activationCode/);
+  assert.doesNotMatch(assignmentsRouteSource, /HMSI_ADMIN_PASSWORD/);
 });
 
 test('newsroom research uses stored Gemini structured output and keeps drafts pending approval', () => {

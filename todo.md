@@ -5,3 +5,8 @@
 - [x] Migrate the legacy newsroom research route and frontend result handling to Gemini while preserving approval safeguards.
 - [x] Add worker/newsroom regression coverage, validate the build, and verify harmless live requests.
 - [x] Review newsroom Gemini schema normalization for future structured-output compatibility and strengthen coverage where needed.
+- [ ] Implement built-in Supabase Auth mapping for approved workers, volunteers, and members.
+- [ ] Add secure worker identity-card activation, sign-in, sign-out, and role-limited portal access.
+- [ ] Add volunteer/member password recovery and portal profile-photo upload flows.
+- [ ] Add assignment identity-card notification email delivery and correct remaining stale Assistant error text.
+- [ ] Add authorization tests, validate the production build, configure required secrets, and verify live flows.

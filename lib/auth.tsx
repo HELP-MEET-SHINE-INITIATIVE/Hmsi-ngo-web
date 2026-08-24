@@ -1,15 +1,16 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { loadData, saveData } from './data';
 
 type User = {
+  authUserId?: string;
   id: string;
   name: string;
   email: string;
-  role: 'worker' | 'volunteer';
-  avatar: string;
-  bio: string;
+  role: 'worker' | 'volunteer' | 'member';
+  profilePhotoPath?: string | null;
+  profilePhotoUrl?: string | null;
+  avatar?: string;
 };
 
 type AuthContextType = {
@@ -27,64 +28,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const session = sessionStorage.getItem('hmsi_session');
-    if (session) {
-      setUser(JSON.parse(session));
-    }
-    setIsLoading(false);
+    fetch('/api/portal/profile', { credentials: 'include' })
+      .then(async (response) => response.ok ? (await response.json()).profile as User : null)
+      .then((profile) => { if (profile) { setUser(profile); sessionStorage.setItem('hmsi_session', JSON.stringify(profile)); } })
+      .catch(() => {})
+      .finally(() => setIsLoading(false));
   }, []);
 
   const login = async (email: string, password: string) => {
-    const data = loadData();
-    const foundUser = data.users.find((u: any) => u.email === email && u.password === password);
-    if (foundUser) {
-      const { password: _, ...userWithoutPassword } = foundUser;
-      setUser(userWithoutPassword);
-      sessionStorage.setItem('hmsi_session', JSON.stringify(userWithoutPassword));
-      return true;
-    }
-    return false;
-  };
-
-  const signup = async (name: string, email: string, password: string, role: 'worker' | 'volunteer') => {
-    const data = loadData();
-    if (data.users.some((u: any) => u.email === email)) return false;
-
-    const newUser = {
-      id: `u${Date.now()}`,
-      name,
-      email,
-      password,
-      role,
-      avatar: role === 'worker' ? '/images/outreach-7.png' : '/images/outreach-4.png',
-      bio: `New ${role} at HMSI.`,
-    };
-
-    data.users.push(newUser);
-    saveData(data);
-
-    const { password: _, ...userWithoutPassword } = newUser;
-    setUser(userWithoutPassword);
-    sessionStorage.setItem('hmsi_session', JSON.stringify(userWithoutPassword));
+    const response = await fetch('/api/portal/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ email, password }) });
+    if (!response.ok) return false;
+    const payload = await response.json() as { user?: User };
+    if (!payload.user) return false;
+    setUser(payload.user);
+    sessionStorage.setItem('hmsi_session', JSON.stringify(payload.user));
     return true;
   };
 
+  const signup = async () => false;
+
   const logout = () => {
+    void fetch('/api/portal/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => {});
     setUser(null);
     sessionStorage.removeItem('hmsi_session');
   };
 
-  return (
-    <AuthContext.Provider value={{ user, login, signup, logout, isLoading }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={{ user, login, signup, logout, isLoading }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (context === undefined) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 }

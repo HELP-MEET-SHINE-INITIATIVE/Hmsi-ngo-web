@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import CommunityRoomContent from '../community/CommunityRoomContent';
+import PortalProfileCard from '../../components/PortalProfileCard';
 
 export const metadata: Metadata = {
   title: 'Volunteer Room | HMSI',
@@ -8,5 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function VolunteerRoomPage() {
-  return <CommunityRoomContent room="volunteer" />;
+  return <><PortalProfileCard /><CommunityRoomContent room="volunteer" /></>;
 }
