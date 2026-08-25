@@ -9,7 +9,7 @@ test('launch seed is administrator-controlled and does not fabricate campaign pr
   const seed = await read('lib/launchSeed.ts');
   const route = await read('app/api/admin/launch/seed/route.ts');
   for (const token of ['Emergency Field Response & Community Outreach 2026', 'targetAmount: 500_000', 'Ground Inspection Report: Local Infrastructure Assessment', 'Community Relief Dispatch', 'HMSI Field Operations']) assert.ok(seed.includes(token), `Expected launch seed definition for ${token}.`);
-  for (const token of ['getAdminEmailFromCookie', "raised_amount: 0", "status: 'active'", "status: 'published'", 'Campaign progress remains at ₦0']) assert.ok(route.includes(token), `Expected guarded seed behavior for ${token}.`);
+  for (const token of ['getAdminEmailFromCookie', "raised_amount: 0", "status: 'active'", "status: 'published'", "admin.from('featured_story_drafts').insert", 'Campaign progress remains at ₦0']) assert.ok(route.includes(token), `Expected guarded seed behavior for ${token}.`);
 });
 
 test('public launch widgets use supported donation routing, verified-only supporter updates, and role-limited contributor pathways', async () => {

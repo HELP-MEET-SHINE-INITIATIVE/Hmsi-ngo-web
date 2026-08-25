@@ -34,25 +34,51 @@ export async function POST(request: Request) {
     const dispatchResults = await Promise.all(launchDispatchSeeds.map(async (dispatch) => {
       const existing = await admin.from('news_articles').select('id').eq('id', dispatch.id).maybeSingle();
       if (existing.error) throw existing.error;
-      if (existing.data) return { id: dispatch.id, created: false };
-      const inserted = await admin.from('news_articles').insert({
-        id: dispatch.id,
-        headline: dispatch.headline,
-        summary: dispatch.summary,
-        body: dispatch.body,
-        category: dispatch.category,
-        image_url: dispatch.imageUrl,
-        author_name: LAUNCH_SEED_AUTHOR.name,
-        author_email: LAUNCH_SEED_AUTHOR.email,
-        author_role: LAUNCH_SEED_AUTHOR.role,
-        status: 'published',
-        approved_by: adminEmail,
-        approved_at: new Date().toISOString(),
-        published_at: new Date().toISOString(),
-      }).select('id').single();
-      if (inserted.error) throw inserted.error;
-      await admin.from('news_approval_events').insert({ news_id: dispatch.id, action: 'published', actor_email: adminEmail, actor_role: 'admin', reason: 'Public launch sample dispatch.' }).then(() => undefined);
-      return { id: dispatch.id, created: true };
+      let newsCreated = false;
+      if (!existing.data) {
+        const inserted = await admin.from('news_articles').insert({
+          id: dispatch.id,
+          headline: dispatch.headline,
+          summary: dispatch.summary,
+          body: dispatch.body,
+          category: dispatch.category,
+          image_url: dispatch.imageUrl,
+          author_name: LAUNCH_SEED_AUTHOR.name,
+          author_email: LAUNCH_SEED_AUTHOR.email,
+          author_role: LAUNCH_SEED_AUTHOR.role,
+          status: 'published',
+          approved_by: adminEmail,
+          approved_at: new Date().toISOString(),
+          published_at: new Date().toISOString(),
+        }).select('id').single();
+        if (inserted.error) throw inserted.error;
+        await admin.from('news_approval_events').insert({ news_id: dispatch.id, action: 'published', actor_email: adminEmail, actor_role: 'admin', reason: 'Public launch sample dispatch.' }).then(() => undefined);
+        newsCreated = true;
+      }
+      const storyExisting = await admin.from('featured_story_drafts').select('id').eq('id', dispatch.id).maybeSingle();
+      if (storyExisting.error) throw storyExisting.error;
+      let storyCreated = false;
+      if (!storyExisting.data) {
+        const insertedStory = await admin.from('featured_story_drafts').insert({
+          id: dispatch.id,
+          title: dispatch.headline,
+          excerpt: dispatch.summary,
+          body: dispatch.body,
+          category: dispatch.category,
+          image_url: dispatch.imageUrl,
+          author_name: LAUNCH_SEED_AUTHOR.name,
+          author_email: LAUNCH_SEED_AUTHOR.email,
+          author_role: LAUNCH_SEED_AUTHOR.role,
+          status: 'published',
+          approved_by: adminEmail,
+          approved_at: new Date().toISOString(),
+          published_at: new Date().toISOString(),
+        }).select('id').single();
+        if (insertedStory.error) throw insertedStory.error;
+        await admin.from('featured_story_approval_events').insert({ story_id: dispatch.id, action: 'published', actor_email: adminEmail, actor_role: 'admin', reason: 'Public launch sample dispatch.' }).then(() => undefined);
+        storyCreated = true;
+      }
+      return { id: dispatch.id, newsCreated, storyCreated };
     }));
 
     return NextResponse.json({
