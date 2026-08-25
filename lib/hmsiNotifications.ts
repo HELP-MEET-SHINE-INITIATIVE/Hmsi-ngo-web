@@ -46,6 +46,16 @@ export function workerWelcomeTemplate(input: { name: string; role: 'worker' | 'v
   return { html, text: `Dear ${input.name},\n\nWelcome to Help Meet Shine Initiative. Your HMSI ${roleLabel} status is active. Complete your onboarding here: ${input.dashboardUrl}\n\nDo not forward this secure link.` };
 }
 
+export function passwordSetupTemplate(input: { name: string; hmsiId: string; setupUrl: string }) {
+  const html = officialShell({
+    eyebrow: 'HMSI Portal Activation',
+    title: 'Your HMSI ID and password setup link',
+    body: `<p style="margin-top:0">Dear ${escapeHtml(input.name)},</p><p>Your onboarding is complete. Your assigned HMSI ID is:</p><p style="font-size:20px;font-weight:700;letter-spacing:0.5px">${escapeHtml(input.hmsiId)}</p><p><a href="${escapeHtml(input.setupUrl)}" style="display:inline-block;background:#1e5b49;color:#ffffff;padding:12px 18px;text-decoration:none;font-weight:700">Set my portal password</a></p><p>This one-time link expires in 7 days. Do not forward it or share your password. If you did not expect this email, contact HMSI through the official website.</p>`,
+    footer: 'HMSI Portal · Official one-time account setup correspondence',
+  });
+  return { html, text: `Dear ${input.name},\n\nYour HMSI onboarding is complete. Your HMSI ID is ${input.hmsiId}.\n\nSet your portal password with this one-time link (expires in 7 days): ${input.setupUrl}\n\nDo not forward this link or share your password.` };
+}
+
 export function verifiedDonationThankYouTemplate(input: { name: string; amountMajor: number; currency: string; reference: string; campaignName?: string }) {
   const currency = input.currency === 'USD' ? 'USD' : 'NGN';
   const amount = new Intl.NumberFormat(currency === 'USD' ? 'en-US' : 'en-NG', { style: 'currency', currency, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(input.amountMajor);

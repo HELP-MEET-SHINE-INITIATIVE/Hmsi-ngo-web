@@ -7,6 +7,10 @@ const read = (path) => readFileSync(new URL(path, root), 'utf8');
 
 const onboardingApi = read('app/api/onboarding/route.ts');
 const passwordApi = read('app/api/onboarding/password/route.ts');
+const setupApi = read('app/api/setup-password/route.ts');
+const setupUi = read('app/setup-password/page.tsx');
+const setupHelper = read('lib/passwordSetup.ts');
+const notifications = read('lib/hmsiNotifications.ts');
 const loginApi = read('app/api/portal/auth/login/route.ts');
 const portalAuth = read('lib/portalAuth.ts');
 const directoryApi = read('app/api/admin/directory/[id]/route.ts');
@@ -17,20 +21,31 @@ const loginUi = read('app/login/LoginContent.tsx');
 const directoryUi = read('components/WorkerDirectory.tsx');
 const recoveryApi = read('app/api/portal/auth/recover/route.ts');
 
-test('onboarding completion issues an existing-or-new HMSI ID before password setup and never attaches the legacy worker session', () => {
-  assert.match(onboardingApi, /ensureWorkerHmsiId/);
+test('onboarding completion issues an HMSI ID and dispatches a hashed, expiring one-time setup link without attaching a legacy worker session', () => {
+  assert.match(onboardingApi, /ensureHmsiId/);
   assert.match(onboardingApi, /event_type: 'hmsi_id_issued'/);
+  assert.match(onboardingApi, /password_setup_links/);
+  assert.match(onboardingApi, /hashPasswordSetupToken/);
+  assert.match(onboardingApi, /passwordSetupTemplate/);
+  assert.match(onboardingApi, /sendHmsiNotification/);
   assert.match(onboardingApi, /hmsiId/);
   assert.doesNotMatch(onboardingApi, /attachWorkerSession/);
 });
 
-test('password setup requires completed onboarding, user-controlled matching password input, and an authenticated portal session', () => {
-  assert.match(passwordApi, /password !== confirmPassword/);
-  assert.match(passwordApi, /neq\('status', 'completed'\)/);
+test('one-time setup requires matching passwords, validates the hashed link and ID, consumes it once, and issues the existing secure portal session', () => {
+  assert.match(setupApi, /hashPasswordSetupToken/);
+  assert.match(setupApi, /setup_completed_at/);
+  assert.match(setupApi, /password !== confirmPassword/);
+  assert.match(setupApi, /auth\.admin\.createUser/);
+  assert.match(setupApi, /attachPortalSession/);
+  assert.match(setupApi, /redirectTo: '\/portal\/my-tasks'/);
+  assert.match(setupUi, /HMSI ID/);
+  assert.match(setupUi, /Save password & launch workspace/);
+  assert.match(setupHelper, /randomBytes\(32\)/);
+  assert.match(setupHelper, /PASSWORD_SETUP_LINK_DAYS = 7/);
+  assert.match(notifications, /Your HMSI ID and password setup link/);
+  assert.match(notifications, /one-time link expires in 7 days/i);
   assert.match(passwordApi, /auth\.admin\.createUser/);
-  assert.match(passwordApi, /attachPortalSession/);
-  assert.match(passwordApi, /redirectTo: '\/portal\/my-tasks'/);
-  assert.doesNotMatch(passwordApi, /activationCode:\s*activationCode/);
 });
 
 test('portal login resolves HMSI ID server-side and preserves generic credential failures', () => {
@@ -40,11 +55,11 @@ test('portal login resolves HMSI ID server-side and preserves generic credential
   assert.match(portalAuth, /\^HMSI-\[WVM\]-\\d\{4\}-\[A-F0-9\]\{8\}\$/);
 });
 
-test('the onboarding completion screen renders a password confirmation handoff and routes only after setup succeeds', () => {
-  assert.match(onboardingUi, /100% onboarding complete/);
-  assert.match(onboardingUi, /Confirm password/);
-  assert.match(onboardingUi, /Create password & access portal/);
-  assert.match(onboardingUi, /router\.replace\(payload\.redirectTo \|\| '\/portal\/my-tasks'\)/);
+test('the onboarding completion screen directs users to their registered email instead of exposing an inline password field', () => {
+  assert.match(onboardingUi, /100% Onboarding Complete/);
+  assert.match(onboardingUi, /Check your email/);
+  assert.match(onboardingUi, /one-time password activation link/);
+  assert.doesNotMatch(onboardingUi, /Create password & access portal/);
 });
 
 test('the login UI accepts email or HMSI ID and routes authenticated identities into the unified task portal', () => {

@@ -134,9 +134,9 @@
 
 ## Email-Dispatched One-Time Password Setup
 
-- [ ] Inspect existing onboarding invitation issuance, Resend dispatch, HMSI ID-card lifecycle, setup token storage, password endpoint, login handler, and session refresh boundaries.
-- [ ] On completed onboarding, issue or reuse a unique HMSI ID and send one official transactional email with the ID and a server-generated, one-time setup link without exposing tokens in logs.
-- [ ] Replace inline onboarding password fields with a completion screen that directs the user to their registered email for the one-time setup link.
-- [ ] Add a `/setup-password` route that validates an unexpired unused token, presents a prefilled disabled HMSI ID, requires user-controlled matching passwords, consumes the token exactly once, and launches the permitted portal session.
-- [ ] Preserve email-or-HMSI-ID login using Supabase Auth credentials and extend server-cookie session refresh without placing tokens in browser storage or claiming unlimited sessions.
+- [x] Inspect existing onboarding invitation issuance, Resend dispatch, HMSI ID-card lifecycle, setup token storage, password endpoint, login handler, and session refresh boundaries.
+- [x] On completed onboarding, issue or reuse a unique HMSI ID and send one official transactional email with the ID and a server-generated, one-time setup link without exposing tokens in logs.
+- [x] Replace inline onboarding password fields with a completion screen that directs the user to their registered email for the one-time setup link.
+- [x] Add a `/setup-password` route that validates an unexpired unused token, presents a prefilled disabled HMSI ID, requires user-controlled matching passwords, consumes the token exactly once, and launches the permitted portal session.
+- [x] Preserve email-or-HMSI-ID login using Supabase Auth credentials and extend server-cookie session refresh without placing tokens in browser storage or claiming unlimited sessions.
 - [ ] Add tests, production-build validation, delivery-safe verification, and a deployment for the setup-email and returning-login flow.
