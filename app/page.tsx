@@ -14,6 +14,10 @@ import FieldStoryFlash from "../components/FieldStoryFlash";
 import HomepageFeaturedStoryCard from "../components/HomepageFeaturedStoryCard";
 import HomepageHelpCta from "../components/HomepageHelpCta";
 import FundraisingGrowthHub from "../components/FundraisingGrowthHub";
+import MicroDonationFastTrack from "../components/MicroDonationFastTrack";
+import RecentSupportersTicker from "../components/RecentSupportersTicker";
+import VolunteerPublisherBanner from "../components/VolunteerPublisherBanner";
+import { LAUNCH_CAMPAIGN_ID } from "../lib/launchSeed";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -167,6 +171,7 @@ export default function Home() {
   const topImpactFundraisers = [...approvedFundraisers]
     .sort((first, second) => second.raisedAmount - first.raisedAmount || new Date(second.createdAt).getTime() - new Date(first.createdAt).getTime())
     .slice(0, 3);
+  const launchCampaign = approvedFundraisers.find((fundraiser) => fundraiser.id === LAUNCH_CAMPAIGN_ID);
 
   const handleNewsletterSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -515,6 +520,9 @@ export default function Home() {
         </section>}
 
 
+        <MicroDonationFastTrack campaign={launchCampaign} />
+        <RecentSupportersTicker />
+
         <section id="stories" className="border-y border-[#d9d6ce] bg-white">
           <div className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 lg:px-12 lg:py-28">
             <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
@@ -543,6 +551,7 @@ export default function Home() {
                 ))}
               </div>
             </div>
+            <VolunteerPublisherBanner />
           </div>
         </section>
 

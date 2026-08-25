@@ -72,3 +72,14 @@
 - [x] Load up to three other published field stories while excluding the current story record.
 - [x] Render an accessible related-stories section at the bottom of the selected story detail page with dynamic record links.
 - [x] Add regression coverage, validate the production build and live detail route, then publish the enhancement.
+
+## Public Launch Readiness Package
+
+- [ ] Add an administrator-reviewed featured campaign seed with a ₦500,000 target and no fabricated donation total, supporter count, or progress.
+- [ ] Add two clearly labeled, administrator-reviewed HMSI Field Operations dispatch seeds without misrepresenting field verification or live activity.
+- [ ] Add an administrator-only `/admin/templates` library for approved volunteer and publisher outreach templates with safe HMSI deep links.
+- [ ] Add a public micro-donation fast-track widget that routes to the approved donation entry path without transmitting unsupported selected amounts or payment details.
+- [ ] Add a public volunteer and independent-publisher conversion banner to the news feed with clear role-limited pathways.
+- [ ] Add a live supporters/progress component that displays only verified donation acknowledgements, with an explicit empty state when no verified public record is available.
+- [ ] Add a bounded administrator-only launch system check for database, notification configuration, and payment-webhook readiness without exposing secrets or implying provider verification.
+- [ ] Add regression coverage, production-build validation, live-route verification, and a deployment for the launch package.

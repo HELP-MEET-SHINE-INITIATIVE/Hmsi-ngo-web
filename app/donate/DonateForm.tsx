@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Script from "next/script";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { Check, HeartHandshake, LockKeyhole, Mail, ShieldCheck, Sparkles } from "lucide-react";
 import { trackBeginCheckout, trackDonationCompleted, trackGoogleAdsBeginCheckoutConversion } from "../../lib/gtm";
 import { formatHmsiAmount, type HmsiPaymentCurrency } from "../../lib/paystackCurrencies";
@@ -41,6 +41,7 @@ export default function DonateForm() {
   const publicKey = process.env.NEXT_PUBLIC_PAYSTACK_KEY ?? "";
   const [selectedAmount, setSelectedAmount] = useState<number | null>(25000);
   const [customAmount, setCustomAmount] = useState("");
+  const [fundraiserId, setFundraiserId] = useState('');
   const [currency, setCurrency] = useState<HmsiPaymentCurrency>("NGN");
   const [donorName, setDonorName] = useState("");
   const [donorEmail, setDonorEmail] = useState("");
@@ -53,8 +54,17 @@ export default function DonateForm() {
   const [receiptDownloading, setReceiptDownloading] = useState(false);
   const [receiptNotice, setReceiptNotice] = useState("");
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const requestedAmount = Number(params.get('amount'));
+    if (Number.isFinite(requestedAmount) && requestedAmount >= 100) {
+      setSelectedAmount(requestedAmount);
+      setCustomAmount('');
+    }
+    setFundraiserId(params.get('fundraiser_id')?.trim().slice(0, 80) || '');
+  }, []);
+
   const amountInMajorUnits = selectedAmount ?? Number(customAmount);
-  const fundraiserId = typeof window === 'undefined' ? '' : new URLSearchParams(window.location.search).get('fundraiser_id')?.trim().slice(0, 80) || '';
 
   const handleSuccess = async (response?: PaymentResponse) => {
     const reference = response?.reference ?? "";
