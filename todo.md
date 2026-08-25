@@ -145,3 +145,8 @@
 
 - [x] Perform a read-only production review of foreign-key delete actions, indexes, and row-level security for user-removal dependencies and `password_setup_links`.
 - [x] Document confirmed cascade behavior, retention-safe deletion limits, and any schema gaps without modifying production data or constraints.
+
+## Production Operational Health Review
+
+- [x] Perform a non-destructive review of current production deployment, repository state, and publicly reachable HMSI core routes.
+- [x] Review bounded operational and security signals, document any required corrections, and avoid changing production configuration or data unless separately approved.
