@@ -99,3 +99,9 @@
 - [x] Replace the homepage Live News ticker’s static placeholder with the newest approved or published `news_articles` record ordered by publication timestamp.
 - [x] Bind the ticker category, headline, excerpt, and Read News call to the active record’s exact `/news/[id]` route.
 - [x] Add regression coverage, production-build validation, live verification, and a deployment for the Live News ticker fix.
+
+## Non-Transactional Live Journey Verification
+
+- [x] Verify the production Live News ticker and its exact article-detail view without modifying content.
+- [x] Verify the production donation journey through the secure checkout handoff without entering payment data, submitting a donation, or creating a donor record.
+- [x] Inspect bounded production runtime signals and record the completed non-transactional verification outcome.
