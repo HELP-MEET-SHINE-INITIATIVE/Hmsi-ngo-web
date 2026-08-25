@@ -170,3 +170,15 @@
 - [x] Route each active role to its appropriate post-login workspace with clear task and role-room entry points while preserving server-side role checks.
 - [x] Add regression coverage for role-aware routing, session continuity, task interaction boundaries, and room access isolation.
 - [x] Validate the production build and deploy without authenticating as, altering, or messaging any user.
+
+## Role-Specific Dashboard Usability
+
+- [x] Simplify worker, volunteer, and member dashboard menus to show only role-relevant work, rooms, opportunities, profile, help, and sign-out links.
+- [x] Expand role task views with clear assignment details, task actions, required outcomes, due dates, proof-link submission, and completion/status feedback.
+- [x] Add dedicated opportunities menu entry and role-appropriate opportunity loading with clear onboarding guidance.
+- [x] Add regression coverage for role menu isolation, task/proof-link workflows, room access, opportunities, and responsive dashboard behavior.
+- [x] Validate the production build and deploy the usability release without changing user credentials or creating live assignments.
+
+### Implementation note
+
+The existing data model does not currently provide a volunteer task-assignment table. Volunteer dashboard task execution must remain limited to data-backed records available through existing protected APIs until a separately approved schema/API change is made.

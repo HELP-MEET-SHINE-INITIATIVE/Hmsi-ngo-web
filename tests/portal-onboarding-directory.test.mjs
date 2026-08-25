@@ -26,6 +26,8 @@ const loginUi = read('app/login/LoginContent.tsx');
 const clientAuth = read('lib/auth.tsx');
 const directoryUi = read('components/WorkerDirectory.tsx');
 const recoveryApi = read('app/api/portal/auth/recover/route.ts');
+const portalTasksUi = read('app/portal/my-tasks/PortalTasksContent.tsx');
+const submissionsUi = read('components/DriveSubmissionPortal.tsx');
 
 test('onboarding completion issues an HMSI ID and dispatches a hashed, expiring one-time setup link without attaching a legacy worker session', () => {
   assert.match(onboardingApi, /ensureHmsiId/);
@@ -105,6 +107,23 @@ test('the unified portal lets workers and members update only their own allowed 
   assert.match(portalTasksApi, /eq\('assigned_worker_id', identity\.profileId\)/);
   assert.match(portalTasksApi, /Volunteer tasks are not configured/);
   assert.match(portalTasksApi, /hmsi_member_task_events/);
+});
+
+test('role dashboards provide focused menus, guided job actions, proof-link entry, opportunities, and active session refresh', () => {
+  assert.match(portalTasksUi, /aria-label="Workspace menu"/);
+  assert.match(portalTasksUi, /href=\{config\.roomLink\}/);
+  assert.match(portalTasksUi, /href="\/portal\/submissions"/);
+  assert.match(portalTasksUi, /Accept and start job/);
+  assert.match(portalTasksUi, /View full job/);
+  assert.match(portalTasksUi, /Submit proof link/);
+  assert.match(portalTasksUi, /id="opportunities"/);
+  assert.match(portalTasksUi, /\/api\/portal\/auth\/refresh/);
+});
+
+test('the proof-link workspace returns to the role dispatcher and keeps submission guidance protected', () => {
+  assert.match(submissionsUi, /href="\/portal"/);
+  assert.match(submissionsUi, /personal Google Drive link/i);
+  assert.match(submissionsUi, /Keep the original file/);
 });
 
 test('the worker directory endpoint is administrator-only and returns real assignment and access-event history only', () => {
