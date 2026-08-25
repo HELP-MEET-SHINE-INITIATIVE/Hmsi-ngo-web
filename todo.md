@@ -158,3 +158,8 @@
 - [x] Preserve the generic invalid-credential response for genuine 401 failures while surfacing a safe temporary-service message for configured 503 login failures.
 - [x] Add regression coverage for portal-login status-aware client handling and validate the production build before deployment.
 - [x] Verify the required Supabase Auth variable names are present in Vercel Production without exposing secrets, then perform only a non-account-changing post-deployment route check.
+
+## Portal Authentication Environment Audit
+
+- [x] Map portal authentication, session, recovery, setup-link, and redirect configuration dependencies to the Vercel Production variable names without viewing values.
+- [x] Identify authentication configuration risks and document safe verification/correction steps without changing values, credentials, or user records.
