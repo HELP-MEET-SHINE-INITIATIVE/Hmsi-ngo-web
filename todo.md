@@ -182,3 +182,26 @@
 ### Implementation note
 
 The existing data model does not currently provide a volunteer task-assignment table. Volunteer dashboard task execution must remain limited to data-backed records available through existing protected APIs until a separately approved schema/API change is made.
+
+## Volunteer Task Assignment Model Planning
+
+- [ ] Define the volunteer assignment data model, lifecycle, foreign keys, indexes, RLS posture, and retention behavior without applying a migration.
+- [ ] Specify protected volunteer and administrator API contracts for listing, accepting, progressing, completing, reassigning, and proof-link submission.
+- [ ] Specify integration with the role portal, opportunities, rooms, notifications, audit events, tests, and staged rollout safeguards.
+
+
+## Worker and Volunteer Dashboard UI Design
+
+- [ ] Define focused worker and volunteer dashboard menus, navigation hierarchy, empty states, and onboarding guidance.
+- [ ] Design reusable task cards, task-detail panels, status actions, proof-link submission entry, room links, and opportunity sections.
+- [ ] Implement the frontend components without changing production schema or creating live assignments.
+- [ ] Add frontend regression coverage and responsive role-isolation verification.
+
+
+## Admin Assignment Management and Portal Organization
+
+- [x] Add a dedicated administrator jobs/assignments menu and route that lists each assigned job with the assignee name and role.
+- [x] Add protected admin review, edit, soft-delete, restore, and lifecycle controls for assigned jobs with explicit confirmation and audit events.
+- [x] Organize admin navigation so operational job controls are grouped in the admin menu rather than scattered across the overview dashboard.
+- [x] Check and refine worker/volunteer portal self-explanatory guidance, task actions, room links, opportunity menus, and proof-link flow.
+- [x] Add regression coverage, build validation, and safe production verification without creating live assignments or changing user credentials.

@@ -28,6 +28,9 @@ const directoryUi = read('components/WorkerDirectory.tsx');
 const recoveryApi = read('app/api/portal/auth/recover/route.ts');
 const portalTasksUi = read('app/portal/my-tasks/PortalTasksContent.tsx');
 const submissionsUi = read('components/DriveSubmissionPortal.tsx');
+const adminAssignmentsApi = read('app/api/admin/assignments/route.ts');
+const adminAssignmentsUi = read('app/admin/assignments/AssignmentsManager.tsx');
+const adminControlUi = read('app/hmsi-control/AdminControlContent.tsx');
 
 test('onboarding completion issues an HMSI ID and dispatches a hashed, expiring one-time setup link without attaching a legacy worker session', () => {
   assert.match(onboardingApi, /ensureHmsiId/);
@@ -156,4 +159,18 @@ test('forgot-password remains email-only and responds without account-enumeratin
   assert.match(recoveryApi, /email/);
   assert.match(recoveryApi, /requestPortalPasswordReset/);
   assert.match(recoveryApi, /If an eligible HMSI account exists for that email/);
+});
+
+test('admin assignment register exposes assignees and protected review/edit/recovery controls', () => {
+  assert.match(adminAssignmentsApi, /export async function GET/);
+  assert.match(adminAssignmentsApi, /assigned_worker_name/);
+  assert.match(adminAssignmentsApi, /export async function PATCH/);
+  assert.match(adminAssignmentsApi, /export async function DELETE/);
+  assert.match(adminAssignmentsApi, /is_deleted/);
+  assert.match(adminAssignmentsApi, /deleted_by/);
+  assert.match(adminAssignmentsUi, /Job assignments/);
+  assert.match(adminAssignmentsUi, /Assigned to/);
+  assert.match(adminAssignmentsUi, /Edit/);
+  assert.match(adminAssignmentsUi, /Confirm recovery/);
+  assert.match(adminControlUi, /href="\/admin\/assignments"/);
 });

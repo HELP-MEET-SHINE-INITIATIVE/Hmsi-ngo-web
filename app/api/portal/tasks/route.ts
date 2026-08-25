@@ -17,6 +17,7 @@ export async function GET(request: Request) {
       .from('work_assignments')
       .select('id,title,description,kind,status,due_at,created_at,updated_at')
       .eq('assigned_worker_id', identity.profileId)
+      .eq('is_deleted', false)
       .order('due_at', { ascending: true, nullsFirst: false })
       .limit(100);
     if (assignments.error) return NextResponse.json({ error: 'Assignments are temporarily unavailable.' }, { status: 503 });
@@ -50,6 +51,7 @@ export async function PATCH(request: Request) {
       .update({ status, updated_at: new Date().toISOString() })
       .eq('id', id)
       .eq('assigned_worker_id', identity.profileId)
+      .eq('is_deleted', false)
       .in('status', ['assigned', 'in_progress'])
       .select('id,title,description,kind,status,due_at,created_at,updated_at')
       .single();

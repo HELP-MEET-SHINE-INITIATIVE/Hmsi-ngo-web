@@ -10,6 +10,27 @@ const ALLOWED_STATUSES = new Set(['assigned', 'in_progress', 'completed']);
 function error(message: string, status = 400) { return NextResponse.json({ error: message }, { status }); }
 function adminEmail(request: Request) { return getAdminEmailFromCookie(request.headers.get('cookie')); }
 
+const assignmentSelect = 'id,title,description,kind,status,assigned_worker_id,fundraiser_id,due_at,created_at,updated_at,admin_note';
+
+export async function GET(request: Request) {
+  const actor = adminEmail(request);
+  if (!actor) return error('Admin authentication required.', 401);
+  const admin = getSupabaseAdmin();
+  if (!admin) return error('Supabase is not configured on the server.', 503);
+  try {
+    const assignments = await admin.from('work_assignments').select(assignmentSelect).eq('is_deleted', false).order('created_at', { ascending: false });
+    if (assignments.error) throw assignments.error;
+    const workerIds = [...new Set((assignments.data || []).map((item) => item.assigned_worker_id).filter(Boolean))];
+    const workers = workerIds.length ? await admin.from('workers').select('id,name,email,phone,status,onboarding_status').in('id', workerIds) : { data: [], error: null };
+    if (workers.error) throw workers.error;
+    const workerById = new Map((workers.data || []).map((worker) => [worker.id, worker]));
+    return NextResponse.json({ assignments: (assignments.data || []).map((item) => ({ ...item, assigned_worker_name: workerById.get(item.assigned_worker_id)?.name || null, assigned_worker_email: workerById.get(item.assigned_worker_id)?.email || null })), workers: workers.data || [] }, { headers: { 'Cache-Control': 'no-store' } });
+  } catch (cause) {
+    console.error('[Admin] Failed to load assignments:', cause instanceof Error ? cause.message : 'unknown');
+    return error('Assignments could not be loaded.', 503);
+  }
+}
+
 export async function POST(request: Request) {
   const actor = adminEmail(request);
   if (!actor) return error('Admin authentication required.', 401);
@@ -22,8 +43,8 @@ export async function POST(request: Request) {
     const kind = String(body.kind || '').toLowerCase();
     const workerId = String(body.workerId || '').trim();
     const fundraiserId = String(body.fundraiserId || '').trim() || null;
-    const dueAt = body.dueAt ? new Date(body.dueAt).toISOString() : null;
-    const idempotencyKey = String(request.headers.get('idempotency-key') || body.idempotencyKey || '').trim().slice(0, 180) || null;
+      const dueAt = body.dueAt ? new Date(body.dueAt).toISOString() : null;
+  const idempotencyKey = String(request.headers.get('idempotency-key') || body.idempotencyKey || '').trim().slice(0, 180) || null;
     if (!title || !description || !workerId || !ALLOWED_KINDS.has(kind)) return error('Title, description, type, and worker are required.');
     if (body.dueAt && !dueAt) return error('Due date is invalid.');
     const worker = await admin.from('workers').select('id,name,email,role,status,onboarding_status').eq('id', workerId).maybeSingle();
@@ -37,7 +58,7 @@ export async function POST(request: Request) {
       if (existing.data) return NextResponse.json({ assignment: existing.data, notification: { sent: existing.data.notification_status === 'sent', status: existing.data.notification_status, messageId: existing.data.notification_message_id } }, { status: 200 });
     }
 
-    const inserted = await admin.from('work_assignments').insert({ title, description, kind, assigned_worker_id: workerId, fundraiser_id: fundraiserId, due_at: dueAt, status: 'assigned', idempotency_key: idempotencyKey }).select('id,title,description,kind,status,assigned_worker_id,fundraiser_id,due_at,created_at,notification_status,notification_message_id,notification_sent_at').single();
+    const inserted = await admin.from('work_assignments').insert({ title, description, kind, assigned_worker_id: workerId, fundraiser_id: fundraiserId, due_at: dueAt, status: 'assigned', idempotency_key: idempotencyKey, is_deleted: false }).select('id,title,description,kind,status,assigned_worker_id,fundraiser_id,due_at,created_at,notification_status,notification_message_id,notification_sent_at').single();
     if (inserted.error || !inserted.data) {
       if (idempotencyKey) {
         const retry = await admin.from('work_assignments').select('id,title,description,kind,status,assigned_worker_id,fundraiser_id,due_at,created_at,notification_status,notification_message_id,notification_sent_at').eq('idempotency_key', idempotencyKey).maybeSingle();
@@ -76,19 +97,49 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  if (!adminEmail(request)) return error('Admin authentication required.', 401);
+  const actor = adminEmail(request);
+  if (!actor) return error('Admin authentication required.', 401);
   const admin = getSupabaseAdmin();
   if (!admin) return error('Supabase is not configured on the server.', 503);
   try {
     const body = await request.json();
     const id = String(body.id || '').trim();
+    const title = String(body.title || '').trim();
+    const description = String(body.description || '').trim();
+    const kind = String(body.kind || '').toLowerCase();
     const status = String(body.status || '').toLowerCase();
-    if (!id || !ALLOWED_STATUSES.has(status)) return error('Assignment and valid status are required.');
-    const updated = await admin.from('work_assignments').update({ status, updated_at: new Date().toISOString() }).eq('id', id).select('id,status').single();
+    const workerId = String(body.workerId || '').trim();
+    const dueAt = body.dueAt ? new Date(body.dueAt).toISOString() : null;
+    if (!id || !title || !description || !workerId || !ALLOWED_KINDS.has(kind) || !ALLOWED_STATUSES.has(status)) return error('Assignment, title, description, type, worker, and valid status are required.');
+    if (body.dueAt && !dueAt) return error('Due date is invalid.');
+    const worker = await admin.from('workers').select('id,status,onboarding_status').eq('id', workerId).maybeSingle();
+    if (worker.error) throw worker.error;
+    if (!worker.data || worker.data.status !== 'active' || worker.data.onboarding_status !== 'completed') return error('Choose an active worker with completed onboarding.', 409);
+    const updated = await admin.from('work_assignments').update({ title, description, kind, status, assigned_worker_id: workerId, due_at: dueAt, admin_note: String(body.adminNote || '').trim() || null, updated_at: new Date().toISOString() }).eq('id', id).eq('is_deleted', false).select(assignmentSelect).single();
     if (updated.error) throw updated.error;
+    const auditEvent = await admin.from('portal_access_events').insert({ worker_id: workerId, event_type: 'assignment_status_changed', metadata: { assignment_id: id, actor, action: 'admin_updated' } });
+    if (auditEvent.error) console.warn('[Admin] Assignment audit event was not recorded.');
     return NextResponse.json({ assignment: updated.data });
   } catch (cause) {
     console.error('[Admin] Failed to update assignment:', cause instanceof Error ? cause.message : 'unknown');
     return error('We could not update this assignment.', 500);
+  }
+}
+
+export async function DELETE(request: Request) {
+  const actor = adminEmail(request);
+  if (!actor) return error('Admin authentication required.', 401);
+  const admin = getSupabaseAdmin();
+  if (!admin) return error('Supabase is not configured on the server.', 503);
+  try {
+    const body = await request.json();
+    const id = String(body.id || '').trim();
+    if (!id) return error('Assignment is required.');
+    const deleted = await admin.from('work_assignments').update({ is_deleted: true, deleted_at: new Date().toISOString(), deleted_by: actor, updated_at: new Date().toISOString() }).eq('id', id).eq('is_deleted', false).select('id,is_deleted,deleted_at').single();
+    if (deleted.error) throw deleted.error;
+    return NextResponse.json({ assignment: deleted.data, message: 'Assignment moved to recovery.' });
+  } catch (cause) {
+    console.error('[Admin] Failed to remove assignment:', cause instanceof Error ? cause.message : 'unknown');
+    return error('We could not remove this assignment.', 500);
   }
 }
