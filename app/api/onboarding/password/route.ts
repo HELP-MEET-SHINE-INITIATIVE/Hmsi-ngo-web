@@ -146,7 +146,7 @@ export async function POST(request: Request) {
     }
 
     const session = await signInPortal(email, password);
-    const response = NextResponse.json({ user: session.identity, hmsiId: card.member_number, redirectTo: '/portal/my-tasks' }, { status: 201 });
+    const response = NextResponse.json({ user: session.identity, hmsiId: card.member_number, redirectTo: '/portal' }, { status: 201 });
     attachPortalSession(response, session.accessToken, session.refreshToken);
     return response;
   } catch (cause) {

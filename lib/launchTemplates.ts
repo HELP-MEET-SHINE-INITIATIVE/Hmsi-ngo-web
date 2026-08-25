@@ -12,7 +12,7 @@ export const launchTemplates: LaunchTemplate[] = [
     title: 'Welcome & Task Dashboard Walkthrough',
     audience: 'Approved workers and volunteers',
     subject: 'Welcome to HMSI — your task dashboard is ready',
-    body: 'Dear [First name],\n\nWelcome to Help Meet Shine Initiative. Your approved portal pathway is ready. Open your task dashboard to review assigned work, accept a duty when appropriate, and submit approved updates or proof links.\n\nOpen my task dashboard: https://www.hmsi.org.ng/portal/my-tasks\n\nPlease do not forward any personal access link. If you need assistance, contact HMSI through the official website.\n\nHMSI Onboarding',
+    body: 'Dear [First name],\n\nWelcome to Help Meet Shine Initiative. Your approved portal pathway is ready. Open your role-specific workspace to review assigned work, accept a duty when appropriate, and submit approved updates or proof links.\n\nOpen my HMSI workspace: https://www.hmsi.org.ng/portal\n\nPlease do not forward any personal access link. If you need assistance, contact HMSI through the official website.\n\nHMSI Onboarding',
   },
   {
     id: 'drive_submission',

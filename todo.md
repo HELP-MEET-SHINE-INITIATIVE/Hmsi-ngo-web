@@ -163,3 +163,10 @@
 
 - [x] Map portal authentication, session, recovery, setup-link, and redirect configuration dependencies to the Vercel Production variable names without viewing values.
 - [x] Identify authentication configuration risks and document safe verification/correction steps without changing values, credentials, or user records.
+
+## Role-Specific Portal Access
+
+- [x] Inspect worker, volunteer, and member login redirects, session refresh, task-workspace behavior, and matching room access controls.
+- [x] Route each active role to its appropriate post-login workspace with clear task and role-room entry points while preserving server-side role checks.
+- [x] Add regression coverage for role-aware routing, session continuity, task interaction boundaries, and room access isolation.
+- [ ] Validate the production build and deploy without authenticating as, altering, or messaging any user.

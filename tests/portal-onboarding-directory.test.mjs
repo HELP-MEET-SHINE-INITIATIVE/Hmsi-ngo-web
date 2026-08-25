@@ -13,9 +13,14 @@ const setupHelper = read('lib/passwordSetup.ts');
 const notifications = read('lib/hmsiNotifications.ts');
 const loginApi = read('app/api/portal/auth/login/route.ts');
 const portalAuth = read('lib/portalAuth.ts');
+const portalTasksApi = read('app/api/portal/tasks/route.ts');
+const portalEntry = read('app/portal/page.tsx');
+const workerPortal = read('app/portal/worker/page.tsx');
+const volunteerPortal = read('app/portal/volunteer/page.tsx');
+const memberPortal = read('app/portal/member/page.tsx');
+const roleRoom = read('components/RoleRoom.tsx');
 const directoryApi = read('app/api/admin/directory/[id]/route.ts');
 const resetApi = read('app/api/admin/directory/[id]/reset/route.ts');
-const portalTasksApi = read('app/api/portal/tasks/route.ts');
 const onboardingUi = read('app/onboarding/OnboardingContent.tsx');
 const loginUi = read('app/login/LoginContent.tsx');
 const clientAuth = read('lib/auth.tsx');
@@ -39,7 +44,7 @@ test('one-time setup requires matching passwords, validates the hashed link and 
   assert.match(setupApi, /password !== confirmPassword/);
   assert.match(setupApi, /auth\.admin\.createUser/);
   assert.match(setupApi, /attachPortalSession/);
-  assert.match(setupApi, /redirectTo: '\/portal\/my-tasks'/);
+  assert.match(setupApi, /redirectTo: '\/portal'/);
   assert.match(setupUi, /HMSI ID/);
   assert.match(setupUi, /Save password & launch workspace/);
   assert.match(setupHelper, /randomBytes\(32\)/);
@@ -74,13 +79,32 @@ test('the onboarding completion screen directs users to their registered email i
 test('the login UI accepts email or HMSI ID and routes authenticated identities into the unified task portal', () => {
   assert.match(loginUi, /Email address or HMSI ID/);
   assert.match(loginUi, /HMSI-W-2026-XXXXXXXX/);
-  assert.match(loginUi, /router\.push\('\/portal\/my-tasks'\)/);
+  assert.match(loginUi, /router\.replace\('\/portal'\)/);
+});
+
+test('the portal dispatches active roles into protected role-specific workspaces and preserves a matching room entry', () => {
+  assert.match(portalEntry, /worker: '\/portal\/worker'/);
+  assert.match(portalEntry, /volunteer: '\/portal\/volunteer'/);
+  assert.match(portalEntry, /member: '\/portal\/member'/);
+  assert.match(workerPortal, /identity\.role !== 'worker'/);
+  assert.match(volunteerPortal, /identity\.role !== 'volunteer'/);
+  assert.match(memberPortal, /identity\.role !== 'member'/);
+  assert.match(roleRoom, /href="\/portal"/);
 });
 
 test('the portal task API fails closed without a portal identity and scopes worker tasks to the authenticated worker ID', () => {
   assert.match(portalTasksApi, /getPortalIdentity\(request\)/);
   assert.match(portalTasksApi, /status: 401/);
   assert.match(portalTasksApi, /eq\('assigned_worker_id', identity\.profileId\)/);
+});
+
+test('the unified portal lets workers and members update only their own allowed tasks while keeping volunteer-room access separate', () => {
+  assert.match(portalTasksApi, /identity\.role === 'volunteer'/);
+  assert.match(portalTasksApi, /hmsi_member_tasks/);
+  assert.match(portalTasksApi, /eq\('assigned_member_id', identity\.profileId\)/);
+  assert.match(portalTasksApi, /eq\('assigned_worker_id', identity\.profileId\)/);
+  assert.match(portalTasksApi, /Volunteer tasks are not configured/);
+  assert.match(portalTasksApi, /hmsi_member_task_events/);
 });
 
 test('the worker directory endpoint is administrator-only and returns real assignment and access-event history only', () => {

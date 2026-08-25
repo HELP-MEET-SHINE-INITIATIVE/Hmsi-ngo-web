@@ -48,7 +48,7 @@ export async function POST(request: Request) {
     const activated = await loaded.admin.from('hmsi_id_cards').update({ activated_at: new Date().toISOString() }).eq('id', loaded.card.holder_id ? loaded.link.hmsi_id_card_id : '').is('activated_at', null);
     if (activated.error) throw activated.error;
     const session = await signInPortal(email, password);
-    const response = NextResponse.json({ user: session.identity, redirectTo: '/portal/my-tasks' }, { status: 201, headers: { 'Cache-Control': 'no-store' } });
+    const response = NextResponse.json({ user: session.identity, redirectTo: '/portal' }, { status: 201, headers: { 'Cache-Control': 'no-store' } });
     return attachPortalSession(response, session.accessToken, session.refreshToken);
   } catch (error) { console.error('[Password setup] Failed:', error instanceof Error ? error.message : 'unknown'); return NextResponse.json({ error: 'Portal setup is temporarily unavailable.' }, { status: 503 }); }
 }

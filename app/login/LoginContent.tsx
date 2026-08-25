@@ -25,7 +25,7 @@ export default function LoginContent() {
       if ('error' in result) {
         setError(result.error);
       } else {
-        router.push('/portal/my-tasks');
+        router.replace('/portal');
       }
     } catch (err) {
       setError("An error occurred. Please try again later.");
