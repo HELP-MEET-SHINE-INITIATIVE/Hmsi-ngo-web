@@ -4,11 +4,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Lock, Mail, ArrowRight, AlertCircle, BriefcaseBusiness, HeartHandshake, IdCard, KeyRound } from "lucide-react";
+import { Lock, Mail, ArrowRight, AlertCircle, BriefcaseBusiness, HeartHandshake, IdCard } from "lucide-react";
 import { useAuth } from "../../lib/auth";
 
 export default function LoginContent() {
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -21,13 +21,11 @@ export default function LoginContent() {
     setIsLoading(true);
 
     try {
-      const success = await login(email, password);
+      const success = await login(identifier, password);
       if (success) {
-        const response = await fetch('/api/portal/profile', { credentials: 'include' });
-        const profile = response.ok ? (await response.json()).profile : null;
-        router.push(profile?.role === 'worker' ? '/worker-dashboard' : profile?.role === 'member' ? '/member-room' : '/dashboard');
+        router.push('/portal/my-tasks');
       } else {
-        setError("Invalid email or password. Please try again.");
+        setError("Invalid portal credentials. Please try again.");
       }
     } catch (err) {
       setError("An error occurred. Please try again later.");
@@ -65,17 +63,17 @@ export default function LoginContent() {
             )}
 
             <div>
-              <label className="block text-xs font-black uppercase tracking-wider text-[#17221e] mb-2">Email Address</label>
+              <label className="block text-xs font-black uppercase tracking-wider text-[#17221e] mb-2">Email address or HMSI ID</label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-[#66716a]" size={18} />
                 <input
-                  type="email"
+                  type="text"
                   required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
                   className="w-full pl-12 pr-4 py-3.5 rounded-xl border border-[#d9d6ce] bg-[#f6f4ef]/50 focus:bg-white focus:border-[#1e5b49] outline-none transition-all"
-                  autoComplete="email"
-                  placeholder="you@example.com"
+                  autoComplete="username"
+                  placeholder="you@example.com or HMSI-W-2026-XXXXXXXX"
                 />
               </div>
             </div>

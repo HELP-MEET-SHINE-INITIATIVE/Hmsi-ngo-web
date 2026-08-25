@@ -110,3 +110,14 @@
 
 - [x] Audit performance and accessibility for the public homepage, the verified Live News detail page, and the launch campaign donation page without submitting a transaction.
 - [x] Analyze automated audit output for material production issues and record prioritized remediation guidance.
+
+## Post-Onboarding Identity and Worker Directory
+
+- [x] Inspect and document the existing Supabase Auth, onboarding-completion, HMSI ID, task assignment, directory, login, and recovery boundaries before changing identity flows.
+- [x] Ensure completed onboarding idempotently issues a unique HMSI ID and requires a user-controlled password setup without exposing or auto-generating passwords.
+- [x] Implement authenticated password creation and immediate role-limited portal routing only after the Supabase credential update and session establishment succeed.
+- [x] Support login with email or HMSI ID through a server-side ID-to-email lookup that does not disclose account existence or role eligibility.
+- [x] Add an email-based, rate-limited password-recovery request path using Supabase Auth’s time-limited reset-link flow.
+- [x] Add an administrator-only worker directory profile view with necessary identity, onboarding, task, proof, and activity history data under existing role controls.
+- [x] Add protected directory actions for preselected task assignment and password-reset dispatch with audit-friendly server validation.
+- [ ] Add focused security and behavioral tests, production-build validation, and a non-destructive deployment verification for the new identity and directory flows.

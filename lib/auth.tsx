@@ -15,7 +15,7 @@ type User = {
 
 type AuthContextType = {
   user: User | null;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (identifier: string, password: string) => Promise<boolean>;
   signup: (name: string, email: string, password: string, role: 'worker' | 'volunteer') => Promise<boolean>;
   logout: () => void;
   isLoading: boolean;
@@ -35,8 +35,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .finally(() => setIsLoading(false));
   }, []);
 
-  const login = async (email: string, password: string) => {
-    const response = await fetch('/api/portal/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ email, password }) });
+  const login = async (identifier: string, password: string) => {
+    const response = await fetch('/api/portal/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ identifier, password }) });
     if (!response.ok) return false;
     const payload = await response.json() as { user?: User };
     if (!payload.user) return false;

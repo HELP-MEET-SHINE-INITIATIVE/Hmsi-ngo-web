@@ -65,6 +65,18 @@ export async function signInPortal(email: string, password: string) {
   return { identity, accessToken: result.data.session.access_token, refreshToken: result.data.session.refresh_token };
 }
 
+export async function resolvePortalEmail(identifier: string) {
+  const normalized = identifier.trim().toUpperCase();
+  if (!normalized) return null;
+  if (normalized.includes('@')) return identifier.trim().toLowerCase();
+  if (!/^HMSI-[WVM]-\d{4}-[A-F0-9]{8}$/.test(normalized)) return null;
+  const admin = getSupabaseAdmin();
+  if (!admin) throw new Error('Supabase Auth is not configured on the HMSI server.');
+  const card = await admin.from('hmsi_id_cards').select('holder_email').eq('member_number', normalized).eq('status', 'active').maybeSingle();
+  if (card.error || !card.data?.holder_email) return null;
+  return card.data.holder_email.trim().toLowerCase();
+}
+
 export function getRecoveryRedirect(siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.hmsi.org.ng') {
   const url = new URL(siteUrl);
   const allowedHosts = new Set(['hmsi.org.ng', 'www.hmsi.org.ng']);
