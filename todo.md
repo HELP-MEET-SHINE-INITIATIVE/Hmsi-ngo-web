@@ -124,10 +124,10 @@
 
 ## Retention-Safe User Administration and Role Rooms
 
-- [ ] Assess foreign-key dependencies, existing recovery/retention obligations, and audit requirements before enabling any irreversible user or application deletion.
-- [ ] Add an administrator-only user-deletion request workflow with explicit confirmation, preflight dependency reporting, authorization checks, and an auditable record of the action.
-- [ ] Add application inbox filtering for pending decisions, a controlled archive view for approved records, and retention-state visibility without fabricating historical data.
-- [ ] Add a deterministic daily retention job that archives approved applications and processes rejected-application cleanup only under explicit, tested retention rules.
-- [ ] Add role-limited access to the Worker Operations, Volunteer Community, and HMSI Member discussion rooms using existing portal identities.
-- [ ] Add secure portal-session refresh and persistence without storing tokens in browser-accessible application state.
+- [x] Assess foreign-key dependencies, existing recovery/retention obligations, and audit requirements before enabling any irreversible user or application deletion.
+- [x] Add an administrator-only user-removal workflow with explicit confirmation, immediate access revocation, 30-day recovery metadata, preflight dependency reporting, authorization checks, and an auditable record of the action.
+- [x] Add application inbox filtering for pending decisions, a controlled archive view for approved records, and retention-state visibility without fabricating historical data.
+- [x] Add a deterministic daily retention job that archives approved applications and processes final purge only after the approved 30-day recovery window.
+- [x] Add role-limited access to the Worker Operations, Volunteer Community, and HMSI Member discussion rooms using existing portal identities.
+- [x] Add secure portal-session refresh and persistence without storing tokens in browser-accessible application state.
 - [ ] Add tests, production-build validation, protected-route checks, scheduled-job safeguards, and deployment verification for the administration, retention, room, and session release.

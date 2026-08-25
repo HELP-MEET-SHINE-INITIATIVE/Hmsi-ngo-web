@@ -65,6 +65,19 @@ export async function signInPortal(email: string, password: string) {
   return { identity, accessToken: result.data.session.access_token, refreshToken: result.data.session.refresh_token };
 }
 
+export async function refreshPortalSession(request: Request) {
+  const raw = request.headers.get('cookie')?.match(new RegExp(`(?:^|;\\s*)${COOKIE_NAME}=([^;]+)`))?.[1];
+  const cookie = raw ? decodeCookie(raw) : null;
+  if (!cookie?.refreshToken) return null;
+  const client = getPublicClient();
+  if (!client) throw new Error('Supabase Auth is not configured on the HMSI server.');
+  const restored = await client.auth.setSession({ access_token: cookie.accessToken, refresh_token: cookie.refreshToken });
+  if (restored.error || !restored.data.session || !restored.data.user) return null;
+  const identity = await findIdentity(restored.data.user);
+  if (!identity) return null;
+  return { identity, accessToken: restored.data.session.access_token, refreshToken: restored.data.session.refresh_token };
+}
+
 export async function resolvePortalEmail(identifier: string) {
   const normalized = identifier.trim().toUpperCase();
   if (!normalized) return null;

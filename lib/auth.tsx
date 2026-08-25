@@ -35,6 +35,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .finally(() => setIsLoading(false));
   }, []);
 
+  useEffect(() => {
+    const refresh = () => fetch('/api/portal/auth/refresh', { method: 'POST', credentials: 'include', cache: 'no-store' })
+      .then(async (response) => response.ok ? (await response.json()).profile as User : null)
+      .then((profile) => { if (profile) setUser(profile); })
+      .catch(() => undefined);
+    const timer = window.setInterval(refresh, 30 * 60 * 1000);
+    const onVisible = () => { if (document.visibilityState === 'visible') void refresh(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => { window.clearInterval(timer); document.removeEventListener('visibilitychange', onVisible); };
+  }, []);
+
   const login = async (identifier: string, password: string) => {
     const response = await fetch('/api/portal/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ identifier, password }) });
     if (!response.ok) return false;

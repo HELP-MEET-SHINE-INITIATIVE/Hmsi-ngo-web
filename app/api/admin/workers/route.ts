@@ -13,7 +13,7 @@ export async function GET(request: Request) {
   const admin = getSupabaseAdmin();
   if (!admin) return NextResponse.json({ error: 'Supabase is not configured on the server.' }, { status: 503 });
 
-  const { data, error } = await admin.from('workers').select('id,name,email,phone,role,status,onboarding_status,created_at').order('name');
+  const { data, error } = await admin.from('workers').select('id,name,email,phone,role,status,onboarding_status,created_at').eq('status', 'active').is('removal_requested_at', null).order('name');
   if (error) return NextResponse.json({ error: 'Workers are temporarily unavailable.' }, { status: 503 });
   return NextResponse.json({ workers: data || [] });
 }

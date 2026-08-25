@@ -1,13 +1,20 @@
 import type { Metadata } from 'next';
-import CommunityRoomContent from '../community/CommunityRoomContent';
-import PortalProfileCard from '../../components/PortalProfileCard';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
+import RoleRoom from '../../components/RoleRoom';
+import { getPortalIdentity } from '../../lib/portalAuth';
 
 export const metadata: Metadata = {
-  title: 'Volunteer Room | HMSI',
-  description: 'Collaborate with HMSI volunteers and workers across Nigeria and Africa.',
+  title: 'Volunteer Community Room | HMSI',
+  description: 'Restricted collaboration room for active HMSI volunteers.',
   robots: { index: false, follow: false },
 };
 
-export default function VolunteerRoomPage() {
-  return <><PortalProfileCard /><CommunityRoomContent room="volunteer" /></>;
+export const dynamic = 'force-dynamic';
+
+export default async function VolunteerRoomPage() {
+  const cookie = (await cookies()).toString();
+  const identity = await getPortalIdentity(new Request('https://www.hmsi.org.ng/volunteer-room', { headers: { cookie } }));
+  if (!identity || identity.role !== 'volunteer') redirect('/login');
+  return <RoleRoom role="volunteer" />;
 }
