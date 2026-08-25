@@ -75,27 +75,27 @@
 
 ## Public Launch Readiness Package
 
-- [ ] Add an administrator-reviewed featured campaign seed with a ₦500,000 target and no fabricated donation total, supporter count, or progress.
-- [ ] Add two clearly labeled, administrator-reviewed HMSI Field Operations dispatch seeds without misrepresenting field verification or live activity.
-- [ ] Add an administrator-only `/admin/templates` library for approved volunteer and publisher outreach templates with safe HMSI deep links.
-- [ ] Add a public micro-donation fast-track widget that routes to the approved donation entry path without transmitting unsupported selected amounts or payment details.
-- [ ] Add a public volunteer and independent-publisher conversion banner to the news feed with clear role-limited pathways.
-- [ ] Add a live supporters/progress component that displays only verified donation acknowledgements, with an explicit empty state when no verified public record is available.
-- [ ] Add a bounded administrator-only launch system check for database, notification configuration, and payment-webhook readiness without exposing secrets or implying provider verification.
-- [ ] Add regression coverage, production-build validation, live-route verification, and a deployment for the launch package.
+- [x] Add an administrator-reviewed featured campaign seed with a ₦500,000 target and no fabricated donation total, supporter count, or progress.
+- [x] Add two clearly labeled, administrator-reviewed HMSI Field Operations dispatch seeds without misrepresenting field verification or live activity.
+- [x] Add an administrator-only `/admin/templates` library for approved volunteer and publisher outreach templates with safe HMSI deep links.
+- [x] Add a public micro-donation fast-track widget that routes to the approved donation entry path without transmitting unsupported selected amounts or payment details.
+- [x] Add a public volunteer and independent-publisher conversion banner to the news feed with clear role-limited pathways.
+- [x] Add a live supporters/progress component that displays only verified donation acknowledgements, with an explicit empty state when no verified public record is available.
+- [x] Add a bounded administrator-only launch system check for database, notification configuration, and payment-webhook readiness without exposing secrets or implying provider verification.
+- [x] Add regression coverage, production-build validation, live-route verification, and a deployment for the launch package.
 
 ## Dynamic Story Feed and Outreach Gallery
 
-- [ ] Replace homepage field-story placeholder cards with a bounded dynamic query for published or approved story records and exact record links.
-- [ ] Add public `/updates` compatibility routing to the existing record-specific story renderer without duplicating article data.
-- [ ] Prioritize related stories sharing the current category, display publication dates, and record privacy-safe aggregate click-through analytics.
-- [ ] Add the outreach-gallery schema and an administrator-only gallery API that supports ordered image metadata, append, caption update, and deletion state.
-- [ ] Add protected `/admin/gallery` and `/admin/stories/[id]` controls for image upload, editing, prioritization, and confirmed deletion.
-- [ ] Ensure gallery deletion removes only storage objects owned by the selected gallery record and preserves auditable metadata or a soft-delete marker.
-- [ ] Add regression coverage, production-build validation, live verification, and a deployment for the story-feed and gallery release.
+- [x] Replace homepage field-story placeholder cards with a bounded dynamic query for published or approved story records and exact record links.
+- [x] Add public `/updates` compatibility routing to the existing record-specific story renderer without duplicating article data.
+- [x] Prioritize related stories sharing the current category, display publication dates, and record privacy-safe aggregate click-through analytics.
+- [x] Add the outreach-gallery schema and an administrator-only gallery API that supports ordered image metadata, append, caption update, and deletion state.
+- [x] Add protected `/admin/gallery` and `/admin/stories/[id]` controls for image upload, editing, prioritization, and confirmed deletion.
+- [x] Ensure gallery deletion removes only storage objects owned by the selected gallery record and preserves auditable metadata or a soft-delete marker.
+- [x] Add regression coverage, production-build validation, live verification, and a deployment for the story-feed and gallery release.
 
 ## Dynamic Live News Ticker
 
-- [ ] Replace the homepage Live News ticker’s static placeholder with the newest approved or published `news_articles` record ordered by publication timestamp.
-- [ ] Bind the ticker category, headline, excerpt, and Read News call to the active record’s exact `/news/[id]` route.
-- [ ] Add regression coverage, production-build validation, live verification, and a deployment for the Live News ticker fix.
+- [x] Replace the homepage Live News ticker’s static placeholder with the newest approved or published `news_articles` record ordered by publication timestamp.
+- [x] Bind the ticker category, headline, excerpt, and Read News call to the active record’s exact `/news/[id]` route.
+- [x] Add regression coverage, production-build validation, live verification, and a deployment for the Live News ticker fix.
