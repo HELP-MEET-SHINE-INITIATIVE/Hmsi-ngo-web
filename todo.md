@@ -169,4 +169,4 @@
 - [x] Inspect worker, volunteer, and member login redirects, session refresh, task-workspace behavior, and matching room access controls.
 - [x] Route each active role to its appropriate post-login workspace with clear task and role-room entry points while preserving server-side role checks.
 - [x] Add regression coverage for role-aware routing, session continuity, task interaction boundaries, and room access isolation.
-- [ ] Validate the production build and deploy without authenticating as, altering, or messaging any user.
+- [x] Validate the production build and deploy without authenticating as, altering, or messaging any user.
