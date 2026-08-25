@@ -140,3 +140,8 @@
 - [x] Add a `/setup-password` route that validates an unexpired unused token, presents a prefilled disabled HMSI ID, requires user-controlled matching passwords, consumes the token exactly once, and launches the permitted portal session.
 - [x] Preserve email-or-HMSI-ID login using Supabase Auth credentials and extend server-cookie session refresh without placing tokens in browser storage or claiming unlimited sessions.
 - [x] Add tests, production-build validation, delivery-safe verification, and a deployment for the setup-email and returning-login flow.
+
+## Production Constraint Review
+
+- [x] Perform a read-only production review of foreign-key delete actions, indexes, and row-level security for user-removal dependencies and `password_setup_links`.
+- [x] Document confirmed cascade behavior, retention-safe deletion limits, and any schema gaps without modifying production data or constraints.
