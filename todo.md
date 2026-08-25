@@ -185,17 +185,17 @@ The existing data model does not currently provide a volunteer task-assignment t
 
 ## Volunteer Task Assignment Model Planning
 
-- [ ] Define the volunteer assignment data model, lifecycle, foreign keys, indexes, RLS posture, and retention behavior without applying a migration.
-- [ ] Specify protected volunteer and administrator API contracts for listing, accepting, progressing, completing, reassigning, and proof-link submission.
-- [ ] Specify integration with the role portal, opportunities, rooms, notifications, audit events, tests, and staged rollout safeguards.
+- [x] Define the volunteer assignment data model, lifecycle, foreign keys, indexes, RLS posture, and retention behavior without applying a migration.
+- [x] Specify protected volunteer and administrator API contracts for listing, accepting, progressing, completing, reassigning, and proof-link submission.
+- [x] Specify integration with the role portal, opportunities, rooms, notifications, audit events, tests, and staged rollout safeguards.
 
 
 ## Worker and Volunteer Dashboard UI Design
 
-- [ ] Define focused worker and volunteer dashboard menus, navigation hierarchy, empty states, and onboarding guidance.
-- [ ] Design reusable task cards, task-detail panels, status actions, proof-link submission entry, room links, and opportunity sections.
-- [ ] Implement the frontend components without changing production schema or creating live assignments.
-- [ ] Add frontend regression coverage and responsive role-isolation verification.
+- [x] Define focused worker and volunteer dashboard menus, navigation hierarchy, empty states, and onboarding guidance.
+- [x] Design reusable task cards, task-detail panels, status actions, proof-link submission entry, room links, and opportunity sections.
+- [x] Implement the frontend components without changing production schema or creating live assignments.
+- [x] Add frontend regression coverage and responsive role-isolation verification.
 
 
 ## Admin Assignment Management and Portal Organization
