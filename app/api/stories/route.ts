@@ -34,6 +34,7 @@ export async function GET(request: Request) {
   const viewer = await getViewer(request, admin);
   const storyId = new URL(request.url).searchParams.get('id')?.trim() || '';
   const excludedStoryId = new URL(request.url).searchParams.get('exclude')?.trim() || '';
+  const category = cleanText(new URL(request.url).searchParams.get('category'), 80);
   const requestedLimit = Number(new URL(request.url).searchParams.get('limit') || '20');
   const limit = Number.isInteger(requestedLimit) ? Math.min(Math.max(requestedLimit, 1), 20) : 20;
   let query = admin
@@ -41,10 +42,11 @@ export async function GET(request: Request) {
     .select('id,title,excerpt,body,category,image_url,author_name,author_email,author_role,status,rejection_reason,approved_by,approved_at,published_at,created_at,updated_at');
 
   if (!viewer) {
-    query = query.eq('status', 'published').order('published_at', { ascending: false }).order('created_at', { ascending: false });
+    query = query.in('status', ['published', 'approved']).order('published_at', { ascending: false }).order('created_at', { ascending: false });
     if (storyId) query = query.eq('id', storyId);
     else {
       if (excludedStoryId) query = query.neq('id', excludedStoryId);
+      if (category) query = query.eq('category', category);
       query = query.limit(limit);
     }
   } else if (viewer.role !== 'admin') {
@@ -57,8 +59,21 @@ export async function GET(request: Request) {
     console.error('[Stories] Failed to load stories:', error.message);
     return NextResponse.json({ error: 'Stories are temporarily unavailable.' }, { status: 503 });
   }
+  const stories = data || [];
+  if (!viewer && stories.length) {
+    const storyIds = stories.map((story) => story.id);
+    const { data: galleryRows, error: galleryError } = await admin.from('outreach_gallery_images').select('id,story_id,image_url,caption,sort_order').in('story_id', storyIds).eq('is_deleted', false).order('sort_order').order('created_at');
+    if (galleryError) console.error('[Stories] Failed to load outreach gallery metadata:', galleryError.message);
+    const galleryByStory = new Map<string, Array<{ id: string; image_url: string; caption: string | null; sort_order: number }>>();
+    for (const image of galleryRows || []) {
+      const current = galleryByStory.get(image.story_id) || [];
+      current.push(image);
+      galleryByStory.set(image.story_id, current);
+    }
+    return NextResponse.json({ stories: stories.map((story) => ({ ...story, gallery_images: galleryByStory.get(story.id) || [] })), viewerRole: 'public', setupRequired: false });
+  }
 
-  return NextResponse.json({ stories: data || [], viewerRole: viewer?.role || 'public', setupRequired: false });
+  return NextResponse.json({ stories, viewerRole: viewer?.role || 'public', setupRequired: false });
 }
 
 export async function POST(request: Request) {

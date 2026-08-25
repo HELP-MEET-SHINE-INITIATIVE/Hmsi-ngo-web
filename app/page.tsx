@@ -12,6 +12,7 @@ import NewsFlash from "../components/NewsFlash";
 import FundraiserFlash from "../components/FundraiserFlash";
 import FieldStoryFlash from "../components/FieldStoryFlash";
 import HomepageFeaturedStoryCard from "../components/HomepageFeaturedStoryCard";
+import HomepageFieldStoryFeed from "../components/HomepageFieldStoryFeed";
 import HomepageHelpCta from "../components/HomepageHelpCta";
 import FundraisingGrowthHub from "../components/FundraisingGrowthHub";
 import MicroDonationFastTrack from "../components/MicroDonationFastTrack";
@@ -38,36 +39,6 @@ import {
   CheckCircle2,
   Globe
 } from "lucide-react";
-
-const humanitarianBriefs = [
-  {
-    category: "Nigeria / Field desk",
-    title: "HMSI field update",
-    excerpt:
-      "Summary of a published HMSI field activity; details are provided on the linked field-story page.",
-    image: "/images/outreach-8.png",
-    href: "/outreach/1",
-    accent: "bg-[#e9f3ee] text-[#1e5b49]",
-  },
-  {
-    category: "Global / Humanitarian brief",
-    title: "Programme context",
-    excerpt:
-      "Background information on humanitarian and community-development work described by HMSI.",
-    image: "/images/outreach-2.png",
-    href: "/about",
-    accent: "bg-[#f7eadf] text-[#a4512e]",
-  },
-  {
-    category: "Youth / Opportunity",
-    title: "Volunteer information",
-    excerpt:
-      "Information about opportunities to contribute skills to HMSI programmes.",
-    image: "/images/outreach-5.png",
-    href: "/volunteer",
-    accent: "bg-[#e9eef8] text-[#294d83]",
-  },
-];
 
 const waysToHelp = [
   {
@@ -536,20 +507,7 @@ export default function Home() {
             <div className="mt-12 grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
               <HomepageFeaturedStoryCard />
 
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-1">
-                {humanitarianBriefs.map((brief) => (
-                  <Link key={brief.title} href={brief.href} className="group grid grid-cols-[0.8fr_1.2fr] gap-4 rounded-3xl border border-[#deded7] bg-[#f6f4ef] p-3 transition hover:-translate-y-1 hover:border-[#1e5b49] sm:grid-cols-[0.9fr_1.1fr] lg:grid-cols-[0.8fr_1.2fr]">
-                    <div className="relative min-h-[145px] overflow-hidden rounded-2xl">
-                      <Image src={brief.image} alt="" fill className="object-cover transition duration-500 group-hover:scale-105" />
-                    </div>
-                    <div className="flex flex-col py-2 pr-2">
-                      <span className="text-[9px] font-black uppercase tracking-widest text-[#b56b3b]">{brief.category}</span>
-                      <h4 className="mt-2 text-sm font-black leading-tight group-hover:text-[#1e5b49]">{brief.title}</h4>
-                      <p className="mt-3 line-clamp-2 text-[11px] leading-relaxed text-[#66716a]">{brief.excerpt}</p>
-                    </div>
-                  </Link>
-                ))}
-              </div>
+              <HomepageFieldStoryFeed />
             </div>
             <VolunteerPublisherBanner />
           </div>

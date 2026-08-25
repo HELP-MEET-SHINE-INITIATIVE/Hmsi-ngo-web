@@ -5,32 +5,29 @@ import { readFile } from 'node:fs/promises';
 const root = new URL('..', import.meta.url);
 const read = (path) => readFile(new URL(path, root), 'utf8');
 
-test('homepage featured story links to the clicked published record instead of a static legacy story', async () => {
-  const card = await read('components/HomepageFeaturedStoryCard.tsx');
-  assert.ok(card.includes('const storyHref = isFallback ? \'/stories\' : `/stories/${story.id}`;'), 'Expected a record-specific story route.');
-  assert.ok(card.includes('href={storyHref}'), 'Expected the featured story card to use its generated route.');
-  assert.ok(card.includes('Read full story'), 'Expected the visible featured-story action.');
-  assert.ok(!card.includes('Needs: Supporting Frontline Workers'), 'A legacy static story destination must not be retained.');
+test('homepage field-story cards use live public records instead of static placeholders', async () => {
+  const homepage = await read('app/page.tsx');
+  const feed = await read('components/HomepageFieldStoryFeed.tsx');
+  assert.ok(homepage.includes('<HomepageFieldStoryFeed />'), 'Expected homepage to render the dynamic field-story feed.');
+  for (const placeholder of ['HMSI field update', 'Programme context', 'Volunteer information']) assert.ok(!homepage.includes(placeholder), `Static placeholder ${placeholder} must be removed.`);
+  for (const token of ['/api/stories?limit=3', 'const href = `/stories/${story.id}`', 'trackStoryClick(href)', 'toLocaleDateString']) assert.ok(feed.includes(token), `Expected dynamic story-feed behavior ${token}.`);
 });
 
-test('story detail renderer loads and displays the route parameter’s published record', async () => {
-  const detail = await read('components/FeaturedStoryContent.tsx');
+test('public story query serves only approved or published records and supports record-specific category filtering', async () => {
   const api = await read('app/api/stories/route.ts');
-  for (const token of ['const id = params.id as string', 'fetch(`/api/stories?id=${encodeURIComponent(id)}`', 'story.title', 'story.excerpt', 'story.body', 'story.image_url']) {
-    assert.ok(detail.includes(token), `Expected detail renderer to use ${token}.`);
-  }
-  for (const token of ["searchParams.get('id')", "query = query.eq('id', storyId)", "query = query.eq('status', 'published')"]) {
-    assert.ok(api.includes(token), `Expected stories API to constrain the requested published record using ${token}.`);
-  }
+  for (const token of ["searchParams.get('id')", "searchParams.get('exclude')", "searchParams.get('category')", "query = query.in('status', ['published', 'approved'])", "query = query.eq('id', storyId)", 'query = query.eq(\'category\', category)', 'query = query.limit(limit)']) assert.ok(api.includes(token), `Expected bounded public story query support for ${token}.`);
 });
 
-test('story detail renderer fetches up to three other published records for dynamic related-story links', async () => {
+test('story detail loads its own record, prioritizes category-related stories, renders dates, and records aggregate click events', async () => {
   const detail = await read('components/FeaturedStoryContent.tsx');
-  const api = await read('app/api/stories/route.ts');
-  for (const token of ['fetch(`/api/stories?exclude=${encodeURIComponent(id)}&limit=3`', 'setRelatedStories', 'Related field stories', 'href={`/stories/${related.id}`}', 'candidate.id !== id', 'More published field stories will appear here']) {
-    assert.ok(detail.includes(token), `Expected related-story renderer to include ${token}.`);
-  }
-  for (const token of ["searchParams.get('exclude')", "searchParams.get('limit')", "query = query.neq('id', excludedStoryId)", 'query = query.limit(limit)']) {
-    assert.ok(api.includes(token), `Expected bounded related-story API support for ${token}.`);
-  }
+  for (const token of ['const id = params.id as string', 'fetch(`/api/stories?id=${encodeURIComponent(id)}`', 'category=${encodeURIComponent(currentStory.category)}', 'fetch(`/api/stories?exclude=${encodeURIComponent(id)}&limit=20`', 'story.gallery_images', 'toLocaleDateString(\'en-NG\')', 'trackStoryClick(href)']) assert.ok(detail.includes(token), `Expected dynamic detail behavior ${token}.`);
+});
+
+test('updates aliases preserve exact record routing and gallery CRUD remains administrator-only and storage-scoped', async () => {
+  const alias = await read('app/updates/[id]/page.tsx');
+  const galleryApi = await read('app/api/admin/gallery/route.ts');
+  const migration = await read('supabase/outreach_gallery_patch.sql');
+  assert.ok(alias.includes('redirect(`/stories/${encodeURIComponent(id)}`)'), 'Expected /updates record alias to preserve the story identifier.');
+  for (const token of ["viewer.role !== 'admin'", 'outreach-gallery/${storyId}/', 'startsWith(`outreach-gallery/${image.story_id}/`)', 'is_deleted: true', 'storage_delete_failed']) assert.ok(galleryApi.includes(token), `Expected guarded gallery behavior ${token}.`);
+  for (const token of ['create table if not exists public.outreach_gallery_images', 'create table if not exists public.outreach_gallery_events', 'enable row level security', 'sort_order integer']) assert.ok(migration.includes(token), `Expected gallery migration control ${token}.`);
 });

@@ -12,7 +12,7 @@ function absoluteImageUrl(image: string | null) {
 async function loadPublishedStory(id: string) {
   const admin = getSupabaseAdmin();
   if (!admin) return null;
-  const { data, error } = await admin.from('featured_story_drafts').select('id,title,excerpt,image_url,author_name,status,published_at,created_at').eq('id', id).eq('status', 'published').maybeSingle();
+  const { data, error } = await admin.from('featured_story_drafts').select('id,title,excerpt,image_url,author_name,status,published_at,created_at').eq('id', id).in('status', ['published', 'approved']).maybeSingle();
   if (error) {
     console.warn('[StoryPage] Story metadata unavailable:', error.message);
     return null;

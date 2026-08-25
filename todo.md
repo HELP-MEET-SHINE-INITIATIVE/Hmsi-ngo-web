@@ -83,3 +83,13 @@
 - [ ] Add a live supporters/progress component that displays only verified donation acknowledgements, with an explicit empty state when no verified public record is available.
 - [ ] Add a bounded administrator-only launch system check for database, notification configuration, and payment-webhook readiness without exposing secrets or implying provider verification.
 - [ ] Add regression coverage, production-build validation, live-route verification, and a deployment for the launch package.
+
+## Dynamic Story Feed and Outreach Gallery
+
+- [ ] Replace homepage field-story placeholder cards with a bounded dynamic query for published or approved story records and exact record links.
+- [ ] Add public `/updates` compatibility routing to the existing record-specific story renderer without duplicating article data.
+- [ ] Prioritize related stories sharing the current category, display publication dates, and record privacy-safe aggregate click-through analytics.
+- [ ] Add the outreach-gallery schema and an administrator-only gallery API that supports ordered image metadata, append, caption update, and deletion state.
+- [ ] Add protected `/admin/gallery` and `/admin/stories/[id]` controls for image upload, editing, prioritization, and confirmed deletion.
+- [ ] Ensure gallery deletion removes only storage objects owned by the selected gallery record and preserves auditable metadata or a soft-delete marker.
+- [ ] Add regression coverage, production-build validation, live verification, and a deployment for the story-feed and gallery release.

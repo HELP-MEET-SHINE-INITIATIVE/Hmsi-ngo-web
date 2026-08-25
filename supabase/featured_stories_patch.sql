@@ -39,6 +39,8 @@ create index if not exists featured_story_drafts_author_created_idx
 create index if not exists featured_story_approval_events_story_created_idx
   on public.featured_story_approval_events (story_id, created_at desc);
 
+-- Gallery metadata is stored in the additive outreach_gallery_patch.sql migration.
+
 alter table public.featured_story_drafts enable row level security;
 alter table public.featured_story_approval_events enable row level security;
 
