@@ -60,3 +60,9 @@
 - [x] Add a protected administrator control to assign or remove publisher pathways for approved active volunteers after onboarding.
 - [ ] Run a complete end-to-end volunteer news submission, revision, approval, and publication integration test against an isolated staging deployment with disposable test identities and cleanup verification.
 - [x] Run isolated mock-mode end-to-end verification of volunteer submission, editorial queue, revision/status transitions, administrator approval, and publication boundaries without live database or external side effects.
+
+## Featured Story Dynamic Routing
+
+- [x] Confirm the homepage featured-story card constructs its destination from the selected record ID rather than a static legacy link.
+- [x] Confirm the story detail renderer and public API load the selected published record’s unique metadata, image, excerpt, and body.
+- [x] Run focused regression coverage, production build validation, confirm the live record route, and publish the routing verification update.
