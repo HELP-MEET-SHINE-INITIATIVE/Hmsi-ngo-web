@@ -18,6 +18,7 @@ const resetApi = read('app/api/admin/directory/[id]/reset/route.ts');
 const portalTasksApi = read('app/api/portal/tasks/route.ts');
 const onboardingUi = read('app/onboarding/OnboardingContent.tsx');
 const loginUi = read('app/login/LoginContent.tsx');
+const clientAuth = read('lib/auth.tsx');
 const directoryUi = read('components/WorkerDirectory.tsx');
 const recoveryApi = read('app/api/portal/auth/recover/route.ts');
 
@@ -53,6 +54,14 @@ test('portal login resolves HMSI ID server-side and preserves generic credential
   assert.match(loginApi, /Invalid portal credentials\./);
   assert.doesNotMatch(loginApi, /Worker not found|ID card could not be verified/);
   assert.match(portalAuth, /\^HMSI-\[WVM\]-\\d\{4\}-\[A-F0-9\]\{8\}\$/);
+});
+
+test('portal login uses the deployed publishable-key name and distinguishes temporary service failure from credential denial', () => {
+  assert.match(portalAuth, /SUPABASE_PUBLISHABLE_KEY/);
+  assert.match(clientAuth, /response\.json\(\)\.catch/);
+  assert.match(clientAuth, /Portal sign-in is temporarily unavailable\./);
+  assert.match(loginUi, /'error' in result/);
+  assert.match(loginUi, /setError\(result\.error\)/);
 });
 
 test('the onboarding completion screen directs users to their registered email instead of exposing an inline password field', () => {

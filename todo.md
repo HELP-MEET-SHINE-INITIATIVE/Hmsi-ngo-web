@@ -150,3 +150,11 @@
 
 - [x] Perform a non-destructive review of current production deployment, repository state, and publicly reachable HMSI core routes.
 - [x] Review bounded operational and security signals, document any required corrections, and avoid changing production configuration or data unless separately approved.
+
+## Worker Portal Login Diagnosis
+
+- [x] Diagnose the reported worker portal-login failure using only code-path review and bounded production signals; do not change credentials, authenticate as the worker, or send recovery email.
+- [ ] Report the minimum safe correction and request explicit approval before any password reset, account update, or notification dispatch.
+- [x] Preserve the generic invalid-credential response for genuine 401 failures while surfacing a safe temporary-service message for configured 503 login failures.
+- [x] Add regression coverage for portal-login status-aware client handling and validate the production build before deployment.
+- [ ] Verify the required Supabase Auth values are present in Vercel Production without exposing secrets, then perform only a non-account-changing post-deployment route check.

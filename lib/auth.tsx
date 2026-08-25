@@ -13,9 +13,11 @@ type User = {
   avatar?: string;
 };
 
+type LoginResult = { success: true } | { success: false; error: string };
+
 type AuthContextType = {
   user: User | null;
-  login: (identifier: string, password: string) => Promise<boolean>;
+  login: (identifier: string, password: string) => Promise<LoginResult>;
   signup: (name: string, email: string, password: string, role: 'worker' | 'volunteer') => Promise<boolean>;
   logout: () => void;
   isLoading: boolean;
@@ -46,14 +48,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => { window.clearInterval(timer); document.removeEventListener('visibilitychange', onVisible); };
   }, []);
 
-  const login = async (identifier: string, password: string) => {
+  const login = async (identifier: string, password: string): Promise<LoginResult> => {
     const response = await fetch('/api/portal/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ identifier, password }) });
-    if (!response.ok) return false;
-    const payload = await response.json() as { user?: User };
-    if (!payload.user) return false;
+    const payload = await response.json().catch(() => ({})) as { user?: User; error?: string };
+    if (!response.ok) return { success: false as const, error: typeof payload.error === 'string' ? payload.error : 'Portal sign-in is temporarily unavailable.' };
+    if (!payload.user) return { success: false as const, error: 'Portal sign-in is temporarily unavailable.' };
     setUser(payload.user);
     sessionStorage.setItem('hmsi_session', JSON.stringify(payload.user));
-    return true;
+    return { success: true as const };
   };
 
   const signup = async () => false;

@@ -21,11 +21,11 @@ export default function LoginContent() {
     setIsLoading(true);
 
     try {
-      const success = await login(identifier, password);
-      if (success) {
-        router.push('/portal/my-tasks');
+      const result = await login(identifier, password);
+      if ('error' in result) {
+        setError(result.error);
       } else {
-        setError("Invalid portal credentials. Please try again.");
+        router.push('/portal/my-tasks');
       }
     } catch (err) {
       setError("An error occurred. Please try again later.");
