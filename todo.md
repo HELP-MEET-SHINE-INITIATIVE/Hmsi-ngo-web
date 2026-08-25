@@ -120,4 +120,14 @@
 - [x] Add an email-based, rate-limited password-recovery request path using Supabase Auth’s time-limited reset-link flow.
 - [x] Add an administrator-only worker directory profile view with necessary identity, onboarding, task, proof, and activity history data under existing role controls.
 - [x] Add protected directory actions for preselected task assignment and password-reset dispatch with audit-friendly server validation.
-- [ ] Add focused security and behavioral tests, production-build validation, and a non-destructive deployment verification for the new identity and directory flows.
+- [x] Add focused security and behavioral tests, production-build validation, and a non-destructive deployment verification for the new identity and directory flows.
+
+## Retention-Safe User Administration and Role Rooms
+
+- [ ] Assess foreign-key dependencies, existing recovery/retention obligations, and audit requirements before enabling any irreversible user or application deletion.
+- [ ] Add an administrator-only user-deletion request workflow with explicit confirmation, preflight dependency reporting, authorization checks, and an auditable record of the action.
+- [ ] Add application inbox filtering for pending decisions, a controlled archive view for approved records, and retention-state visibility without fabricating historical data.
+- [ ] Add a deterministic daily retention job that archives approved applications and processes rejected-application cleanup only under explicit, tested retention rules.
+- [ ] Add role-limited access to the Worker Operations, Volunteer Community, and HMSI Member discussion rooms using existing portal identities.
+- [ ] Add secure portal-session refresh and persistence without storing tokens in browser-accessible application state.
+- [ ] Add tests, production-build validation, protected-route checks, scheduled-job safeguards, and deployment verification for the administration, retention, room, and session release.
