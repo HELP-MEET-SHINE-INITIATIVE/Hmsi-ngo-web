@@ -105,3 +105,8 @@
 - [x] Verify the production Live News ticker and its exact article-detail view without modifying content.
 - [x] Verify the production donation journey through the secure checkout handoff without entering payment data, submitting a donation, or creating a donor record.
 - [x] Inspect bounded production runtime signals and record the completed non-transactional verification outcome.
+
+## Production Performance and Accessibility Audit
+
+- [x] Audit performance and accessibility for the public homepage, the verified Live News detail page, and the launch campaign donation page without submitting a transaction.
+- [x] Analyze automated audit output for material production issues and record prioritized remediation guidance.
