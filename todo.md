@@ -93,3 +93,9 @@
 - [ ] Add protected `/admin/gallery` and `/admin/stories/[id]` controls for image upload, editing, prioritization, and confirmed deletion.
 - [ ] Ensure gallery deletion removes only storage objects owned by the selected gallery record and preserves auditable metadata or a soft-delete marker.
 - [ ] Add regression coverage, production-build validation, live verification, and a deployment for the story-feed and gallery release.
+
+## Dynamic Live News Ticker
+
+- [ ] Replace the homepage Live News ticker’s static placeholder with the newest approved or published `news_articles` record ordered by publication timestamp.
+- [ ] Bind the ticker category, headline, excerpt, and Read News call to the active record’s exact `/news/[id]` route.
+- [ ] Add regression coverage, production-build validation, live verification, and a deployment for the Live News ticker fix.

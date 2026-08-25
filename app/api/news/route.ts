@@ -23,6 +23,8 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url);
   const requestedId = cleanText(url.searchParams.get('id'), 80);
+  const requestedLimit = Number(url.searchParams.get('limit'));
+  const limit = Number.isInteger(requestedLimit) && requestedLimit > 0 ? Math.min(requestedLimit, 100) : null;
   const viewer = await getViewer(request, admin);
   let query = admin
     .from('news_articles')
@@ -34,10 +36,12 @@ export async function GET(request: Request) {
   }
 
   if (!viewer) {
-    query = query.eq('status', 'published');
+    query = query.in('status', ['approved', 'published']);
   } else if (viewer.role !== 'admin') {
     query = query.eq('author_email', viewer.email);
   }
+
+  if (!requestedId && limit) query = query.limit(limit);
 
   const { data, error } = await query;
   if (error) {

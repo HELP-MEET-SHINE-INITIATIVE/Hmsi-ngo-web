@@ -32,3 +32,13 @@ test('public newsroom and homepage news flash use the stored primary image inste
   assert.match(newsFlashSource, /image_url: string \| null/);
   assert.match(newsFlashSource, /activeArticle\.image_url/);
 });
+
+test('Live News ticker requests only the newest approved or published record and links to that exact article', () => {
+  assert.match(newsApiSource, /query = query\.in\('status', \['approved', 'published'\]\)/);
+  assert.match(newsApiSource, /\.order\('published_at', \{ ascending: false, nullsFirst: false \}\)/);
+  assert.match(newsApiSource, /if \(!requestedId && limit\) query = query\.limit\(limit\)/);
+  assert.match(newsFlashSource, /fetch\('\/api\/news\?limit=1'/);
+  assert.match(newsFlashSource, /const activeArticle = headlines\[0\]/);
+  assert.match(newsFlashSource, /href=\{`\/news\/\$\{activeArticle\.id\}`\}/);
+  assert.match(newsFlashSource, /latest approved update/);
+});
