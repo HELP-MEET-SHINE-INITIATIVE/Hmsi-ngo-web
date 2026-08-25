@@ -23,3 +23,14 @@ test('story detail renderer loads and displays the route parameter’s published
     assert.ok(api.includes(token), `Expected stories API to constrain the requested published record using ${token}.`);
   }
 });
+
+test('story detail renderer fetches up to three other published records for dynamic related-story links', async () => {
+  const detail = await read('components/FeaturedStoryContent.tsx');
+  const api = await read('app/api/stories/route.ts');
+  for (const token of ['fetch(`/api/stories?exclude=${encodeURIComponent(id)}&limit=3`', 'setRelatedStories', 'Related field stories', 'href={`/stories/${related.id}`}', 'candidate.id !== id', 'More published field stories will appear here']) {
+    assert.ok(detail.includes(token), `Expected related-story renderer to include ${token}.`);
+  }
+  for (const token of ["searchParams.get('exclude')", "searchParams.get('limit')", "query = query.neq('id', excludedStoryId)", 'query = query.limit(limit)']) {
+    assert.ok(api.includes(token), `Expected bounded related-story API support for ${token}.`);
+  }
+});

@@ -66,3 +66,9 @@
 - [x] Confirm the homepage featured-story card constructs its destination from the selected record ID rather than a static legacy link.
 - [x] Confirm the story detail renderer and public API load the selected published record’s unique metadata, image, excerpt, and body.
 - [x] Run focused regression coverage, production build validation, confirm the live record route, and publish the routing verification update.
+
+## Related Field Stories
+
+- [x] Load up to three other published field stories while excluding the current story record.
+- [x] Render an accessible related-stories section at the bottom of the selected story detail page with dynamic record links.
+- [x] Add regression coverage, validate the production build and live detail route, then publish the enhancement.

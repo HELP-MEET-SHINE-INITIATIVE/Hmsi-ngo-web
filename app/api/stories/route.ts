@@ -33,6 +33,9 @@ export async function GET(request: Request) {
 
   const viewer = await getViewer(request, admin);
   const storyId = new URL(request.url).searchParams.get('id')?.trim() || '';
+  const excludedStoryId = new URL(request.url).searchParams.get('exclude')?.trim() || '';
+  const requestedLimit = Number(new URL(request.url).searchParams.get('limit') || '20');
+  const limit = Number.isInteger(requestedLimit) ? Math.min(Math.max(requestedLimit, 1), 20) : 20;
   let query = admin
     .from('featured_story_drafts')
     .select('id,title,excerpt,body,category,image_url,author_name,author_email,author_role,status,rejection_reason,approved_by,approved_at,published_at,created_at,updated_at');
@@ -40,6 +43,10 @@ export async function GET(request: Request) {
   if (!viewer) {
     query = query.eq('status', 'published').order('published_at', { ascending: false }).order('created_at', { ascending: false });
     if (storyId) query = query.eq('id', storyId);
+    else {
+      if (excludedStoryId) query = query.neq('id', excludedStoryId);
+      query = query.limit(limit);
+    }
   } else if (viewer.role !== 'admin') {
     query = query.order('created_at', { ascending: false });
     query = query.eq('author_email', viewer.email);
