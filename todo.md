@@ -139,4 +139,4 @@
 - [x] Replace inline onboarding password fields with a completion screen that directs the user to their registered email for the one-time setup link.
 - [x] Add a `/setup-password` route that validates an unexpired unused token, presents a prefilled disabled HMSI ID, requires user-controlled matching passwords, consumes the token exactly once, and launches the permitted portal session.
 - [x] Preserve email-or-HMSI-ID login using Supabase Auth credentials and extend server-cookie session refresh without placing tokens in browser storage or claiming unlimited sessions.
-- [ ] Add tests, production-build validation, delivery-safe verification, and a deployment for the setup-email and returning-login flow.
+- [x] Add tests, production-build validation, delivery-safe verification, and a deployment for the setup-email and returning-login flow.
