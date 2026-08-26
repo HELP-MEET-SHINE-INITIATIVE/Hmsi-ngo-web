@@ -35,13 +35,13 @@ export function passwordResetTemplate(input: { resetUrl?: string } = {}) {
   return { html, text: `HMSI Portal password reset\n\nUse this secure link to reset your password: ${resetUrl}\n\nIf you did not request this, ignore this email. Never share your password or reset link.` };
 }
 
-export function workerWelcomeTemplate(input: { name: string; role: 'worker' | 'volunteer'; dashboardUrl: string }) {
-  const roleLabel = input.role === 'worker' ? 'worker' : 'volunteer';
+export function workerWelcomeTemplate(input: { name: string; role: 'worker' | 'volunteer' | 'member'; dashboardUrl: string }) {
+  const roleLabel = input.role === 'worker' ? 'worker' : input.role === 'volunteer' ? 'volunteer' : 'member';
   const html = officialShell({
     eyebrow: 'HMSI Onboarding',
     title: 'Welcome to Help Meet Shine Initiative',
     body: `<p style="margin-top:0">Dear ${escapeHtml(input.name)},</p><p>Your HMSI ${roleLabel} status is now active. Please complete your onboarding and review your current portal information.</p><p><a href="${escapeHtml(input.dashboardUrl)}" style="display:inline-block;background:#1e5b49;color:#ffffff;padding:12px 18px;text-decoration:none;font-weight:700">Open my HMSI portal</a></p><p>This secure onboarding link is personal to you. Please do not forward it.</p>`,
-    footer: 'HMSI Onboarding · Official worker and volunteer correspondence',
+    footer: 'HMSI Onboarding · Official member, worker, and volunteer correspondence',
   });
   return { html, text: `Dear ${input.name},\n\nWelcome to Help Meet Shine Initiative. Your HMSI ${roleLabel} status is active. Complete your onboarding here: ${input.dashboardUrl}\n\nDo not forward this secure link.` };
 }

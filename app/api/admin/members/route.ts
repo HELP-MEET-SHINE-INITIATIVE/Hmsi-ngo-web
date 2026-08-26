@@ -2,9 +2,16 @@ import { NextResponse } from 'next/server';
 import { getAdminEmailFromCookie } from '../../../../lib/adminSession';
 import { getSupabaseAdmin } from '../../../../lib/supabaseAdmin';
 import { syncApprovedContact } from '../../../../lib/approvedContacts';
+import { createOnboardingInvitation } from '../../../../lib/onboarding';
+import { sendHmsiNotification, workerWelcomeTemplate } from '../../../../lib/hmsiNotifications';
 
 export const runtime = 'nodejs';
 function error(message: string, status = 400) { return NextResponse.json({ error: message }, { status }); }
+function hasSameOrigin(request: Request) {
+  const origin = request.headers.get('origin');
+  if (!origin) return false;
+  try { return new URL(origin).host === new URL(request.url).host; } catch { return false; }
+}
 export async function GET(request: Request) {
   if (!getAdminEmailFromCookie(request.headers.get('cookie'))) return error('Admin authentication required.', 401);
   const admin = getSupabaseAdmin(); if (!admin) return error('Member records are unavailable.', 503);
@@ -17,6 +24,7 @@ export async function GET(request: Request) {
 }
 export async function PATCH(request: Request) {
   const adminEmail = getAdminEmailFromCookie(request.headers.get('cookie')); if (!adminEmail) return error('Admin authentication required.', 401);
+  if (!hasSameOrigin(request)) return error('Cross-site member administration requests are not allowed.', 403);
   const admin = getSupabaseAdmin(); if (!admin) return error('Member records are unavailable.', 503);
   const body = await request.json().catch(() => ({})); const id = typeof body.id === 'string' ? body.id.trim() : ''; const action = body.action === 'approve' || body.action === 'reject' ? body.action : '';
   if (!id || !action) return error('A member application and review action are required.');
@@ -35,5 +43,13 @@ export async function PATCH(request: Request) {
   } catch {
     return error('The member was approved, but contact-notification readiness could not be recorded. Apply the people-operations migration, then retry the approved contact check.', 503);
   }
-  return NextResponse.json({ member: member.data, application: approved.data, message: 'Member approved. Issue an HMSI ID card to activate member portal access.' });
+  try {
+    const invitation = await createOnboardingInvitation({ memberId: member.data.id, email: member.data.email, role: 'member' });
+    const onboardingUrl = `${(process.env.NEXT_PUBLIC_SITE_URL || 'https://www.hmsi.org.ng').replace(/\/$/, '')}/onboarding?token=${encodeURIComponent(invitation.token)}`;
+    const mail = workerWelcomeTemplate({ name: member.data.name, role: 'member', dashboardUrl: onboardingUrl });
+    const delivery = await sendHmsiNotification({ sender: 'onboarding', to: [member.data.email], subject: 'Complete your HMSI member onboarding', ...mail, idempotencyKey: `member_onboarding_${invitation.invitationId}` });
+    return NextResponse.json({ member: member.data, application: approved.data, onboardingInvitation: { id: invitation.invitationId, expiresInDays: 30 }, notification: delivery, message: 'Member approved and official onboarding invitation issued.' });
+  } catch {
+    return NextResponse.json({ member: member.data, application: approved.data, message: 'Member approved. The onboarding invitation could not be issued; retry from the protected member register after the governance migration is applied.' }, { status: 202 });
+  }
 }

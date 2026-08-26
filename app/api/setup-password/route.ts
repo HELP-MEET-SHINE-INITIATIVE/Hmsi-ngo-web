@@ -11,7 +11,7 @@ function validPassword(password: string) { return password.length >= 10 && passw
 async function loadLink(token: string, hmsiId: string) {
   const admin = getSupabaseAdmin();
   if (!admin) throw new Error('Supabase is not configured.');
-  const link = await admin.from('password_setup_links').select('id,onboarding_invitation_id,hmsi_id_card_id,expires_at,setup_completed_at,onboarding_invitations(email,role,worker_id,volunteer_application_id),hmsi_id_cards(member_number,holder_role,holder_id)').eq('token_hash', hashPasswordSetupToken(token)).maybeSingle();
+  const link = await admin.from('password_setup_links').select('id,onboarding_invitation_id,hmsi_id_card_id,expires_at,setup_completed_at,onboarding_invitations(email,role,worker_id,volunteer_application_id,member_id),hmsi_id_cards(member_number,holder_role,holder_id)').eq('token_hash', hashPasswordSetupToken(token)).maybeSingle();
   if (link.error) throw link.error;
   const card = link.data?.hmsi_id_cards as { member_number?: string; holder_role?: string; holder_id?: string } | null;
   if (!link.data || link.data.setup_completed_at || new Date(link.data.expires_at).getTime() < Date.now() || card?.member_number !== hmsiId) return { admin, link: null };
@@ -30,18 +30,24 @@ export async function POST(request: Request) {
   if (token.length < 20 || !hmsiId || !validPassword(password) || password !== confirmPassword) return NextResponse.json({ error: 'Use matching passwords of at least 10 characters.' }, { status: 400 });
   try {
     const loaded = await loadLink(token, hmsiId); if (!loaded.link || !loaded.card) return NextResponse.json({ error: GENERIC }, { status: 404 });
-    const invitation = loaded.link.onboarding_invitations as { email?: string; role?: string; worker_id?: string | null; volunteer_application_id?: string | null } | null;
-    const role = invitation?.role === 'worker' || invitation?.role === 'volunteer' ? invitation.role : null;
+    const invitation = loaded.link.onboarding_invitations as { email?: string; role?: string; worker_id?: string | null; volunteer_application_id?: string | null; member_id?: string | null } | null;
+    const role = invitation?.role === 'worker' || invitation?.role === 'volunteer' || invitation?.role === 'member' ? invitation.role : null;
     const email = invitation?.email?.trim().toLowerCase() || '';
     if (!role || !email) return NextResponse.json({ error: GENERIC }, { status: 404 });
-    const table = role === 'worker' ? 'workers' : 'volunteer_applications';
-    const profile = await loaded.admin.from(table).select('id,name,email,auth_user_id,status,onboarding_status,account_status').eq('id', loaded.card.holder_id).maybeSingle();
+    const table = role === 'worker' ? 'workers' : role === 'volunteer' ? 'volunteer_applications' : 'hmsi_members';
+    const profileFields = role === 'worker'
+      ? 'id,name,email,auth_user_id,status,onboarding_status'
+      : role === 'volunteer'
+        ? 'id,name,email,auth_user_id,status,account_status'
+        : 'id,name,email,auth_user_id,status,onboarding_status';
+    const profile = await loaded.admin.from(table).select(profileFields).eq('id', loaded.card.holder_id).maybeSingle();
     if (profile.error) throw profile.error;
-    const active = role === 'worker' ? profile.data?.status === 'active' && profile.data?.onboarding_status === 'completed' : profile.data?.status === 'approved' && profile.data?.account_status === 'active';
-    if (!profile.data || !active || profile.data.auth_user_id) return NextResponse.json({ error: 'This portal account is not eligible for first-time setup.' }, { status: 409 });
-    const created = await loaded.admin.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { hmsi_role: role, hmsi_profile_id: profile.data.id } });
+    const profileData = profile.data as { id: string; auth_user_id: string | null; status: string; onboarding_status?: string | null; account_status?: string | null } | null;
+    const active = role === 'worker' ? profileData?.status === 'active' && profileData.onboarding_status === 'completed' : role === 'volunteer' ? profileData?.status === 'approved' && profileData.account_status === 'active' : profileData?.status === 'active' && profileData.onboarding_status === 'completed';
+    if (!profileData || !active || profileData.auth_user_id) return NextResponse.json({ error: 'This portal account is not eligible for first-time setup.' }, { status: 409 });
+    const created = await loaded.admin.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { hmsi_role: role, hmsi_profile_id: profileData.id } });
     if (created.error || !created.data.user) return NextResponse.json({ error: created.error?.message?.toLowerCase().includes('already') ? 'A portal account already exists. Sign in or use password recovery.' : 'Portal setup is temporarily unavailable.' }, { status: created.error?.message?.toLowerCase().includes('already') ? 409 : 503 });
-    const linked = await loaded.admin.from(table).update({ auth_user_id: created.data.user.id }).eq('id', profile.data.id).is('auth_user_id', null);
+    const linked = await loaded.admin.from(table).update({ auth_user_id: created.data.user.id }).eq('id', profileData.id).is('auth_user_id', null);
     if (linked.error) { await loaded.admin.auth.admin.deleteUser(created.data.user.id); throw linked.error; }
     const completed = await loaded.admin.from('password_setup_links').update({ setup_completed_at: new Date().toISOString() }).eq('id', loaded.link.id).is('setup_completed_at', null).select('id').maybeSingle();
     if (completed.error || !completed.data) return NextResponse.json({ error: GENERIC }, { status: 409 });

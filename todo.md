@@ -823,3 +823,41 @@ The existing data model does not currently provide a volunteer task-assignment t
 - [x] Align approved worker, volunteer, and member directory/assignment readiness with portal activation status without exposing private data publicly.
 - [x] Add cross-role regression coverage, apply the reviewed additive migration, and validate the live behavior without sending emails or creating applications.
 - [x] Deploy the verified cross-role onboarding and duplicate-prevention release.
+
+## Goodstack Verification Follow-up
+
+- [x] Inspect the Goodstack verification application status and any outstanding information or document requirements.
+- [x] Review the official requirement context without submitting, uploading, or changing the application.
+- [x] Report the current status and obtain explicit approval before any Goodstack verification action.
+
+## Goodstack Authorized Application Action
+
+- [x] Attempt the Goodstack organization sign-in or claim flow using the authorized official contact email, pausing for any password, one-time code, CAPTCHA, document, or identity-verification step.
+- [x] Resume or submit only the explicitly authorized Goodstack application information and record non-sensitive application status details.
+
+## Goodstack CAC Evidence Staging
+
+- [x] Locate a candidate official HMSI CAC registration document, confirm its file format and size, and stage it for user review without submitting it to Goodstack.
+- [x] Upload the user-verified CAC evidence to the existing Goodstack form and obtain final confirmation before any verification submission.
+
+## Goodstack CAC Certificate Receipt
+
+- [x] Enter the official registration details from the user-provided CAC certificate and upload that certificate to Goodstack without submitting the final application.
+- [x] Review the resulting Goodstack application status and obtain explicit final approval before verification submission.
+
+## HMSI Database, Security, and President-Authority Ecosystem Review
+
+- [x] Inspect database coverage for HMSI operational branches, role directories, onboarding, tasks, finance, content, communications, and audit history using metadata and aggregate-only checks.
+- [x] Assess RLS, server authorization, private-contact handling, onboarding safeguards, and known security-advisor findings without changing production controls.
+- [x] Evaluate the long-term onboarding-to-work lifecycle and identify automation opportunities with appropriate President/administrator separation of duties.
+- [x] Produce a prioritized ecosystem roadmap covering data governance, branch operations, onboarding automation, Presidential authority, monitoring, and safe implementation phases.
+
+## HMSI Governance Foundation Implementation
+
+- [x] Inspect current security-definer functions, automation infrastructure, role routes, and migration patterns before implementation.
+- [x] Add safe search-path hardening and restrict unintended public execution of privileged database functions.
+- [x] Add additive operational-unit, programme, organization-role, scoped-delegation, approval-request, approval-event, and automation-run data models.
+- [x] Add member onboarding invitation/progress parity and controlled branch/programme assignment support without inferring historical mappings.
+- [x] Add protected President’s Office governance views and administrator routes for scoped delegation, approval queues, automation run history, and branch summaries.
+- [x] Add static and behavioral contract coverage, apply reviewed migrations, and run full regression, build, and passive production checks.
+- [ ] Commit, push, and verify the production deployment; do not enable recurring outbound notifications without a separate bounded confirmation.

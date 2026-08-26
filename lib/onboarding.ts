@@ -7,7 +7,7 @@ export interface OnboardingInvitationResult {
   invitationId: string;
   token: string;
   email: string;
-  role: 'worker' | 'volunteer';
+  role: 'worker' | 'volunteer' | 'member';
 }
 
 export function createOnboardingToken() {
@@ -21,22 +21,30 @@ export function hashOnboardingToken(token: string) {
 export async function createOnboardingInvitation({
   applicationId,
   workerId,
+  memberId,
   email,
   role,
 }: {
-  applicationId: string;
+  applicationId?: string | null;
   workerId?: string | null;
+  memberId?: string | null;
   email: string;
-  role: 'worker' | 'volunteer';
+  role: 'worker' | 'volunteer' | 'member';
 }): Promise<OnboardingInvitationResult> {
   const admin = getSupabaseAdmin();
   if (!admin) throw new Error('Supabase is not configured.');
+  const subjectCount = Number(Boolean(applicationId)) + Number(Boolean(workerId)) + Number(Boolean(memberId));
+  if (!subjectCount) throw new Error('An approved HMSI onboarding subject is required.');
+  if (role === 'member' && !memberId) throw new Error('An approved HMSI member is required for member onboarding.');
+  if (role === 'volunteer' && !applicationId) throw new Error('An approved volunteer application is required for volunteer onboarding.');
+  if (role === 'worker' && !workerId) throw new Error('An approved worker is required for worker onboarding.');
 
   const token = createOnboardingToken();
   const expiresAt = new Date(Date.now() + ONBOARDING_INVITATION_DAYS * 24 * 60 * 60 * 1000).toISOString();
   const inserted = await admin.from('onboarding_invitations').insert({
-    volunteer_application_id: applicationId,
+    volunteer_application_id: applicationId || null,
     worker_id: workerId || null,
+    member_id: memberId || null,
     email: email.trim().toLowerCase(),
     role,
     token_hash: hashOnboardingToken(token),
@@ -55,8 +63,14 @@ export async function createOnboardingInvitation({
     const workerUpdate = await admin.from('workers').update({ onboarding_status: 'invited' }).eq('id', workerId);
     if (workerUpdate.error) throw workerUpdate.error;
   }
-  const applicationUpdate = await admin.from('volunteer_applications').update({ onboarding_invited_at: new Date().toISOString() }).eq('id', applicationId);
-  if (applicationUpdate.error) throw applicationUpdate.error;
+  if (applicationId) {
+    const applicationUpdate = await admin.from('volunteer_applications').update({ onboarding_invited_at: new Date().toISOString() }).eq('id', applicationId);
+    if (applicationUpdate.error) throw applicationUpdate.error;
+  }
+  if (memberId) {
+    const memberUpdate = await admin.from('hmsi_members').update({ onboarding_status: 'invited', onboarding_invited_at: new Date().toISOString() }).eq('id', memberId);
+    if (memberUpdate.error) throw memberUpdate.error;
+  }
 
   return { invitationId: inserted.data.id, token, email: inserted.data.email, role: inserted.data.role };
 }

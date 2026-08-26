@@ -14,19 +14,19 @@ function tokenFrom(request: Request) {
 async function loadInvitation(token: string) {
   const admin = getSupabaseAdmin();
   if (!admin) throw new Error('Supabase is not configured.');
-  const invitation = await admin.from('onboarding_invitations').select('id,email,role,expires_at,accepted_at,worker_id,volunteer_application_id').eq('token_hash', hashOnboardingToken(token)).maybeSingle();
+  const invitation = await admin.from('onboarding_invitations').select('id,email,role,expires_at,accepted_at,worker_id,volunteer_application_id,member_id').eq('token_hash', hashOnboardingToken(token)).maybeSingle();
   if (invitation.error) throw invitation.error;
   if (!invitation.data || new Date(invitation.data.expires_at).getTime() < Date.now()) return null;
   return { admin, invitation: invitation.data };
 }
 
-async function ensureHmsiId(admin: NonNullable<ReturnType<typeof getSupabaseAdmin>>, profile: { id: string; name: string; email: string; role: 'worker' | 'volunteer' }) {
+async function ensureHmsiId(admin: NonNullable<ReturnType<typeof getSupabaseAdmin>>, profile: { id: string; name: string; email: string; role: 'worker' | 'volunteer' | 'member' }) {
   const existing = await admin.from('hmsi_id_cards').select('id,member_number').eq('holder_role', profile.role).eq('holder_id', profile.id).eq('status', 'active').order('issued_at', { ascending: false }).limit(1).maybeSingle();
   if (existing.error) throw existing.error;
   if (existing.data?.member_number) return { id: existing.data.id, memberNumber: existing.data.member_number, newlyIssued: false };
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const inserted = await admin.from('hmsi_id_cards').insert({
-      holder_role: profile.role, holder_id: profile.id, holder_name: profile.name, holder_email: profile.email.trim().toLowerCase(), member_number: createMemberNumber(profile.role), role_display: profile.role === 'worker' ? 'HMSI Worker' : 'HMSI Volunteer', activation_code_hash: hashCredentialCode(createCredentialCode()), activation_code_expires_at: new Date(Date.now() + 60_000).toISOString(), status: 'active', issued_by: 'system_onboarding',
+      holder_role: profile.role, holder_id: profile.id, holder_name: profile.name, holder_email: profile.email.trim().toLowerCase(), member_number: createMemberNumber(profile.role), role_display: profile.role === 'worker' ? 'HMSI Worker' : profile.role === 'volunteer' ? 'HMSI Volunteer' : 'HMSI Member', activation_code_hash: hashCredentialCode(createCredentialCode()), activation_code_expires_at: new Date(Date.now() + 60_000).toISOString(), status: 'active', issued_by: 'system_onboarding',
     }).select('id,member_number').single();
     if (inserted.data?.member_number && !inserted.error) return { id: inserted.data.id, memberNumber: inserted.data.member_number, newlyIssued: true };
     if (inserted.error?.code !== '23505') throw inserted.error;
@@ -45,7 +45,7 @@ export async function GET(request: Request) {
     if (progress.error) throw progress.error;
     const tasks = (progress.data || []).map((item: any) => ({ id: item.task_id, title: item.onboarding_tasks?.title || 'Onboarding task', description: item.onboarding_tasks?.description || '', sortOrder: item.onboarding_tasks?.sort_order || 0, status: item.status, completedAt: item.completed_at }));
     const card = invitation.accepted_at
-      ? await admin.from('hmsi_id_cards').select('id,member_number').eq('holder_role', invitation.role).eq('holder_id', invitation.role === 'worker' ? invitation.worker_id : invitation.volunteer_application_id).eq('status', 'active').order('issued_at', { ascending: false }).limit(1).maybeSingle()
+      ? await admin.from('hmsi_id_cards').select('id,member_number').eq('holder_role', invitation.role).eq('holder_id', invitation.role === 'worker' ? invitation.worker_id : invitation.role === 'member' ? invitation.member_id : invitation.volunteer_application_id).eq('status', 'active').order('issued_at', { ascending: false }).limit(1).maybeSingle()
       : { data: null, error: null };
     if (card.error) throw card.error;
     const setup = card.data?.id ? await admin.from('password_setup_links').select('id,email_sent_at,setup_completed_at,expires_at').eq('hmsi_id_card_id', card.data.id).is('setup_completed_at', null).order('created_at', { ascending: false }).limit(1).maybeSingle() : { data: null, error: null };
@@ -122,9 +122,26 @@ export async function PATCH(request: Request) {
             const delivery = await sendHmsiNotification({ sender: 'onboarding', to: [invitation.email.trim().toLowerCase()], subject: 'Your HMSI ID and one-time portal setup link', ...mail, idempotencyKey: `password_setup_${link.data.id}` });
             if (delivery.sent) { const marked = await admin.from('password_setup_links').update({ email_sent_at: new Date().toISOString() }).eq('id', link.data.id); if (marked.error) throw marked.error; setupEmailSent = true; }
           }
+        } else if (invitation.role === 'member' && invitation.member_id) {
+          const member = await admin.from('hmsi_members').update({ onboarding_status: 'completed', onboarded_at: new Date().toISOString() }).eq('id', invitation.member_id).eq('status', 'active').select('id,name,email').single();
+          if (member.error || !member.data) throw member.error || new Error('Member record is unavailable.');
+          const issued = await ensureHmsiId(admin, { ...member.data, role: 'member' });
+          hmsiId = issued.memberNumber;
+          if (firstCompletion) {
+            const rawToken = createPasswordSetupToken();
+            const expiresAt = new Date(Date.now() + PASSWORD_SETUP_LINK_DAYS * 24 * 60 * 60 * 1000).toISOString();
+            const link = await admin.from('password_setup_links').insert({ onboarding_invitation_id: invitation.id, hmsi_id_card_id: issued.id, token_hash: hashPasswordSetupToken(rawToken), expires_at: expiresAt }).select('id').single();
+            if (link.error) throw link.error;
+            const setupUrl = getPasswordSetupUrl({ token: rawToken, hmsiId: issued.memberNumber });
+            const mail = passwordSetupTemplate({ name: member.data.name, hmsiId: issued.memberNumber, setupUrl });
+            const delivery = await sendHmsiNotification({ sender: 'onboarding', to: [invitation.email.trim().toLowerCase()], subject: 'Your HMSI ID and one-time portal setup link', ...mail, idempotencyKey: `password_setup_${link.data.id}` });
+            if (delivery.sent) { const marked = await admin.from('password_setup_links').update({ email_sent_at: new Date().toISOString() }).eq('id', link.data.id); if (marked.error) throw marked.error; setupEmailSent = true; }
+          }
         }
     } else if (invitation.worker_id) {
       await admin.from('workers').update({ onboarding_status: 'in_progress' }).eq('id', invitation.worker_id);
+    } else if (invitation.member_id) {
+      await admin.from('hmsi_members').update({ onboarding_status: 'in_progress' }).eq('id', invitation.member_id).eq('status', 'active');
     }
     const allCompleted = (remaining.data || []).length === 0;
     return NextResponse.json({ task: update.data, allCompleted, hmsiId, setupEmailSent });
