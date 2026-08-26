@@ -20,7 +20,7 @@ export async function GET(request: Request) {
     admin.from('workers').select('id,name,email,phone,role,status,onboarding_status,auth_user_id,created_at').eq('status', 'active').is('removal_requested_at', null).order('name').limit(500),
     admin.from('hmsi_members').select('id,name,email,phone,status,auth_user_id,created_at').eq('status', 'active').is('removal_requested_at', null).order('name').limit(500),
     admin.from('approved_contact_directory').select('role,source_id,notification_status,last_notification_at,last_notification_status,approved_at,disabled_at').order('approved_at', { ascending: false }).limit(1500),
-    admin.from('volunteer_assignments').select('id,assigned_volunteer_id,title,status,due_at,updated_at,submitted_at,completed_at').eq('is_deleted', false).order('updated_at', { ascending: false }).limit(1000),
+    admin.from('volunteer_assignments').select('id,assigned_volunteer_id,title,status,due_at,updated_at,completed_at').eq('is_deleted', false).order('updated_at', { ascending: false }).limit(1000),
     admin.from('work_assignments').select('id,assigned_worker_id,title,status,due_at,updated_at,submitted_at,completed_at').eq('is_deleted', false).order('updated_at', { ascending: false }).limit(1000),
     admin.from('hmsi_member_tasks').select('id,assigned_member_id,title,status,due_at,updated_at,completed_at').order('updated_at', { ascending: false }).limit(1000),
     admin.from('volunteer_applications').select('id').eq('status', 'pending').limit(500),

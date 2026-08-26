@@ -36,10 +36,23 @@ test('President’s Office route is administrator-only, non-cacheable, and exclu
   assert.match(route, /Administrator authentication required\./);
   assert.match(route, /approved_contact_directory/);
   assert.match(route, /Cache-Control': 'no-store'/);
+  assert.doesNotMatch(route, /volunteer_assignments'\)\.select\('[^']*submitted_at/);
   assert.doesNotMatch(route, /proof_url|google_drive_url|service_role/i);
   assert.match(dashboard, /does not expose contact information to public users/i);
   assert.match(dashboard, /\/admin\/volunteer-assignments/);
   assert.match(dashboard, /\/admin\/assignments/);
+});
+
+test('approved active volunteers remain visible and assignable before portal activation without receiving an unusable task email', async () => {
+  const route = await read('app/api/admin/volunteer-assignments/route.ts');
+  const manager = await read('app/admin/volunteer-assignments/VolunteerAssignmentsManager.tsx');
+  assert.match(route, /assignment_ready: volunteer\.status === 'approved' && volunteer\.account_status === 'active'/);
+  assert.match(route, /portal_ready: Boolean\(volunteer\.auth_user_id\)/);
+  assert.match(route, /if \(volunteer\.data\.auth_user_id\)/);
+  assert.match(route, /activation_required/);
+  assert.match(manager, /Every approved active volunteer is selectable\./);
+  assert.match(manager, /activation pending/);
+  assert.match(manager, /held securely/);
 });
 
 test('workers can submit work for review but cannot self-complete it, while administrator completion requires submitted work and a review note', async () => {

@@ -37,7 +37,11 @@ export async function GET(request: Request) {
     const proofByAssignment = new Map<string, Array<{ id: string; status: string; created_at: string; reviewed_at: string | null }>>();
     for (const proof of proofs.data || []) proofByAssignment.set(proof.assignment_id, [...(proofByAssignment.get(proof.assignment_id) || []), proof]);
     return NextResponse.json({
-      volunteers: (volunteers.data || []).map((volunteer) => ({ ...volunteer, assignment_ready: volunteer.status === 'approved' && volunteer.account_status === 'active' && Boolean(volunteer.auth_user_id) })),
+      volunteers: (volunteers.data || []).map((volunteer) => ({
+        ...volunteer,
+        assignment_ready: volunteer.status === 'approved' && volunteer.account_status === 'active',
+        portal_ready: Boolean(volunteer.auth_user_id),
+      })),
       assignments: (assignments.data || []).map((assignment) => ({ ...assignment, volunteer: volunteerById.get(assignment.assigned_volunteer_id) || null, proofs: proofByAssignment.get(assignment.id) || [], proof_count: (proofByAssignment.get(assignment.id) || []).length })),
     }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (cause) {
@@ -65,7 +69,7 @@ export async function POST(request: Request) {
     if (body.dueAt && !dueAt) return failure('Due date is invalid.');
     const volunteer = await admin.from('volunteer_applications').select('id,name,email,status,account_status,applicant_role,auth_user_id').eq('id', volunteerId).maybeSingle();
     if (volunteer.error) throw volunteer.error;
-    if (!volunteer.data || volunteer.data.applicant_role !== 'volunteer' || volunteer.data.status !== 'approved' || volunteer.data.account_status !== 'active' || !volunteer.data.auth_user_id) return failure('Choose an approved, active volunteer who has completed portal activation.', 409);
+    if (!volunteer.data || volunteer.data.applicant_role !== 'volunteer' || volunteer.data.status !== 'approved' || volunteer.data.account_status !== 'active') return failure('Choose an approved, active volunteer.', 409);
     if (idempotencyKey) {
       const existing = await admin.from('volunteer_assignments').select(assignmentSelect).eq('idempotency_key', idempotencyKey).maybeSingle();
       if (existing.error) throw existing.error;
@@ -75,18 +79,20 @@ export async function POST(request: Request) {
     if (created.error || !created.data) throw created.error || new Error('Assignment insert failed.');
     await recordEvent(admin, created.data.id, actor, 'created', null, { category, priority, proof_required: Boolean(body.proofRequired) });
     const portalBase = process.env.NEXT_PUBLIC_SITE_URL?.trim() || 'https://www.hmsi.org.ng';
-    let notification = { sent: false, status: 'not_configured', messageId: null as string | null };
-    try {
-      const email = volunteerAssignmentTemplate({ name: volunteer.data.name, title, priority, dueAt, dashboardUrl: `${portalBase}/portal/my-tasks` });
-      const dispatched = await sendHmsiNotification({ sender: 'onboarding', to: [volunteer.data.email], subject: `New HMSI volunteer assignment: ${title}`, ...email, idempotencyKey: `volunteer_assignment_${created.data.id}` });
-      notification = dispatched.sent ? { sent: true, status: 'sent', messageId: dispatched.messageId } : notification;
-    } catch (mailError) {
-      console.error('[Admin] Volunteer assignment notification failed:', mailError instanceof Error ? mailError.message : 'unknown');
-      notification = { sent: false, status: 'failed', messageId: null };
+    let notification = { sent: false, status: 'not_sent', messageId: null as string | null, error: volunteer.data.auth_user_id ? null : 'activation_required' };
+    if (volunteer.data.auth_user_id) {
+      try {
+        const email = volunteerAssignmentTemplate({ name: volunteer.data.name, title, priority, dueAt, dashboardUrl: `${portalBase}/portal/my-tasks` });
+        const dispatched = await sendHmsiNotification({ sender: 'onboarding', to: [volunteer.data.email], subject: `New HMSI volunteer assignment: ${title}`, ...email, idempotencyKey: `volunteer_assignment_${created.data.id}` });
+        notification = dispatched.sent ? { sent: true, status: 'sent', messageId: dispatched.messageId, error: null } : notification;
+      } catch (mailError) {
+        console.error('[Admin] Volunteer assignment notification failed:', mailError instanceof Error ? mailError.message : 'unknown');
+        notification = { sent: false, status: 'failed', messageId: null, error: 'delivery_failed' };
+      }
     }
-    await admin.from('volunteer_assignments').update({ notification_status: notification.status, notification_message_id: notification.messageId, notification_sent_at: notification.sent ? new Date().toISOString() : null, notification_error: notification.status === 'failed' ? 'delivery_failed' : null }).eq('id', created.data.id);
-    await recordEvent(admin, created.data.id, actor, notification.sent ? 'notified' : 'notification_failed', null, { delivery_status: notification.status });
-    return NextResponse.json({ assignment: { ...created.data, notification_status: notification.status }, notification }, { status: 201 });
+    await admin.from('volunteer_assignments').update({ notification_status: notification.status, notification_message_id: notification.messageId, notification_sent_at: notification.sent ? new Date().toISOString() : null, notification_error: notification.error }).eq('id', created.data.id);
+    await recordEvent(admin, created.data.id, actor, notification.sent ? 'notified' : 'notification_failed', null, { delivery_status: notification.error || notification.status });
+    return NextResponse.json({ assignment: { ...created.data, notification_status: notification.status }, notification: { sent: notification.sent, status: notification.error || notification.status, messageId: notification.messageId } }, { status: 201 });
   } catch (cause) {
     console.error('[Admin] Failed to create volunteer assignment:', cause instanceof Error ? cause.message : 'unknown');
     return failure('Volunteer assignment could not be created. Run the volunteer-assignment migration if this is a new installation.', 503);

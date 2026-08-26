@@ -16,13 +16,15 @@ test('volunteer assignment migration is additive, private, retained, and RLS pro
   assert.match(sql, /No direct policy is granted for assignment\/event\/proof inserts/i);
 });
 
-test('administrator route requires an admin session, same-origin mutation, activated volunteer, and idempotency', async () => {
+test('administrator route requires an admin session, same-origin mutation, approved active volunteer, and idempotency', async () => {
   const route = await read('app/api/admin/volunteer-assignments/route.ts');
   assert.match(route, /getAdminEmailFromCookie/);
   assert.match(route, /hasSameOrigin\(request\)/);
   assert.match(route, /status !== 'approved'/);
   assert.match(route, /account_status !== 'active'/);
-  assert.match(route, /!volunteer\.data\.auth_user_id/);
+  assert.match(route, /volunteer\.data\.status !== 'approved'/);
+  assert.match(route, /volunteer\.data\.account_status !== 'active'/);
+  assert.match(route, /activation_required/);
   assert.match(route, /idempotency_key/);
   assert.match(route, /recovery_until/);
   assert.match(route, /new Date\(now\.getTime\(\) \+ RECOVERY_WINDOW_MS\)/);
