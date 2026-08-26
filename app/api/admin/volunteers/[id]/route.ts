@@ -32,7 +32,7 @@ export async function PATCH(
 
     const { data: application, error: applicationError } = await admin
       .from('volunteer_applications')
-      .select('id,name,email,phone,applicant_role,status,account_status,publisher_role')
+      .select('id,name,email,phone,location,applicant_role,status,account_status,publisher_role')
       .eq('id', id)
       .maybeSingle();
     if (applicationError) throw applicationError;
@@ -55,7 +55,7 @@ export async function PATCH(
 
     let workerId: string | null = null;
     if (!accessStatus && status === 'approved' && application.applicant_role === 'worker') {
-      const { data: worker, error: workerError } = await admin.from('workers').upsert({ name: application.name, email: application.email, phone: application.phone, role: 'worker', status: 'active', onboarding_status: 'not_started', ads_manager_enabled: false, assignments_manager_enabled: false }, { onConflict: 'email' }).select('id').single();
+      const { data: worker, error: workerError } = await admin.from('workers').upsert({ name: application.name, email: application.email, phone: application.phone, location: application.location || null, role: 'worker', status: 'active', onboarding_status: 'not_started', ads_manager_enabled: false, assignments_manager_enabled: false }, { onConflict: 'email' }).select('id').single();
       if (workerError) throw workerError;
       workerId = worker.id;
     }

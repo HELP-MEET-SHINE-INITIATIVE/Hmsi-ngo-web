@@ -124,6 +124,23 @@ create index if not exists volunteer_applications_status_created_at_idx
 create index if not exists work_assignments_worker_status_idx
   on public.work_assignments (assigned_worker_id, status);
 
+-- Additive cross-role onboarding fields and one-email application register.
+alter table public.volunteer_applications add column if not exists location varchar(160);
+alter table public.workers add column if not exists location varchar(160);
+alter table public.hmsi_member_applications add column if not exists location varchar(160);
+alter table public.hmsi_members add column if not exists location varchar(160);
+
+create table if not exists public.application_email_registry (
+  id uuid primary key default gen_random_uuid(),
+  email varchar(320) not null unique check (email = lower(email)),
+  applicant_role text not null check (applicant_role in ('volunteer', 'worker', 'member')),
+  source_table text not null check (source_table in ('volunteer_applications', 'hmsi_member_applications', 'workers', 'hmsi_members')),
+  source_id uuid,
+  created_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now())
+);
+alter table public.application_email_registry enable row level security;
+
 alter table public.volunteer_applications enable row level security;
 alter table public.workers enable row level security;
 alter table public.work_assignments enable row level security;

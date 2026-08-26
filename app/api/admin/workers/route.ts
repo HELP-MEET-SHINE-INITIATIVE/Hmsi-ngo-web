@@ -14,7 +14,7 @@ export async function GET(request: Request) {
   const admin = getSupabaseAdmin();
   if (!admin) return NextResponse.json({ error: 'Supabase is not configured on the server.' }, { status: 503 });
 
-  const { data, error } = await admin.from('workers').select('id,name,email,phone,role,status,onboarding_status,created_at').eq('status', 'active').is('removal_requested_at', null).order('name');
+  const { data, error } = await admin.from('workers').select('id,name,email,phone,location,role,status,onboarding_status,created_at').eq('status', 'active').is('removal_requested_at', null).order('name');
   if (error) return NextResponse.json({ error: 'Workers are temporarily unavailable.' }, { status: 503 });
   return NextResponse.json({ workers: data || [] });
 }
@@ -29,9 +29,10 @@ export async function POST(request: Request) {
     const name = String(body.name || '').trim();
     const email = String(body.email || '').trim().toLowerCase();
     const phone = String(body.phone || '').trim();
+    const location = String(body.location || '').trim().slice(0, 160) || null;
     if (!name || !email || !phone) return NextResponse.json({ error: 'Name, email, and phone are required.' }, { status: 400 });
 
-    const { data, error } = await admin.from('workers').insert({ name, email, phone, role: 'worker', status: 'active' }).select('id,name,email,phone,role,status,onboarding_status,created_at').single();
+    const { data, error } = await admin.from('workers').insert({ name, email, phone, location, role: 'worker', status: 'active' }).select('id,name,email,phone,location,role,status,onboarding_status,created_at').single();
     if (error) throw error;
     await syncApprovedContact(admin, { role: 'worker', sourceId: data.id, name: data.name, email: data.email, approvedAt: data.created_at });
     return NextResponse.json({ worker: data }, { status: 201 });

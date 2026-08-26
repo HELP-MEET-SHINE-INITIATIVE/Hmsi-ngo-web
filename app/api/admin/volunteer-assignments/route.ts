@@ -26,7 +26,7 @@ export async function GET(request: Request) {
   try {
     const [assignments, volunteers] = await Promise.all([
       admin.from('volunteer_assignments').select(assignmentSelect).eq('is_deleted', false).order('created_at', { ascending: false }).limit(300),
-      admin.from('volunteer_applications').select('id,name,email,phone,interest,status,account_status,applicant_role,auth_user_id,reviewed_at,created_at').eq('applicant_role', 'volunteer').order('created_at', { ascending: false }).limit(500),
+      admin.from('volunteer_applications').select('id,name,email,phone,location,interest,status,account_status,applicant_role,auth_user_id,reviewed_at,created_at').eq('applicant_role', 'volunteer').order('created_at', { ascending: false }).limit(500),
     ]);
     if (assignments.error) return failure('Volunteer assignments are unavailable. Run supabase/volunteer_assignment_workflow_patch.sql before using this menu.', 503);
     if (volunteers.error) throw volunteers.error;

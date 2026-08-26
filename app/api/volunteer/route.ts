@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdmin, hasSupabaseConfig } from '../../../lib/supabaseAdmin';
 import { sendPresidentInternalAlert } from '../../../lib/hmsiNotifications';
+import { attachApplicationReservation, DUPLICATE_APPLICATION_MESSAGE, releaseApplicationReservation, reserveApplicationEmail } from '../../../lib/applicationIntake';
 
 export const runtime = 'nodejs';
 
@@ -14,13 +15,14 @@ export async function POST(request: Request) {
     const name = String(body.name || '').trim();
     const email = String(body.email || '').trim().toLowerCase();
     const phone = String(body.phone || '').trim();
+    const location = String(body.location || '').trim().slice(0, 160);
     const interest = String(body.interest || '').trim();
     const message = String(body.message || '').trim();
     const applicantRole = String(body.role || 'volunteer').trim().toLowerCase();
     const publisherRole = String(body.publisherRole || '').trim().toLowerCase();
 
-    if (!name || !email || !phone || !interest || !message) {
-      return NextResponse.json({ error: 'Please complete all volunteer application fields.' }, { status: 400 });
+    if (!name || !email || !phone || !location || !interest || !message) {
+      return NextResponse.json({ error: 'Please complete all application fields, including location.' }, { status: 400 });
     }
     if (name.length > 160 || message.length > 10000) {
       return NextResponse.json({ error: 'Please shorten the name or message and try again.' }, { status: 400 });
@@ -33,6 +35,8 @@ export async function POST(request: Request) {
 
     const admin = getSupabaseAdmin();
     if (!admin) throw new Error('Supabase is not configured.');
+    const reservation = await reserveApplicationEmail(admin, { email, role: applicantRole as 'volunteer' | 'worker', sourceTable: 'volunteer_applications' });
+    if (reservation.duplicate) return NextResponse.json({ error: DUPLICATE_APPLICATION_MESSAGE, code: 'already_applied' }, { status: 409 });
 
     const { data: application, error } = await admin.from('volunteer_applications').insert({
       name,
@@ -42,10 +46,15 @@ export async function POST(request: Request) {
       message,
       applicant_role: applicantRole,
       publisher_role: publisherRole || null,
+      location,
       status: 'pending',
     }).select('id').single();
 
-    if (error || !application) throw error || new Error('Volunteer application could not be created.');
+    if (error || !application) {
+      await releaseApplicationReservation(admin, reservation.reservation!.id);
+      throw error || new Error('Volunteer application could not be created.');
+    }
+    await attachApplicationReservation(admin, reservation.reservation!.id, application.id);
     try {
       await sendPresidentInternalAlert({
         title: 'New volunteer registration received',

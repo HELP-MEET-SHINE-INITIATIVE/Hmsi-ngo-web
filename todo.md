@@ -807,3 +807,19 @@ The existing data model does not currently provide a volunteer task-assignment t
 - [x] Implement role-aware dashboard tools and an organized President’s Office oversight workspace.
 - [x] Run database, authorization, notification-boundary, synthetic regression, and UI validation.
 - [x] Deploy the vetted people-operations enhancements and report live verification status.
+
+## Approved Volunteer Directory and Assignment Eligibility Fix
+
+- [x] Diagnose why approved volunteers are absent from the volunteer assignment directory and why the President’s Office route reports records not ready.
+- [x] Correct production role-directory and President’s Office aggregation so approved active volunteers appear with protected notification readiness.
+- [x] Validate volunteer assignment eligibility without creating a task or sending a notification.
+- [ ] Create a named volunteer assignment only after task details and explicit final confirmation are supplied.
+
+## Cross-Role Location and Duplicate-Application Protection
+
+- [x] Inspect worker, volunteer, and member application/onboarding schemas and submission routes for location capture, duplicate handling, and approval activation consistency.
+- [x] Add additive location fields and protected admin-directory display across worker, volunteer, and member records.
+- [x] Enforce server-side one-active-application-per-email handling with a clear pending-approval response for workers, volunteers, and members.
+- [x] Align approved worker, volunteer, and member directory/assignment readiness with portal activation status without exposing private data publicly.
+- [x] Add cross-role regression coverage, apply the reviewed additive migration, and validate the live behavior without sending emails or creating applications.
+- [ ] Deploy the verified cross-role onboarding and duplicate-prevention release.

@@ -21,8 +21,7 @@ export async function GET(request: Request) {
   try {
     const assignments = await admin.from('work_assignments').select(assignmentSelect).eq('is_deleted', false).order('created_at', { ascending: false });
     if (assignments.error) throw assignments.error;
-    const workerIds = [...new Set((assignments.data || []).map((item) => item.assigned_worker_id).filter(Boolean))];
-    const workers = workerIds.length ? await admin.from('workers').select('id,name,email,phone,status,onboarding_status').in('id', workerIds) : { data: [], error: null };
+    const workers = await admin.from('workers').select('id,name,email,phone,location,status,onboarding_status,auth_user_id').eq('status', 'active').is('removal_requested_at', null).order('name').limit(500);
     if (workers.error) throw workers.error;
     const workerById = new Map((workers.data || []).map((worker) => [worker.id, worker]));
     return NextResponse.json({ assignments: (assignments.data || []).map((item) => ({ ...item, assigned_worker_name: workerById.get(item.assigned_worker_id)?.name || null, assigned_worker_email: workerById.get(item.assigned_worker_id)?.email || null })), workers: workers.data || [] }, { headers: { 'Cache-Control': 'no-store' } });
@@ -52,7 +51,6 @@ export async function POST(request: Request) {
     const worker = await admin.from('workers').select('id,name,email,role,status,onboarding_status').eq('id', workerId).maybeSingle();
     if (worker.error) throw worker.error;
     if (!worker.data || worker.data.status !== 'active') return error('Choose an active worker.');
-    if (worker.data.onboarding_status !== 'completed') return error('This worker must complete HMSI onboarding before receiving an assignment.', 409);
 
     if (idempotencyKey) {
       const existing = await admin.from('work_assignments').select('id,title,description,kind,status,assigned_worker_id,fundraiser_id,due_at,created_at,notification_status,notification_message_id,notification_sent_at').eq('idempotency_key', idempotencyKey).maybeSingle();
@@ -70,6 +68,12 @@ export async function POST(request: Request) {
     }
     const creationAudit = await admin.from('work_assignment_events').insert({ assignment_id: inserted.data.id, actor_role: 'admin', actor_key: actor, action: 'created' });
     if (creationAudit.error) console.warn('[Admin] Worker-assignment creation audit event was not recorded.');
+
+    if (worker.data.onboarding_status !== 'completed') {
+      const notification = { sent: false, status: 'activation_required', messageId: null };
+      await admin.from('work_assignments').update({ notification_status: 'not_sent', notification_message_id: null, notification_sent_at: null, notification_error: 'activation_required' }).eq('id', inserted.data.id);
+      return NextResponse.json({ assignment: { ...inserted.data, notification_status: 'not_sent' }, notification }, { status: 201 });
+    }
 
     const activeCard = await admin.from('hmsi_id_cards').select('id,member_number,activated_at').eq('holder_role', 'worker').eq('holder_id', workerId).eq('status', 'active').order('issued_at', { ascending: false }).limit(1).maybeSingle();
     let memberNumber: string | null = activeCard.data?.member_number || null;
@@ -125,7 +129,7 @@ export async function PATCH(request: Request) {
     if ((status === 'completed' || status === 'cancelled') && !reviewNote) return error('Add an administrator review note before approving or cancelling a job.');
     const worker = await admin.from('workers').select('id,status,onboarding_status').eq('id', workerId).maybeSingle();
     if (worker.error) throw worker.error;
-    if (!worker.data || worker.data.status !== 'active' || worker.data.onboarding_status !== 'completed') return error('Choose an active worker with completed onboarding.', 409);
+    if (!worker.data || worker.data.status !== 'active') return error('Choose an active worker.', 409);
     const now = new Date().toISOString();
     const updated = await admin.from('work_assignments').update({ title, description, kind, status, assigned_worker_id: workerId, due_at: dueAt, admin_note: reviewNote, review_note: reviewNote, completed_at: status === 'completed' ? now : null, reviewed_at: ['completed', 'cancelled'].includes(status) ? now : null, reviewed_by: ['completed', 'cancelled'].includes(status) ? actor : null, updated_at: now }).eq('id', id).eq('is_deleted', false).select(assignmentSelect).single();
     if (updated.error) throw updated.error;

@@ -4,7 +4,7 @@ import { getSupabaseAdmin } from '../../../../lib/supabaseAdmin';
 
 export const runtime = 'nodejs';
 
-type Person = { id: string; name: string; email: string; phone: string | null; interest?: string | null; status?: string; account_status?: string; onboarding_status?: string | null; auth_user_id?: string | null; publisher_role?: string | null; reviewed_at?: string | null; created_at: string };
+type Person = { id: string; name: string; email: string; phone: string | null; location?: string | null; interest?: string | null; status?: string; account_status?: string; onboarding_status?: string | null; auth_user_id?: string | null; publisher_role?: string | null; reviewed_at?: string | null; created_at: string };
 
 function key(role: string, id: string) { return `${role}:${id}`; }
 
@@ -16,9 +16,9 @@ export async function GET(request: Request) {
   if (!admin) return NextResponse.json({ error: 'The President’s Office data service is temporarily unavailable.' }, { status: 503 });
 
   const [volunteers, workers, members, contacts, volunteerAssignments, workerAssignments, memberTasks, pendingVolunteerApplications, pendingMemberApplications] = await Promise.all([
-    admin.from('volunteer_applications').select('id,name,email,phone,interest,status,account_status,auth_user_id,publisher_role,reviewed_at,created_at').eq('applicant_role', 'volunteer').eq('status', 'approved').eq('account_status', 'active').is('removal_requested_at', null).order('name').limit(500),
-    admin.from('workers').select('id,name,email,phone,role,status,onboarding_status,auth_user_id,created_at').eq('status', 'active').is('removal_requested_at', null).order('name').limit(500),
-    admin.from('hmsi_members').select('id,name,email,phone,status,auth_user_id,created_at').eq('status', 'active').is('removal_requested_at', null).order('name').limit(500),
+    admin.from('volunteer_applications').select('id,name,email,phone,location,interest,status,account_status,auth_user_id,publisher_role,reviewed_at,created_at').eq('applicant_role', 'volunteer').eq('status', 'approved').eq('account_status', 'active').is('removal_requested_at', null).order('name').limit(500),
+    admin.from('workers').select('id,name,email,phone,location,role,status,onboarding_status,auth_user_id,created_at').eq('status', 'active').is('removal_requested_at', null).order('name').limit(500),
+    admin.from('hmsi_members').select('id,name,email,phone,location,status,auth_user_id,created_at').eq('status', 'active').is('removal_requested_at', null).order('name').limit(500),
     admin.from('approved_contact_directory').select('role,source_id,notification_status,last_notification_at,last_notification_status,approved_at,disabled_at').order('approved_at', { ascending: false }).limit(1500),
     admin.from('volunteer_assignments').select('id,assigned_volunteer_id,title,status,due_at,updated_at,completed_at').eq('is_deleted', false).order('updated_at', { ascending: false }).limit(1000),
     admin.from('work_assignments').select('id,assigned_worker_id,title,status,due_at,updated_at,submitted_at,completed_at').eq('is_deleted', false).order('updated_at', { ascending: false }).limit(1000),
@@ -56,6 +56,7 @@ export async function GET(request: Request) {
       name: person.name,
       email: person.email,
       phone: person.phone,
+      location: person.location || null,
       role,
       position: role === 'volunteer' ? person.publisher_role || person.interest || 'Community volunteer' : role === 'worker' ? person.onboarding_status === 'completed' ? 'Active field worker' : 'Onboarding in progress' : 'Active HMSI member',
       portal_ready: role === 'worker' ? person.onboarding_status === 'completed' : Boolean(person.auth_user_id),
