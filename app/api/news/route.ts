@@ -36,7 +36,9 @@ export async function GET(request: Request) {
   }
 
   if (!viewer) {
-    query = query.in('status', ['approved', 'published']);
+    // Public readers must see only explicitly published records. Approved-but-unpublished
+    // content remains private to the editorial workflow.
+    query = query.eq('status', 'published');
   } else if (viewer.role !== 'admin') {
     query = query.eq('author_email', viewer.email);
   }

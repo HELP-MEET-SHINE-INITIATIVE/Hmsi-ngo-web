@@ -33,12 +33,23 @@ test('public newsroom and homepage news flash use the stored primary image inste
   assert.match(newsFlashSource, /activeArticle\.image_url/);
 });
 
-test('Live News ticker requests only the newest approved or published record and links to that exact article', () => {
-  assert.match(newsApiSource, /query = query\.in\('status', \['approved', 'published'\]\)/);
+test('Live News ticker requests only the newest published record and links to that exact article', () => {
+  assert.match(newsApiSource, /query = query\.eq\('status', 'published'\)/);
   assert.match(newsApiSource, /\.order\('published_at', \{ ascending: false, nullsFirst: false \}\)/);
   assert.match(newsApiSource, /if \(!requestedId && limit\) query = query\.limit\(limit\)/);
   assert.match(newsFlashSource, /fetch\('\/api\/news\?limit=1'/);
   assert.match(newsFlashSource, /const activeArticle = headlines\[0\]/);
   assert.match(newsFlashSource, /href=\{`\/news\/\$\{activeArticle\.id\}`\}/);
-  assert.match(newsFlashSource, /latest approved update/);
+  assert.match(newsFlashSource, /latest published update/);
+});
+
+test('reversible news reset is admin-only, explicitly confirmed, bounded, and audited', async () => {
+  const archiveSource = await readFile(new URL('../app/api/admin/news/archive-all/route.ts', import.meta.url), 'utf8');
+  assert.match(archiveSource, /getEditorialAdmin\(request\)/);
+  assert.match(archiveSource, /hasSameOrigin\(request\)/);
+  assert.match(archiveSource, /ARCHIVE_ALL_PUBLISHED_NEWS/);
+  assert.match(archiveSource, /limit\(BATCH_SIZE\)/);
+  assert.match(archiveSource, /status: 'archived'/);
+  assert.match(archiveSource, /action: 'archived'/);
+  assert.match(archiveSource, /no hard deletion was performed/i);
 });
