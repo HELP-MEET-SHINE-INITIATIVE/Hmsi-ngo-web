@@ -46,6 +46,17 @@ export function workerWelcomeTemplate(input: { name: string; role: 'worker' | 'v
   return { html, text: `Dear ${input.name},\n\nWelcome to Help Meet Shine Initiative. Your HMSI ${roleLabel} status is active. Complete your onboarding here: ${input.dashboardUrl}\n\nDo not forward this secure link.` };
 }
 
+export function volunteerAssignmentTemplate(input: { name: string; title: string; priority: string; dueAt: string | null; dashboardUrl: string }) {
+  const due = input.dueAt ? new Date(input.dueAt).toLocaleString('en-NG', { dateStyle: 'medium', timeStyle: 'short' }) : 'No due date was set';
+  const html = officialShell({
+    eyebrow: 'HMSI Volunteer Assignment',
+    title: 'A new volunteer assignment is ready',
+    body: `<p style="margin-top:0">Dear ${escapeHtml(input.name)},</p><p>HMSI has assigned you a new volunteer task: <strong>${escapeHtml(input.title)}</strong>.</p><p><strong>Priority:</strong> ${escapeHtml(input.priority)}<br /><strong>Due:</strong> ${escapeHtml(due)}</p><p><a href="${escapeHtml(input.dashboardUrl)}" style="display:inline-block;background:#1e5b49;color:#ffffff;padding:12px 18px;text-decoration:none;font-weight:700">Open my volunteer tasks</a></p><p>Please use the protected HMSI portal to accept the task, follow the required outcome, and submit any requested private proof link. Do not reply with proof or personal information by email.</p>`,
+    footer: 'HMSI Onboarding · Official volunteer assignment correspondence',
+  });
+  return { html, text: `Dear ${input.name},\n\nHMSI has assigned you a new volunteer task: ${input.title}.\nPriority: ${input.priority}\nDue: ${due}\n\nOpen your protected volunteer tasks: ${input.dashboardUrl}\n\nPlease submit any required proof through the portal, not by email.` };
+}
+
 export function passwordSetupTemplate(input: { name: string; hmsiId: string; setupUrl: string }) {
   const html = officialShell({
     eyebrow: 'HMSI Portal Activation',

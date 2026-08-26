@@ -29,7 +29,10 @@ type Assignment = {
   priority?: string | null;
   status: string;
   due_at: string | null;
+  proof_required?: boolean;
+  proof_count?: number;
   completion_note?: string | null;
+  review_note?: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -58,7 +61,7 @@ const roleConfig: Record<Role, {
   volunteer: {
     title: 'Volunteer workspace',
     eyebrow: 'Community contribution',
-    intro: 'Review approved opportunities, coordinate safely in your room, and use the private submission route when HMSI requests supporting material.',
+    intro: 'Review assigned community work, coordinate safely in your room, and submit private supporting material directly against the task when HMSI requests it.',
     roomLink: '/volunteer-room',
     roomLabel: 'Volunteer Community Room',
     taskLabel: 'My assigned jobs',
@@ -96,6 +99,7 @@ export default function PortalTasksContent({ expectedRole }: { expectedRole: Rol
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [notes, setNotes] = useState<Record<string, string>>({});
+  const [proofUrls, setProofUrls] = useState<Record<string, string>>({});
 
   useEffect(() => {
     let active = true;
@@ -166,13 +170,38 @@ export default function PortalTasksContent({ expectedRole }: { expectedRole: Rol
     }
   }
 
+  async function submitVolunteerProof(assignment: Assignment) {
+    const proofUrl = (proofUrls[assignment.id] || '').trim();
+    setUpdatingId(assignment.id);
+    setError('');
+    setNotice('');
+    try {
+      const response = await fetch('/api/portal/volunteer-proofs', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assignmentId: assignment.id, proofUrl, note: notes[assignment.id] || undefined }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.task) throw new Error(data.error || 'This proof could not be submitted.');
+      setPayload((current) => current ? { ...current, assignments: current.assignments.map((item) => item.id === assignment.id ? { ...item, ...data.task, proof_count: (item.proof_count || 0) + 1 } : item) } : current);
+      setProofUrls((current) => ({ ...current, [assignment.id]: '' }));
+      setNotes((current) => ({ ...current, [assignment.id]: '' }));
+      setNotice('Your private proof link was submitted for HMSI review.');
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'This proof could not be submitted.');
+    } finally {
+      setUpdatingId(null);
+    }
+  }
+
   if (loading) return <main className="flex min-h-screen items-center justify-center bg-[#f6f4ef] px-6 text-[#66716a]">Loading your HMSI workspace…</main>;
   if (error && !payload) return <main className="min-h-screen bg-[#f6f4ef] px-6 py-16"><div className="mx-auto max-w-xl rounded-3xl border border-red-100 bg-white p-8 text-red-700"><h1 className="text-2xl font-black">Workspace unavailable</h1><p className="mt-3 text-sm leading-6">{error}</p><Link href="/login" className="mt-6 inline-block font-black text-[#1e5b49] underline">Return to sign in</Link></div></main>;
 
   const role = payload?.identity.role || expectedRole;
   const config = roleConfig[role];
   const assignments = payload?.assignments || [];
-  const openCount = assignments.filter((assignment) => !['completed', 'submitted', 'cancelled'].includes(assignment.status)).length;
+  const openCount = assignments.filter((assignment) => !['completed', 'submitted', 'cancelled', 'rejected'].includes(assignment.status)).length;
 
   return <main className="min-h-screen bg-[#f6f4ef] text-[#17221e]">
     <header className="border-b border-[#d9d6ce] bg-white">
@@ -220,15 +249,15 @@ export default function PortalTasksContent({ expectedRole }: { expectedRole: Rol
         {payload?.message && <div className="mt-5 rounded-2xl border border-[#e1ad45]/40 bg-[#fff8e8] p-5 text-sm leading-6 text-[#7a5b16]"><ShieldCheck className="mr-2 inline" size={16} />{payload.message}</div>}
         {assignments.length === 0 ? <div className="mt-5 rounded-3xl border border-dashed border-[#d9d6ce] bg-white p-9 text-center"><ClipboardCheck className="mx-auto text-[#1e5b49]" size={30} /><h3 className="mt-4 text-xl font-black">No assigned jobs yet</h3><p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-[#66716a]">{role === 'volunteer' ? 'Use the opportunities menu and Volunteer Community Room while your administrator reviews or assigns approved work.' : 'Your administrator will notify you when a verified HMSI job is assigned.'}</p><Link href="#opportunities" className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#1e5b49] px-4 py-2.5 text-xs font-black uppercase tracking-widest text-white">View opportunities <ArrowRight size={14} /></Link></div> : <div className="mt-5 space-y-4">{assignments.map((assignment) => {
           const expanded = expandedId === assignment.id;
-          const closed = ['completed', 'submitted', 'cancelled'].includes(assignment.status);
+          const closed = ['completed', 'submitted', 'cancelled', 'rejected'].includes(assignment.status);
           return <article key={assignment.id} className="rounded-3xl border border-[#d9d6ce] bg-white p-5 sm:p-6">
             <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
               <div className="min-w-0"><div className="flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-widest"><span className="rounded-full bg-[#e9f0e9] px-3 py-1 text-[#1e5b49]">{assignment.kind}</span>{assignment.priority && <span className="rounded-full bg-[#fff1dd] px-3 py-1 text-[#9a5318]">{assignment.priority}</span>}<span className={`rounded-full px-3 py-1 ${closed ? 'bg-emerald-50 text-emerald-800' : 'bg-[#f6f4ef] text-[#66716a]'}`}>{statusLabel(assignment.status)}</span></div><h3 className="mt-4 text-xl font-black sm:text-2xl">{assignment.title}</h3><p className={`mt-2 max-w-3xl text-sm leading-6 text-[#66716a] ${expanded ? '' : 'line-clamp-3'}`}>{assignment.description}</p>{assignment.due_at && <p className="mt-4 inline-flex items-center gap-2 text-xs font-bold text-[#66716a]"><Clock3 size={14} /> {formatDue(assignment.due_at)}</p>}</div>
               <div className="flex shrink-0 items-center gap-3"><span className={`inline-flex items-center gap-2 text-xs font-black ${closed ? 'text-[#1e5b49]' : 'text-[#b56b3b]'}`}>{closed ? <CheckCircle2 size={20} /> : <Clock3 size={20} />}{closed ? 'Ready for review' : 'Action needed'}</span><button type="button" aria-expanded={expanded} onClick={() => setExpandedId(expanded ? null : assignment.id)} className="rounded-full border border-[#d9d6ce] px-4 py-2 text-xs font-black uppercase tracking-widest text-[#1e5b49]">{expanded ? 'Hide details' : 'View full job'}</button></div>
             </div>
-            {expanded && <div className="mt-6 grid gap-4 border-t border-[#ece8df] pt-5 md:grid-cols-2"><div className="rounded-2xl bg-[#f6f4ef] p-5"><p className="text-xs font-black uppercase tracking-widest text-[#b56b3b]">Required outcome</p><p className="mt-2 text-sm leading-6 text-[#17221e]">Complete the actions in the job brief, keep any supporting record private, and report a clear result through the approved HMSI route.</p></div><div className="rounded-2xl bg-[#f6f4ef] p-5"><p className="text-xs font-black uppercase tracking-widest text-[#b56b3b]">Need to submit evidence?</p><p className="mt-2 text-sm leading-6 text-[#17221e]">Share a private Google Drive or Google Docs link with the named HMSI administrator. Keep the original file until ingestion is confirmed.</p><Link href="/portal/submissions" className="mt-3 inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[#1e5b49]">Open proof submission <ExternalLink size={14} /></Link></div></div>}
-            {!closed && <div className="mt-5 flex flex-col gap-3 border-t border-[#ece8df] pt-5 sm:flex-row sm:flex-wrap sm:items-start">{assignment.status === 'assigned' && <button disabled={updatingId === assignment.id} onClick={() => void updateTask(assignment.id, 'in_progress')} className="inline-flex items-center justify-center gap-2 rounded-full bg-[#17221e] px-4 py-2.5 text-xs font-black uppercase tracking-widest text-white disabled:opacity-50"><PlayCircle size={15} /> Accept and start job</button>}{assignment.status === 'in_progress' && <>{role === 'member' ? <div className="min-w-0 flex-1"><label className="block text-xs font-black uppercase tracking-widest text-[#66716a]" htmlFor={`completion-${assignment.id}`}>Completion note</label><textarea id={`completion-${assignment.id}`} value={notes[assignment.id] || ''} onChange={(event) => setNotes((current) => ({ ...current, [assignment.id]: event.target.value }))} maxLength={4000} rows={3} className="mt-2 w-full rounded-2xl border border-[#d9d6ce] p-3 text-sm outline-none focus:ring-2 focus:ring-[#1e5b49]" placeholder="Describe what you completed for administrator review." /><button disabled={updatingId === assignment.id || !(notes[assignment.id] || '').trim()} onClick={() => void updateTask(assignment.id, 'submitted')} className="mt-3 inline-flex items-center gap-2 rounded-full bg-[#1e5b49] px-4 py-2.5 text-xs font-black uppercase tracking-widest text-white disabled:opacity-50"><Send size={15} /> Submit completion</button></div> : <><Link href="/portal/submissions" className="inline-flex items-center justify-center gap-2 rounded-full border border-[#1e5b49] px-4 py-2.5 text-xs font-black uppercase tracking-widest text-[#1e5b49]"><FileUp size={15} /> Submit proof link</Link><button disabled={updatingId === assignment.id} onClick={() => void updateTask(assignment.id, 'completed')} className="inline-flex items-center justify-center gap-2 rounded-full bg-[#1e5b49] px-4 py-2.5 text-xs font-black uppercase tracking-widest text-white disabled:opacity-50"><CheckCircle2 size={15} /> Mark job complete</button></>}</>}</div>}
-            {closed && <p className="mt-5 border-t border-[#ece8df] pt-4 text-sm font-black text-[#1e5b49]"><CheckCircle2 className="mr-2 inline" size={16} />This job has been submitted and is awaiting the appropriate HMSI review.</p>}
+            {expanded && <div className="mt-6 grid gap-4 border-t border-[#ece8df] pt-5 md:grid-cols-2"><div className="rounded-2xl bg-[#f6f4ef] p-5"><p className="text-xs font-black uppercase tracking-widest text-[#b56b3b]">Required outcome</p><p className="mt-2 text-sm leading-6 text-[#17221e]">Complete the actions in the job brief, keep any supporting record private, and report a clear result through the approved HMSI route.</p></div><div className="rounded-2xl bg-[#f6f4ef] p-5"><p className="text-xs font-black uppercase tracking-widest text-[#b56b3b]">Evidence and review</p><p className="mt-2 text-sm leading-6 text-[#17221e]">{assignment.proof_required ? 'This task requires a private Google Drive or Google Docs link before it can be sent for review.' : 'Add a clear completion note when you send this task for review.'}</p>{assignment.proof_count ? <p className="mt-3 text-xs font-black text-[#1e5b49]">{assignment.proof_count} private proof link{assignment.proof_count === 1 ? '' : 's'} submitted</p> : null}{assignment.review_note ? <p className="mt-3 rounded-xl bg-white p-3 text-xs leading-5 text-[#7a5b16]"><strong>HMSI review:</strong> {assignment.review_note}</p> : null}</div></div>}
+            {!closed && <div className="mt-5 flex flex-col gap-3 border-t border-[#ece8df] pt-5 sm:flex-row sm:flex-wrap sm:items-start">{(assignment.status === 'assigned' || (role === 'volunteer' && assignment.status === 'revisions_requested')) && <button disabled={updatingId === assignment.id} onClick={() => void updateTask(assignment.id, 'in_progress')} className="inline-flex items-center justify-center gap-2 rounded-full bg-[#17221e] px-4 py-2.5 text-xs font-black uppercase tracking-widest text-white disabled:opacity-50"><PlayCircle size={15} /> {assignment.status === 'revisions_requested' ? 'Revise and resume job' : 'Accept and start job'}</button>}{assignment.status === 'in_progress' && <>{role === 'member' ? <div className="min-w-0 flex-1"><label className="block text-xs font-black uppercase tracking-widest text-[#66716a]" htmlFor={`completion-${assignment.id}`}>Completion note</label><textarea id={`completion-${assignment.id}`} value={notes[assignment.id] || ''} onChange={(event) => setNotes((current) => ({ ...current, [assignment.id]: event.target.value }))} maxLength={4000} rows={3} className="mt-2 w-full rounded-2xl border border-[#d9d6ce] p-3 text-sm outline-none focus:ring-2 focus:ring-[#1e5b49]" placeholder="Describe what you completed for administrator review." /><button disabled={updatingId === assignment.id || !(notes[assignment.id] || '').trim()} onClick={() => void updateTask(assignment.id, 'submitted')} className="mt-3 inline-flex items-center gap-2 rounded-full bg-[#1e5b49] px-4 py-2.5 text-xs font-black uppercase tracking-widest text-white disabled:opacity-50"><Send size={15} /> Submit completion</button></div> : role === 'volunteer' ? <div className="min-w-0 flex-1"><label className="block text-xs font-black uppercase tracking-widest text-[#66716a]" htmlFor={`completion-${assignment.id}`}>{assignment.proof_required ? 'Private Google Drive or Docs link' : 'Completion note'}</label>{assignment.proof_required ? <input id={`proof-${assignment.id}`} type="url" value={proofUrls[assignment.id] || ''} onChange={(event) => setProofUrls((current) => ({ ...current, [assignment.id]: event.target.value }))} placeholder="https://drive.google.com/..." className="mt-2 w-full rounded-2xl border border-[#d9d6ce] p-3 text-sm outline-none focus:ring-2 focus:ring-[#1e5b49]" /> : null}<textarea id={`completion-${assignment.id}`} value={notes[assignment.id] || ''} onChange={(event) => setNotes((current) => ({ ...current, [assignment.id]: event.target.value }))} maxLength={4000} rows={3} className="mt-2 w-full rounded-2xl border border-[#d9d6ce] p-3 text-sm outline-none focus:ring-2 focus:ring-[#1e5b49]" placeholder={assignment.proof_required ? 'Optional note for the administrator' : 'Describe what you completed for administrator review.'} /><button disabled={updatingId === assignment.id || (assignment.proof_required ? !(proofUrls[assignment.id] || '').trim() : !(notes[assignment.id] || '').trim())} onClick={() => assignment.proof_required ? void submitVolunteerProof(assignment) : void updateTask(assignment.id, 'submitted')} className="mt-3 inline-flex items-center gap-2 rounded-full bg-[#1e5b49] px-4 py-2.5 text-xs font-black uppercase tracking-widest text-white disabled:opacity-50">{assignment.proof_required ? <FileUp size={15} /> : <Send size={15} />}{assignment.proof_required ? 'Submit proof for review' : 'Submit completion'}</button></div> : <><Link href="/portal/submissions" className="inline-flex items-center justify-center gap-2 rounded-full border border-[#1e5b49] px-4 py-2.5 text-xs font-black uppercase tracking-widest text-[#1e5b49]"><FileUp size={15} /> Submit proof link</Link><button disabled={updatingId === assignment.id} onClick={() => void updateTask(assignment.id, 'completed')} className="inline-flex items-center justify-center gap-2 rounded-full bg-[#1e5b49] px-4 py-2.5 text-xs font-black uppercase tracking-widest text-white disabled:opacity-50"><CheckCircle2 size={15} /> Mark job complete</button></>}</>}</div>}
+            {closed && <p className="mt-5 border-t border-[#ece8df] pt-4 text-sm font-black text-[#1e5b49]"><CheckCircle2 className="mr-2 inline" size={16} />{assignment.status === 'completed' ? 'HMSI has approved this completed volunteer work.' : assignment.status === 'submitted' ? 'This job has been submitted and is awaiting HMSI review.' : 'This job is closed. Review the HMSI note for any next step.'}</p>}
           </article>;
         })}</div>}
       </section>

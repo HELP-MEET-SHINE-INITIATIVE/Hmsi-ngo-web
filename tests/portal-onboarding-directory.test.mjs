@@ -103,12 +103,14 @@ test('the portal task API fails closed without a portal identity and scopes work
   assert.match(portalTasksApi, /eq\('assigned_worker_id', identity\.profileId\)/);
 });
 
-test('the unified portal lets workers and members update only their own allowed tasks while keeping volunteer-room access separate', () => {
+test('the unified portal scopes worker, volunteer, and member updates to their own allowed tasks', () => {
   assert.match(portalTasksApi, /identity\.role === 'volunteer'/);
   assert.match(portalTasksApi, /hmsi_member_tasks/);
   assert.match(portalTasksApi, /eq\('assigned_member_id', identity\.profileId\)/);
   assert.match(portalTasksApi, /eq\('assigned_worker_id', identity\.profileId\)/);
-  assert.match(portalTasksApi, /Volunteer tasks are not configured/);
+  assert.match(portalTasksApi, /volunteer_assignments/);
+  assert.match(portalTasksApi, /eq\('assigned_volunteer_id', identity\.profileId\)/);
+  assert.match(portalTasksApi, /canVolunteerTransition/);
   assert.match(portalTasksApi, /hmsi_member_task_events/);
 });
 
