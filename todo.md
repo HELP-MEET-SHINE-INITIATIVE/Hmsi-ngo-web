@@ -860,4 +860,4 @@ The existing data model does not currently provide a volunteer task-assignment t
 - [x] Add member onboarding invitation/progress parity and controlled branch/programme assignment support without inferring historical mappings.
 - [x] Add protected President’s Office governance views and administrator routes for scoped delegation, approval queues, automation run history, and branch summaries.
 - [x] Add static and behavioral contract coverage, apply reviewed migrations, and run full regression, build, and passive production checks.
-- [ ] Commit, push, and verify the production deployment; do not enable recurring outbound notifications without a separate bounded confirmation.
+- [x] Commit, push, and verify the production deployment; do not enable recurring outbound notifications without a separate bounded confirmation.

@@ -33,3 +33,7 @@ The migration also removed anonymous and authenticated execution of `public.rls_
 > Recurring outbound automation remains **disabled**. Any future notification, digest, automated workflow, or scheduled job requires a separate authorization specifying the exact workflow, cadence, recipients, sender, content, safeguards, and rollback/monitoring plan.
 
 Activating a draft unit or programme, assigning organizational roles, issuing a real delegation, and deciding an approval request are intentionally explicit protected administrative actions. No production records of those types were created as part of this release.
+
+## Production deployment
+
+The application release commit `c330e25` was pushed to `main` and deployed by the existing Git-connected Vercel project as production deployment `dpl_8JKmKjhu6gt3isrkGwh6M8Ljj1dP`, which reached **READY**. A passive request to the deployed `/api/admin/governance` endpoint returned `401` and only the generic administrator-authentication message; no administrator session, governance record, email, task, approval, or scheduled workflow was created during verification.
