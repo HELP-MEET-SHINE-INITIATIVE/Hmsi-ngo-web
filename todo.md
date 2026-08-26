@@ -822,4 +822,4 @@ The existing data model does not currently provide a volunteer task-assignment t
 - [x] Enforce server-side one-active-application-per-email handling with a clear pending-approval response for workers, volunteers, and members.
 - [x] Align approved worker, volunteer, and member directory/assignment readiness with portal activation status without exposing private data publicly.
 - [x] Add cross-role regression coverage, apply the reviewed additive migration, and validate the live behavior without sending emails or creating applications.
-- [ ] Deploy the verified cross-role onboarding and duplicate-prevention release.
+- [x] Deploy the verified cross-role onboarding and duplicate-prevention release.
