@@ -3,14 +3,15 @@ import { getAdminEmailFromCookie } from '../../../../lib/adminSession';
 import { getSupabaseAdmin } from '../../../../lib/supabaseAdmin';
 import { createCredentialCode, createMemberNumber, hashCredentialCode } from '../../../../lib/hmsiCredentials';
 import { assignmentEmail, sendPortalEmail } from '../../../../lib/portalEmail';
+import { hasSameOrigin } from '../../../../lib/editorialAdmin';
 
 export const runtime = 'nodejs';
 const ALLOWED_KINDS = new Set(['assistance', 'job']);
-const ALLOWED_STATUSES = new Set(['assigned', 'in_progress', 'completed']);
+const ALLOWED_STATUSES = new Set(['assigned', 'in_progress', 'submitted', 'completed', 'cancelled']);
 function error(message: string, status = 400) { return NextResponse.json({ error: message }, { status }); }
 function adminEmail(request: Request) { return getAdminEmailFromCookie(request.headers.get('cookie')); }
 
-const assignmentSelect = 'id,title,description,kind,status,assigned_worker_id,fundraiser_id,due_at,created_at,updated_at,admin_note';
+const assignmentSelect = 'id,title,description,kind,status,assigned_worker_id,fundraiser_id,due_at,completion_note,review_note,submitted_at,completed_at,reviewed_at,reviewed_by,created_at,updated_at,admin_note';
 
 export async function GET(request: Request) {
   const actor = adminEmail(request);
@@ -34,6 +35,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const actor = adminEmail(request);
   if (!actor) return error('Admin authentication required.', 401);
+  if (!hasSameOrigin(request)) return error('Cross-site assignment changes are not allowed.', 403);
   const admin = getSupabaseAdmin();
   if (!admin) return error('Supabase is not configured on the server.', 503);
   try {
@@ -66,6 +68,8 @@ export async function POST(request: Request) {
       }
       throw inserted.error || new Error('Assignment was not created.');
     }
+    const creationAudit = await admin.from('work_assignment_events').insert({ assignment_id: inserted.data.id, actor_role: 'admin', actor_key: actor, action: 'created' });
+    if (creationAudit.error) console.warn('[Admin] Worker-assignment creation audit event was not recorded.');
 
     const activeCard = await admin.from('hmsi_id_cards').select('id,member_number,activated_at').eq('holder_role', 'worker').eq('holder_id', workerId).eq('status', 'active').order('issued_at', { ascending: false }).limit(1).maybeSingle();
     let memberNumber: string | null = activeCard.data?.member_number || null;
@@ -99,6 +103,7 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   const actor = adminEmail(request);
   if (!actor) return error('Admin authentication required.', 401);
+  if (!hasSameOrigin(request)) return error('Cross-site assignment changes are not allowed.', 403);
   const admin = getSupabaseAdmin();
   if (!admin) return error('Supabase is not configured on the server.', 503);
   try {
@@ -112,12 +117,20 @@ export async function PATCH(request: Request) {
     const dueAt = body.dueAt ? new Date(body.dueAt).toISOString() : null;
     if (!id || !title || !description || !workerId || !ALLOWED_KINDS.has(kind) || !ALLOWED_STATUSES.has(status)) return error('Assignment, title, description, type, worker, and valid status are required.');
     if (body.dueAt && !dueAt) return error('Due date is invalid.');
+    const current = await admin.from('work_assignments').select('id,status').eq('id', id).eq('is_deleted', false).maybeSingle();
+    if (current.error || !current.data) return error('Assignment was not found.', 404);
+    const reviewNote = String(body.reviewNote || body.adminNote || '').trim().slice(0, 4000) || null;
+    if (current.data.status === 'submitted' && !['submitted', 'completed', 'cancelled'].includes(status)) return error('Submitted work can only remain submitted, be approved, or be cancelled.', 409);
+    if (status === 'completed' && current.data.status !== 'submitted') return error('A worker must submit the job before the administrator can approve it.', 409);
+    if ((status === 'completed' || status === 'cancelled') && !reviewNote) return error('Add an administrator review note before approving or cancelling a job.');
     const worker = await admin.from('workers').select('id,status,onboarding_status').eq('id', workerId).maybeSingle();
     if (worker.error) throw worker.error;
     if (!worker.data || worker.data.status !== 'active' || worker.data.onboarding_status !== 'completed') return error('Choose an active worker with completed onboarding.', 409);
-    const updated = await admin.from('work_assignments').update({ title, description, kind, status, assigned_worker_id: workerId, due_at: dueAt, admin_note: String(body.adminNote || '').trim() || null, updated_at: new Date().toISOString() }).eq('id', id).eq('is_deleted', false).select(assignmentSelect).single();
+    const now = new Date().toISOString();
+    const updated = await admin.from('work_assignments').update({ title, description, kind, status, assigned_worker_id: workerId, due_at: dueAt, admin_note: reviewNote, review_note: reviewNote, completed_at: status === 'completed' ? now : null, reviewed_at: ['completed', 'cancelled'].includes(status) ? now : null, reviewed_by: ['completed', 'cancelled'].includes(status) ? actor : null, updated_at: now }).eq('id', id).eq('is_deleted', false).select(assignmentSelect).single();
     if (updated.error) throw updated.error;
-    const auditEvent = await admin.from('portal_access_events').insert({ worker_id: workerId, event_type: 'assignment_status_changed', metadata: { assignment_id: id, actor, action: 'admin_updated' } });
+    const action = status === 'completed' ? 'approved' : status === 'cancelled' ? 'cancelled' : 'accepted';
+    const auditEvent = await admin.from('work_assignment_events').insert({ assignment_id: id, actor_role: 'admin', actor_key: actor, action, note: reviewNote });
     if (auditEvent.error) console.warn('[Admin] Assignment audit event was not recorded.');
     return NextResponse.json({ assignment: updated.data });
   } catch (cause) {
@@ -129,6 +142,7 @@ export async function PATCH(request: Request) {
 export async function DELETE(request: Request) {
   const actor = adminEmail(request);
   if (!actor) return error('Admin authentication required.', 401);
+  if (!hasSameOrigin(request)) return error('Cross-site assignment changes are not allowed.', 403);
   const admin = getSupabaseAdmin();
   if (!admin) return error('Supabase is not configured on the server.', 503);
   try {
@@ -137,6 +151,8 @@ export async function DELETE(request: Request) {
     if (!id) return error('Assignment is required.');
     const deleted = await admin.from('work_assignments').update({ is_deleted: true, deleted_at: new Date().toISOString(), deleted_by: actor, updated_at: new Date().toISOString() }).eq('id', id).eq('is_deleted', false).select('id,is_deleted,deleted_at').single();
     if (deleted.error) throw deleted.error;
+    const audit = await admin.from('work_assignment_events').insert({ assignment_id: id, actor_role: 'admin', actor_key: actor, action: 'deleted' });
+    if (audit.error) console.warn('[Admin] Assignment deletion audit event was not recorded.');
     return NextResponse.json({ assignment: deleted.data, message: 'Assignment moved to recovery.' });
   } catch (cause) {
     console.error('[Admin] Failed to remove assignment:', cause instanceof Error ? cause.message : 'unknown');

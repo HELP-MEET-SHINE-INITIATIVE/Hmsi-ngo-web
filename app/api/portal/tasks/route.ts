@@ -32,7 +32,7 @@ export async function GET(request: Request) {
   if (identity.role === 'worker') {
     const assignments = await admin
       .from('work_assignments')
-      .select('id,title,description,kind,status,due_at,created_at,updated_at')
+      .select('id,title,description,kind,status,due_at,completion_note,review_note,submitted_at,completed_at,created_at,updated_at')
       .eq('assigned_worker_id', identity.profileId)
       .eq('is_deleted', false)
       .order('due_at', { ascending: true, nullsFirst: false })
@@ -80,17 +80,23 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ task: { ...updated.data, kind: updated.data.category } });
   }
   if (identity.role === 'worker') {
-    if (status !== 'in_progress' && status !== 'completed') return NextResponse.json({ error: 'Choose an allowed worker task status.' }, { status: 400 });
+    if (status !== 'in_progress' && status !== 'submitted') return NextResponse.json({ error: 'Choose an allowed worker task status.' }, { status: 400 });
+    const current = await admin.from('work_assignments').select('id,status').eq('id', id).eq('assigned_worker_id', identity.profileId).eq('is_deleted', false).maybeSingle();
+    if (current.error) return NextResponse.json({ error: 'Assignments are temporarily unavailable.' }, { status: 503 });
+    if (!current.data || !['assigned', 'in_progress'].includes(current.data.status)) return NextResponse.json({ error: 'This task cannot be updated from its current state.' }, { status: 409 });
+    if (status === 'submitted' && !completionNote) return NextResponse.json({ error: 'Add a completion note before sending this job for administrator review.' }, { status: 400 });
     const updated = await admin
       .from('work_assignments')
-      .update({ status, updated_at: new Date().toISOString() })
+      .update({ status, completion_note: status === 'submitted' ? completionNote : null, submitted_at: status === 'submitted' ? new Date().toISOString() : null, updated_at: new Date().toISOString() })
       .eq('id', id)
       .eq('assigned_worker_id', identity.profileId)
       .eq('is_deleted', false)
-      .in('status', ['assigned', 'in_progress'])
-      .select('id,title,description,kind,status,due_at,created_at,updated_at')
+      .eq('status', current.data.status)
+      .select('id,title,description,kind,status,due_at,completion_note,review_note,submitted_at,completed_at,created_at,updated_at')
       .single();
     if (updated.error || !updated.data) return NextResponse.json({ error: 'This task could not be updated or is not assigned to you.' }, { status: 403 });
+    const audit = await admin.from('work_assignment_events').insert({ assignment_id: id, actor_role: 'worker', actor_key: identity.authUserId, action: status === 'submitted' ? 'submitted' : 'accepted', note: status === 'submitted' ? completionNote : null });
+    if (audit.error) console.warn('[Portal] Worker task audit event was not recorded.');
     return NextResponse.json({ task: updated.data });
   }
   if (status !== 'in_progress' && status !== 'submitted') return NextResponse.json({ error: 'Choose an allowed member task status.' }, { status: 400 });

@@ -4,6 +4,7 @@ import { getSupabaseAdmin } from '../../../../../lib/supabaseAdmin';
 import { createOnboardingInvitation } from '../../../../../lib/onboarding';
 import { sendHmsiNotification, workerWelcomeTemplate } from '../../../../../lib/hmsiNotifications';
 import { hasSameOrigin } from '../../../../../lib/editorialAdmin';
+import { blockApprovedContact, syncApprovedContact } from '../../../../../lib/approvedContacts';
 
 export const runtime = 'nodejs';
 const ALLOWED_STATUSES = new Set(['pending', 'approved', 'rejected']);
@@ -57,6 +58,18 @@ export async function PATCH(
       const { data: worker, error: workerError } = await admin.from('workers').upsert({ name: application.name, email: application.email, phone: application.phone, role: 'worker', status: 'active', onboarding_status: 'not_started', ads_manager_enabled: false, assignments_manager_enabled: false }, { onConflict: 'email' }).select('id').single();
       if (workerError) throw workerError;
       workerId = worker.id;
+    }
+
+    const contactRole = data.applicant_role === 'worker' ? 'worker' : 'volunteer';
+    if (data.status === 'approved' && data.account_status === 'active') {
+      await syncApprovedContact(admin, {
+        role: contactRole,
+        sourceId: contactRole === 'worker' && workerId ? workerId : application.id,
+        name: application.name,
+        email: application.email,
+      });
+    } else if (accessStatus === 'banned' || status === 'rejected') {
+      await blockApprovedContact(admin, contactRole, application.email);
     }
 
     let onboarding: { emailSent: boolean; onboardingUrl: string | null; error?: string } | null = null;

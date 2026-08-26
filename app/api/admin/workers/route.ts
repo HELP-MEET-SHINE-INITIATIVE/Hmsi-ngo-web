@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getAdminEmailFromCookie } from '../../../../lib/adminSession';
 import { getSupabaseAdmin } from '../../../../lib/supabaseAdmin';
+import { syncApprovedContact } from '../../../../lib/approvedContacts';
 
 export const runtime = 'nodejs';
 
@@ -32,6 +33,7 @@ export async function POST(request: Request) {
 
     const { data, error } = await admin.from('workers').insert({ name, email, phone, role: 'worker', status: 'active' }).select('id,name,email,phone,role,status,onboarding_status,created_at').single();
     if (error) throw error;
+    await syncApprovedContact(admin, { role: 'worker', sourceId: data.id, name: data.name, email: data.email, approvedAt: data.created_at });
     return NextResponse.json({ worker: data }, { status: 201 });
   } catch (error) {
     console.error('[Admin] Failed to create worker:', error);

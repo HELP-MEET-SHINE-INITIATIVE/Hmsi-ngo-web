@@ -17,6 +17,7 @@ import WorkerRoomContributorStudio from '../../components/WorkerRoomContributorS
 import HmsiRoomFlashPlacements from '../../components/HmsiRoomFlashPlacements';
 import HmsiIdCardPanel from '../../components/HmsiIdCardPanel';
 import MemberWorkspace from '../../components/MemberWorkspace';
+import PortalTasksContent from '../portal/my-tasks/PortalTasksContent';
 import { 
   LayoutDashboard, 
   Briefcase, 
@@ -105,6 +106,14 @@ export default function DashboardContent() {
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#1e5b49]"></div>
       </div>
     );
+  }
+
+  if (viewer.role === 'worker' && viewer.email !== 'admin') {
+    return <PortalTasksContent expectedRole="worker" />;
+  }
+
+  if (viewer.role === 'volunteer' && viewer.email !== 'admin') {
+    return <PortalTasksContent expectedRole="volunteer" />;
   }
 
   if (viewer.role === 'worker') {

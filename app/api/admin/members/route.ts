@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getAdminEmailFromCookie } from '../../../../lib/adminSession';
 import { getSupabaseAdmin } from '../../../../lib/supabaseAdmin';
+import { syncApprovedContact } from '../../../../lib/approvedContacts';
 
 export const runtime = 'nodejs';
 function error(message: string, status = 400) { return NextResponse.json({ error: message }, { status }); }
@@ -29,5 +30,10 @@ export async function PATCH(request: Request) {
   if (member.error || !member.data) return error('The HMSI member record could not be created.', 503);
   const approved = await admin.from('hmsi_member_applications').update({ status: 'approved', reviewed_by: adminEmail, reviewed_at: new Date().toISOString() }).eq('id', id).select('id,status,reviewed_at').single();
   if (approved.error) return error('The member was created but application status could not be updated.', 503);
+  try {
+    await syncApprovedContact(admin, { role: 'member', sourceId: member.data.id, name: member.data.name, email: member.data.email, approvedAt: approved.data.reviewed_at });
+  } catch {
+    return error('The member was approved, but contact-notification readiness could not be recorded. Apply the people-operations migration, then retry the approved contact check.', 503);
+  }
   return NextResponse.json({ member: member.data, application: approved.data, message: 'Member approved. Issue an HMSI ID card to activate member portal access.' });
 }

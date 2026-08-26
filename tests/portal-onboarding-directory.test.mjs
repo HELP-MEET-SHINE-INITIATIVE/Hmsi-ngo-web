@@ -120,7 +120,8 @@ test('role dashboards provide focused menus, guided job actions, proof-link entr
   assert.match(portalTasksUi, /href="\/portal\/submissions"/);
   assert.match(portalTasksUi, /Accept and start job/);
   assert.match(portalTasksUi, /View full job/);
-  assert.match(portalTasksUi, /Submit proof link/);
+  assert.match(portalTasksUi, /Submit proof/);
+  assert.match(portalTasksUi, /Only HMSI administration can approve work as complete/);
   assert.match(portalTasksUi, /id="opportunities"/);
   assert.match(portalTasksUi, /\/api\/portal\/auth\/refresh/);
 });

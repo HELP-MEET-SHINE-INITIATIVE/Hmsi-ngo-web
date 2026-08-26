@@ -798,3 +798,12 @@ The existing data model does not currently provide a volunteer task-assignment t
 - [x] Add the Admin Volunteer Assignments menu, assignment form, progress register, and protected volunteer task/proof experience.
 - [x] Run migration, unit, integration, negative-authorization, and UI validation with synthetic data.
 - [x] Deploy the approved implementation and report the live verification status.
+
+## Role-Based People Operations and President’s Office
+
+- [x] Inspect the live approved-user schema, directory data, role dashboards, notification utilities, assignment review controls, and President’s Office administration surface.
+- [x] Define additive approved-contact, role-tool, directory, submission-review, audit, and President’s Office changes.
+- [x] Implement durable approved-contact readiness, live directory data, and administrator-only work approval controls.
+- [x] Implement role-aware dashboard tools and an organized President’s Office oversight workspace.
+- [x] Run database, authorization, notification-boundary, synthetic regression, and UI validation.
+- [ ] Deploy the vetted people-operations enhancements and report live verification status.
