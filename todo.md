@@ -955,3 +955,37 @@ The existing data model does not currently provide a volunteer task-assignment t
 - [x] Create a stakeholder presentation slide summarizing the 2020 award update, portal publication surfaces, governance accomplishments, and remaining readiness boundaries.
 
 - [x] Add evidence-aware partner and network entries from the supplied correspondence to the HMSI partnerships page, with relationship categories, source notes, and no unsupported formal-partnership claims.
+
+- [x] Review remaining uploaded screenshots and attachments for additional awards or certifications, compare with existing portal recognition content, and document publication recommendations.
+
+- [x] Create stakeholder presentation slides summarizing HMSI partner additions, evidence-aware relationship labels, and award publication status.
+
+- [x] Audit all remaining public HMSI portal pages for outdated, missing, placeholder, inconsistent, or broken information and document findings with recommended corrections.
+
+- [x] Draft a production-safe remediation plan for reconciling public fundraiser totals with successful donation records and donor counts, including audit, backfill, verification, rollback, and monitoring steps.
+
+- [x] Write exact read-only PostgreSQL diagnostics for HMSI donations and fundraisers, including duplicate Paystack references, ledger-vs-summary discrepancies, donor-count mismatches, status exceptions, currency issues, and orphaned records.
+
+- [x] Draft a safe transactional PostgreSQL migration template for approved fundraiser reconciliation and explicitly verified Paystack-reference duplicate handling, with dry-run default, audit preservation, allowlists, and rollback safeguards.
+
+- [x] Draft a brief presentation script explaining the donation reconciliation migration safety controls, execution sequence, verification gate, and rollback path.
+
+- [x] Expand the donation reconciliation migration script into a stakeholder sign-off slide deck with detailed speaker notes and explicit production-execution boundaries.
+
+- [x] Draft an engineering and finance team email update for the donation reconciliation migration review, including safety controls, no-production-change status, sign-off roles, and next steps.
+
+- [x] Draft a presentation script for the engineering and finance team meeting reviewing the donation reconciliation migration update email, with speaking roles, discussion prompts, and sign-off criteria.
+
+- [x] Draft a sanitized leadership email requesting approval for the donation reconciliation dry-run, including prerequisite evidence, accountable roles, and an explicit no-commit boundary.
+
+- [x] Draft a staging-only post-dry-run validation checklist with read-only SQL queries for reconciliation totals, duplicate references, status/currency exclusions, audit behavior, and rollback integrity.
+
+- [x] Publish the supplied 2021 Nigerian Volunteers Award event-support evidence in an accurate community-support context without presenting HMSI as the award recipient.
+- [x] Audit current HMSI administrator and president authorization paths and document a least-privilege executive-access model with audit and high-risk-action safeguards.
+
+- [x] Write a post-migration production monitoring plan for the final donation reconciliation apply run, covering integrity checks, public health, alerts, escalation, ownership, and rollback triggers.
+
+- [x] Draft a condensed 10-minute executive briefing script for senior leadership reviewing the donation reconciliation migration decision, controls, risks, and required approvals.
+- [x] Design a schema-aware migration plan for individually scoped executive and administrator roles, permission grants, delegations, approvals, and RLS enforcement without applying production changes.
+- [x] Draft an idempotent, dry-run-first PostgreSQL migration script for scoped roles and audited executive access to volunteer, worker, member, and community-room records; do not grant shared or anonymous bypass access.
+- [x] Validate the migration assumptions against the existing HMSI database scripts and document required staging tests, rollback steps, and explicit approval gates.
