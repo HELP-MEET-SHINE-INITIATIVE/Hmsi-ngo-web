@@ -9,6 +9,13 @@ const partnerConnections = [
     icon: Handshake,
   },
   {
+    name: 'Nigerian Volunteers Award (NVA)',
+    category: 'Community-support event evidenced',
+    description: 'HMSI is identified as a supporter in a 2021 Nigerian Volunteers Award “Amplifying Good Works” event flyer for Lagos. This is recorded as event support, not an award received by HMSI or a current formal partnership.',
+    href: 'https://www.instagram.com/theofficialnva/',
+    icon: Handshake,
+  },
+  {
     name: 'West Africa Civil Society Institute (WACSI)',
     category: 'Learning and capacity connection',
     description: 'A regional civil-society learning hub referenced in HMSI training and newsletter materials. The public source lists programmes, publications, events, and capacity work.',
@@ -45,7 +52,7 @@ export default function PartnerEcosystem() {
         <div className="max-w-3xl">
           <p className="text-xs font-black uppercase tracking-[0.22em] text-[#b56b3b]">Networks, learning &amp; civic-society connections</p>
           <h2 id="partner-ecosystem-heading" className="mt-4 text-4xl font-black tracking-[-0.04em] sm:text-5xl">Organizations connected to HMSI’s learning and civic-society ecosystem.</h2>
-          <p className="mt-5 text-base leading-7 text-[#66716a]">The entries below reflect relationships, invitations, learning connections, or support referenced in HMSI records. They are not all presented as current signed partnerships, endorsements, sponsors, or funders. Formal status should be confirmed through the relevant organization and an HMSI agreement register.</p>
+          <p className="mt-5 text-base leading-7 text-[#66716a]">The entries below reflect relationships, invitations, learning connections, event support, or other support referenced in HMSI records. They are not all presented as current signed partnerships, endorsements, sponsors, or funders. Formal status should be confirmed through the relevant organization and an HMSI agreement register.</p>
         </div>
         <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {partnerConnections.map(({ name, category, description, href, icon: Icon }) => (

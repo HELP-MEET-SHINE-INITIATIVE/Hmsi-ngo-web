@@ -7,6 +7,7 @@ const read = (path) => readFile(new URL(path, root), 'utf8');
 
 const expectedEntries = [
   ['Nigeria Network of NGOs (NNNGO)', 'https://nnngo.org/'],
+  ['Nigerian Volunteers Award (NVA)', 'https://www.instagram.com/theofficialnva/'],
   ['West Africa Civil Society Institute (WACSI)', 'https://wacsi.org/'],
   ['TechSoup', 'https://wacsi.org/cyber-attacks-wacsi-techsoup-train-36-civic-actors-on-digital-security-and-safety/'],
   ['Global Call to Action Against Poverty (GCAP) Africa', 'https://gcap.global/region/africa/'],
@@ -21,6 +22,7 @@ test('partner ecosystem includes all supplied organizations with evidence-aware 
   }
   assert.match(component, /not all presented as current signed partnerships/);
   assert.match(component, /agreement register/);
+  assert.match(component, /event support, not an award received by HMSI/);
 });
 
 test('partnerships page uses the shared partner ecosystem section', async () => {
