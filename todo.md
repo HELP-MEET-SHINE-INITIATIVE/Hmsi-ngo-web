@@ -861,3 +861,93 @@ The existing data model does not currently provide a volunteer task-assignment t
 - [x] Add protected President’s Office governance views and administrator routes for scoped delegation, approval queues, automation run history, and branch summaries.
 - [x] Add static and behavioral contract coverage, apply reviewed migrations, and run full regression, build, and passive production checks.
 - [x] Commit, push, and verify the production deployment; do not enable recurring outbound notifications without a separate bounded confirmation.
+
+- [x] Add Vitest unit and integration coverage for security-event route timeout handling, redaction, and fail-closed 401/403 preservation.
+
+- [x] Design privacy-safe alert thresholds, routing, incident response, containment, recovery, and post-incident controls for repeated origin failures and security-event database timeouts.
+
+- [x] Add a secure CI/CD pipeline that validates and provisions Prometheus alert rules and Grafana dashboards with environment-scoped secrets and post-deployment verification.
+
+- [x] Add Semgrep custom rules and fixtures for sensitive-header logging, request serialization, dynamic metric labels, and unsafe security-event payloads; runtime Semgrep execution remains a CI/environment validation step.
+
+- [x] Add a local Semgrep contract test that asserts known sensitive-header violations are detected and the safe fixture remains clean; full Semgrep execution awaits a Semgrep-enabled environment.
+
+- [x] Integrate the custom Semgrep rules into a local pre-commit hook and required GitHub Actions pull-request gate.
+
+- [x] Add a fail-closed Python validator for Semgrep suppression metadata, exact rule IDs, required fields, and UTC expiration dates.
+
+- [x] Add a privacy-minimized exception-summary script with idempotent Slack alerting for expired and expiring Semgrep suppressions; keep scheduling disabled until separately authorized.
+
+- [x] Document a secure recurring GitHub Actions workflow for Semgrep exception summaries with protected webhook secrets and durable deduplication; do not enable it without explicit cadence and recipient authorization.
+
+- [x] Design a private durable state schema for expired-security-exception alert deduplication, compare-and-set delivery, retention, RLS, and least-privilege access; production migration remains separately gated.
+
+- [x] Add an additive Supabase migration for durable security-exception alert state, delivery attempts, RLS, grants, and atomic claim semantics; keep production application separately gated.
+
+- [x] Add a server-only TypeScript client for atomic security-exception alert claim, sent, and failed Supabase stored procedures with typed validation and tests.
+
+- [x] Add aggregate-only Grafana dashboard queries/schema for alert delivery success rates, failure outcomes, duplicate suppression, and retry queue backlogs.
+
+- [x] Add a server-side TypeScript Prometheus exporter for aggregate alert delivery success, retry backlog, retry age, and attempt outcomes with privacy-safe labels.
+
+- [x] Design secure Prometheus and Alertmanager PagerDuty routing for critical retry-queue backlog, with deduplication, privacy-safe annotations, testing, and rollback; do not enable live paging.
+
+- [x] Add a provider-neutral TypeScript circuit breaker for Slack/PagerDuty delivery with bounded timeouts, retry-after support, provider isolation, and tests.
+
+- [x] Write a deployment and operational runbook for security-alert triage, circuit-breaker tuning, PagerDuty escalation, privacy-safe evidence handling, rollback, and recovery.
+
+- [x] Add reviewable Terraform IaC for Supabase migration application, GitHub Actions AWS OIDC role, and staging monitoring resources with least-privilege defaults; do not provision without explicit authorization.
+
+- [x] Add a secure GitHub Actions Terraform CI workflow for fmt, lint, validate, OIDC-backed read-only plan, secret-safe artifacts, and no apply step.
+
+- [x] Add a separate protected Terraform CD workflow that triggers only after a pull request is merged into main, plans with OIDC, and applies only the reviewed saved plan.
+
+- [x] Add an approval-gated Terraform rollback workflow that restores a selected previous remote state version after apply failure, with state backup, OIDC, workspace verification, and reconciliation guidance.
+
+- [x] Add a protected read-only workflow that lists the five newest S3 Terraform state VersionIds and safe metadata without downloading state contents.
+
+- [x] Integrate failure-only S3 state-version discovery into the Terraform CD workflow without automatic rollback or state mutation.
+
+- [x] Add sanitized automatic GitHub issue creation to the Terraform CD apply-failure path with safe state-version metadata, bounded diagnostics, deduplication, and no raw log leakage.
+
+- [x] Add an authorized issue-comment Terraform rollback workflow with exact VersionId parsing, allowlisted commenters, protected approval, replay guards, and sanitized issue audit updates.
+
+- [x] Run a verification-only terraform plan after rollback, with no refresh, apply, state mutation, or plan artifact publication.
+
+- [x] Close the Terraform failure issue only when rollback succeeds and the post-rollback verification plan returns match; leave it open for all other outcomes.
+
+- [x] Defer team-slug binding at the user's direction; use the protected production Environment for manually configured required reviewers.
+
+- [x] Configure the Terraform CD apply behind the protected production Environment in YAML without binding a team slug, and document manual required-reviewer setup.
+
+- [x] Notify Slack when the production CD job reaches the manual approval gate, using a protected webhook secret and sanitized deployment metadata without bypassing approval.
+
+- [x] Add a supported direct GitHub Actions run link to the Slack production approval notification and document the reviewer navigation boundary.
+
+- [x] Configure the protected production Environment with a 24-hour approval wait timer so unapproved deployments fail automatically, and document the required GitHub Settings control.
+
+- [x] Add an idempotent sanitized pull-request comment when a merged production deployment reaches the manual approval path, with least-privilege pull-request write permission and no approval bypass.
+
+- [x] Delete only the marked pending-approval pull-request comment after successful production deployment, while retaining it for failed, cancelled, timed-out, or rejected runs.
+
+- [x] Send a final sanitized Slack notification after production apply completion, reporting success or failure without exposing Terraform output or state data.
+
+- [x] Add the `deployed-to-prod` label to the merged pull request only after successful production deployment, with least-privilege GitHub permissions and no failed-run labeling.
+
+- [x] Include the merged PR number, author login, and merged PR link in the final Slack deployment-status notification without adding untrusted PR content.
+
+- [x] Create and validate a reusable HMSI secure portal governance and Terraform deployment-controls skill without secrets or project-specific credentials.
+
+- [ ] Design and safely implement a complete HMSI transactional and lifecycle email automation system with consent, suppression, idempotency, and draft-first activation controls.
+
+- [x] Create an Excel tracking log for Goodstack verification and other platform applications with status controls, evidence tracking, follow-up dates, dashboard summaries, and secure handling guidance.
+
+- [x] Create a visual chart for application statuses and follow-up priorities from the HMSI tracker data, with a blank-state safeguard when no records are present.
+
+- [x] Add clearly labeled synthetic sample application records to a preview copy of the HMSI tracker and regenerate the status and follow-up-priority charts without changing the clean master template.
+
+- [x] Export high-priority follow-up items from the populated tracker preview into a separate actionable checklist with owners, due dates, status controls, and synthetic-data labeling.
+
+- [x] Create a visual chart showing task-status and owner distributions from the exported high-priority checklist, preserving the synthetic preview label.
+
+- [x] Add the verified 2020 Entrepreneurship Support NGO of the Year – West Africa award to appropriate HMSI public portal surfaces, metadata, and trust/recognition content with consistent attribution.

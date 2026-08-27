@@ -18,6 +18,7 @@ import FundraisingGrowthHub from "../components/FundraisingGrowthHub";
 import MicroDonationFastTrack from "../components/MicroDonationFastTrack";
 import RecentSupportersTicker from "../components/RecentSupportersTicker";
 import VolunteerPublisherBanner from "../components/VolunteerPublisherBanner";
+import AwardRecognition from "../components/AwardRecognition";
 import { LAUNCH_CAMPAIGN_ID } from "../lib/launchSeed";
 import {
   ArrowRight,
@@ -328,7 +329,7 @@ export default function Home() {
               Donate. Volunteer. <span className="text-[#e1ad45]">Support community programmes.</span>
             </h1>
             <p className="mt-8 max-w-xl text-lg leading-8 text-white/80 sm:text-xl">
-              Help Meet Shine Initiative (HMSI) is a Nigerian nonprofit based in Benin City, Edo State. Learn about its stated programmes, support an approved cause, volunteer your skills, or contact the organization about partnerships.
+              Help Meet Shine Initiative (HMSI) is a Nigerian nonprofit based in Benin City, Edo State. Our name expresses how we work: we walk alongside people and communities, help their potential become visible, and organize that support as a lasting social-impact initiative. <Link href="/about" className="font-bold text-[#e1ad45] underline decoration-[#e1ad45]/50 underline-offset-4 transition hover:text-white">Learn what HMSI means</Link>.
             </p>
             <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center">
               <Link href="/donate" className="group inline-flex items-center justify-center gap-3 rounded-full bg-[#e1ad45] px-7 py-4 text-sm font-black uppercase tracking-[0.15em] text-[#17221e] transition hover:bg-white">
@@ -454,27 +455,29 @@ export default function Home() {
         </section>
 
         <section id="impact" className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 lg:px-12 lg:py-28">
-          <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
+          <div className="grid gap-12 lg:grid-cols-2 lg:items-end">
             <div>
-              <p className="mb-5 text-xs font-black uppercase tracking-[0.22em] text-[#b56b3b]">Reported programme indicators</p>
+              <p className="mb-4 text-xs font-black uppercase tracking-[0.22em] text-[#b56b3b]">Measurable outcomes</p>
               <h2 className="max-w-xl text-4xl font-black leading-[1.02] tracking-[-0.04em] text-[#17221e] sm:text-6xl">Programme figures reported by HMSI.</h2>
             </div>
-              <p className="max-w-xl text-lg leading-8 text-[#66716a] lg:justify-self-end">This section presents figures reported by HMSI. Each figure should be read with its reporting period, methodology, and supporting records.</p>
+            <p className="max-w-xl text-lg leading-8 text-[#66716a] lg:justify-self-end">This section presents figures reported by HMSI. Each figure should be read with its reporting period, methodology, and supporting records.</p>
           </div>
-          <div className="mt-14 grid gap-px overflow-hidden rounded-3xl bg-[#cbd2ca] sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {[
               [48000, "+", "HMSI-reported people supported"],
-              [126, "", "HMSI-reported community projects"],
-              [12, "", "HMSI-reported states reached"],
-              [94, "%", "HMSI-reported share to programmes"],
+              [12, "+", "active community programmes"],
+              [100, "+", "HMSI-reported field team"],
+              [2020, "", "award-winning service"],
             ].map(([target, suffix, label]) => (
-              <div key={label as string} className="bg-[#e9f0e9] p-8 sm:p-10">
+              <div key={label as string} className="rounded-[40px] border border-[#d9d6ce] bg-white p-10 text-center">
                 <p className="text-5xl font-black tracking-[-0.06em] text-[#1e5b49] sm:text-6xl"><ImpactCounter target={target as number} suffix={suffix as string} /></p>
-                <p className="mt-5 max-w-[140px] text-xs font-black uppercase leading-5 tracking-[0.14em] text-[#657169]">{label as string}</p>
+                <p className="mt-4 text-xs font-black uppercase tracking-widest text-[#66716a]">{label as string}</p>
               </div>
             ))}
           </div>
         </section>
+
+        <AwardRecognition />
 
         {topImpactFundraisers.length > 0 && <section id="top-impact-fundraisers" className="border-y border-[#d9d6ce] bg-[#f6f4ef]">
           <div className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 lg:px-12 lg:py-24">

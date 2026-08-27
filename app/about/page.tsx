@@ -2,13 +2,14 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import Footer from '../../components/Footer';
+import AwardRecognition from '../../components/AwardRecognition';
 
 export const metadata: Metadata = {
   title: 'Our Story & Mission | About HMSI',
-  description: 'Learn about Help Meet Shine Initiative (HMSI), its stated activities, governance, and public registration information in Nigeria.',
+  description: 'Learn about Help Meet Shine Initiative (HMSI), its stated activities, governance, public registration information, and 2020 Entrepreneurship Support NGO of the Year – West Africa recognition.',
   openGraph: {
     title: 'Our Story & Mission | HMSI',
-    description: 'Public information about Help Meet Shine Initiative (HMSI), including its stated activities, governance, and location in Nigeria.',
+    description: 'Public information about Help Meet Shine Initiative (HMSI), including its stated activities, governance, location in Nigeria, and 2020 Entrepreneurship Support NGO of the Year – West Africa recognition.',
     url: 'https://www.hmsi.org.ng/about',
   },
   alternates: {
@@ -47,6 +48,7 @@ export default function AboutPage() {
     'foundingDate': '2019-02-21',
     'identifier': 'CAC/IT/NO 125103',
     'taxID': '21249981',
+    'award': '2020 Entrepreneurship Support NGO of the Year – West Africa',
     'sameAs': [
       'https://www.instagram.com/hmsinitiative/',
       'https://www.facebook.com/@hmsinitiative/',
@@ -112,6 +114,32 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
+      <section aria-labelledby="name-meaning-heading" className="bg-white border-b border-slate-200 py-16 px-6 md:py-20">
+        <div className="max-w-6xl mx-auto">
+          <div className="max-w-3xl mb-10">
+            <p className="text-xs font-black uppercase tracking-[0.22em] text-red-600 mb-4">Why the name matters</p>
+            <h2 id="name-meaning-heading" className="text-3xl md:text-4xl font-black uppercase tracking-tight text-slate-900 mb-4">Help Meet. Shine. Initiative.</h2>
+            <p className="text-lg leading-relaxed text-slate-600">Our name is a statement of how we serve: by walking alongside people, helping potential become visible, and organizing practical support for lasting community impact.</p>
+          </div>
+          <div className="grid gap-5 md:grid-cols-3">
+            <article className="border-t-4 border-red-600 bg-slate-50 p-6 md:p-8">
+              <p className="text-4xl font-black text-red-600">01</p>
+              <h3 className="mt-5 text-xl font-black uppercase tracking-tight text-slate-900">Help Meet</h3>
+              <p className="mt-3 text-sm leading-6 text-slate-600">Drawn from the Biblical framing of a suitable helper, partner, or companion, “Help Meet” reflects collaboration, support, upliftment, and walking alongside people rather than acting from above them.</p>
+            </article>
+            <article className="border-t-4 border-teal-500 bg-slate-50 p-6 md:p-8">
+              <p className="text-4xl font-black text-teal-600">02</p>
+              <h3 className="mt-5 text-xl font-black uppercase tracking-tight text-slate-900">Shine</h3>
+              <p className="mt-3 text-sm leading-6 text-slate-600">“Shine” speaks of transformation, visibility, potential, and success: helping individuals and communities move from hardship or obscurity toward dignity, confidence, and recognized value.</p>
+            </article>
+            <article className="border-t-4 border-amber-500 bg-slate-50 p-6 md:p-8">
+              <p className="text-4xl font-black text-amber-600">03</p>
+              <h3 className="mt-5 text-xl font-black uppercase tracking-tight text-slate-900">Initiative</h3>
+              <p className="mt-3 text-sm leading-6 text-slate-600">“Initiative” gives the vision an organized structure. It positions HMSI as a purposeful nonprofit and social-impact enterprise committed to responsible action, partnership, and sustainable service.</p>
+            </article>
+          </div>
+        </div>
+      </section>
       <section className="bg-slate-50 border-y border-slate-200 py-16 px-6 md:py-20">
         <div className="max-w-6xl mx-auto">
           <div className="max-w-3xl mb-10">
@@ -150,6 +178,7 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
+      <AwardRecognition />
       {/* MISSION & VISION GRID */}
       <section className="bg-slate-900 text-white py-20 px-6">
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">          

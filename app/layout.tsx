@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     template: '%s | Help Meet Shine Initiative (HMSI)',
     default: 'Help Meet Shine Initiative (HMSI) | Nigeria nonprofit organization',
   },
-  description: 'Help Meet Shine Initiative (HMSI) is a Nigerian nonprofit organization based in Benin City, Edo State, working in humanitarian assistance, education, livelihoods, and community development.',
+  description: 'Help Meet Shine Initiative (HMSI) is a Nigerian nonprofit organization based in Benin City, Edo State, working in humanitarian assistance, education, livelihoods, and community development. HMSI also shares its 2020 Entrepreneurship Support NGO of the Year – West Africa recognition.',
   keywords: ['Help Meet Shine Initiative', 'HMSI Nigeria', 'Nigerian nonprofit organization', 'humanitarian organization Benin City', 'community development Nigeria'],
   authors: [{ name: 'HMSI' }],
   creator: 'HMSI',
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
   openGraph: {
     title: 'Help Meet Shine Initiative (HMSI) | Nigerian nonprofit organization',
-    description: 'Public information about Help Meet Shine Initiative, its stated activities, governance, and ways to contact or support the organization.',
+    description: 'Public information about Help Meet Shine Initiative, its stated activities, governance, 2020 Entrepreneurship Support NGO of the Year – West Africa recognition, and ways to contact or support the organization.',
     url: 'https://www.hmsi.org.ng',
     siteName: 'Help Meet Shine Initiative',
     images: [
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Help Meet Shine Initiative (HMSI) | About the organization',
-    description: 'Learn about Help Meet Shine Initiative, its stated program areas in Nigeria, and public contact information.',
+    description: 'Learn about Help Meet Shine Initiative, its stated program areas in Nigeria, its 2020 Entrepreneurship Support NGO of the Year – West Africa recognition, and public contact information.',
     images: ['/opengraph-image.png'],
   },
   icons: {
@@ -77,6 +77,9 @@ export default function RootLayout({
     'foundingDate': '2019-02-21',
     'identifier': 'CAC/IT/NO 125103',
     'taxID': '21249981',
+    'award': '2020 Entrepreneurship Support NGO of the Year – West Africa',
+    'awardSource': 'African Excellence Awards',
+    'awardSourceUrl': 'https://meamarkets.digital/winners/help-meet-shine-initiative-2/',
     'address': {
       '@type': 'PostalAddress',
       'addressLocality': 'Benin City',
