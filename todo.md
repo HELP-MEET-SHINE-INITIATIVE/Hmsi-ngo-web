@@ -951,3 +951,7 @@ The existing data model does not currently provide a volunteer task-assignment t
 - [x] Create a visual chart showing task-status and owner distributions from the exported high-priority checklist, preserving the synthetic preview label.
 
 - [x] Add the verified 2020 Entrepreneurship Support NGO of the Year – West Africa award to appropriate HMSI public portal surfaces, metadata, and trust/recognition content with consistent attribution.
+
+- [x] Create a stakeholder presentation slide summarizing the 2020 award update, portal publication surfaces, governance accomplishments, and remaining readiness boundaries.
+
+- [x] Add evidence-aware partner and network entries from the supplied correspondence to the HMSI partnerships page, with relationship categories, source notes, and no unsupported formal-partnership claims.
