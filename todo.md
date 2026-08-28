@@ -989,3 +989,6 @@ The existing data model does not currently provide a volunteer task-assignment t
 - [x] Design a schema-aware migration plan for individually scoped executive and administrator roles, permission grants, delegations, approvals, and RLS enforcement without applying production changes.
 - [x] Draft an idempotent, dry-run-first PostgreSQL migration script for scoped roles and audited executive access to volunteer, worker, member, and community-room records; do not grant shared or anonymous bypass access.
 - [x] Validate the migration assumptions against the existing HMSI database scripts and document required staging tests, rollback steps, and explicit approval gates.
+- [x] Design a fail-closed review queue for matching historical governance-role emails to named Supabase Auth user IDs before any role activation.
+- [x] Draft a dry-run-first SQL backfill and separately approved activation script that handles no-match, duplicate-match, mismatch, and already-bound role records safely.
+- [x] Validate the backfill script structure and document the evidence, co-approval, staging verification, rollback, and production cutover requirements.

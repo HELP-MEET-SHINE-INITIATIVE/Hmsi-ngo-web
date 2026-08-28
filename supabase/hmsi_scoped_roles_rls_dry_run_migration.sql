@@ -138,15 +138,13 @@ alter table public.organization_roles
 alter table public.organization_roles
   add column if not exists revoked_by_auth_user_id uuid references auth.users(id) on delete set null;
 
--- Keep historic rows intact, but bind only exact lower-cased email matches.
--- New privileged roles must provide auth_user_id explicitly through a protected
--- server route; email is retained as audit-friendly display metadata only.
-update public.organization_roles as role_record
-set auth_user_id = auth_user.id
-from auth.users as auth_user
-where role_record.auth_user_id is null
-  and role_record.principal_email = lower(auth_user.email)
-  and auth_user.email is not null;
+-- Do not bind historical roles through an automatic email match. Email matching
+-- is only a candidate-discovery signal; an exact match cannot prove that the
+-- current Auth account belongs to the person named in the historic role record.
+-- Apply hmsi_role_identity_backfill_review_dry_run.sql after this migration to
+-- create a private review queue. New privileged roles must provide an approved
+-- auth_user_id through a protected server route; email is retained only as
+-- audit-friendly display metadata.
 
 drop constraint if exists organization_roles_role_check;
 alter table public.organization_roles

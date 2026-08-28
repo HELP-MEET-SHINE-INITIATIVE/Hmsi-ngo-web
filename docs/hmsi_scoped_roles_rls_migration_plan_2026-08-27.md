@@ -14,7 +14,7 @@ This boundary preserves executive operational visibility without removing accoun
 
 ## Current-state findings
 
-The existing governance schema already provides `organization_roles`, `authority_delegations`, `approval_requests`, `approval_events`, and `automation_runs`. However, it records role assignments by email and does not bind every role to a Supabase Auth user ID or to atomic capabilities. The current President’s Office is authenticated through the same generic administrator cookie as the wider admin centre, rather than a distinct President identity.
+The existing governance schema already provides `organization_roles`, `authority_delegations`, `approval_requests`, `approval_events`, and `automation_runs`. However, it records role assignments by email and does not bind every role to a Supabase Auth user ID or to atomic capabilities. The current President’s Office is authenticated through the same generic administrator cookie as the wider admin centre, rather than a distinct President identity. An email match alone is insufficient proof of identity, so the schema migration now leaves historic roles unbound and requires the companion review-first backfill process before activation.
 
 The portal contains two room models. `role_room_messages` stores worker, volunteer, and member role-room messages, while `community_posts`, `community_comments`, and `community_likes` contain the broader community feed. Existing server APIs use the Supabase admin client after their application checks. The original community-table migration also leaves broad direct-client public policies in place. The proposed script replaces those known policies with limited public read access for published `all`-audience content and scoped authenticated access for role rooms.
 
@@ -48,7 +48,7 @@ The accompanying [`hmsi_scoped_roles_rls_dry_run_migration.sql`](../supabase/hms
 
 | Migration area | Change | Reason |
 |---|---|---|
-| Individual role identity | Adds `auth_user_id`, `assigned_by_auth_user_id`, and `revoked_by_auth_user_id` to `organization_roles`. | Ties privileged authority to named authentication identities rather than a shared email/password session. |
+| Individual role identity | Adds `auth_user_id`, `assigned_by_auth_user_id`, and `revoked_by_auth_user_id` to `organization_roles`; historic email-only rows stay unbound until reviewed. | Ties privileged authority to named authentication identities rather than a shared email/password session. |
 | Capability grants | Creates `role_capability_grants` and `role_capability_templates`. | Separates what a role can do from its display name and enables future narrow delegations. |
 | Delegation binding | Adds Auth IDs and additional bounded delegation scopes. | Makes time-limited delegation enforceable using a named account, expiry, and purpose. |
 | Approval policy | Creates `approval_policies` and extends approval requests/events with identity, evidence, target, and expiry metadata. | Provides an enforceable control point for actions that require a second approver. |
@@ -84,7 +84,7 @@ First, export a metadata-only inventory of the production/staging grants, existi
 
 ### Stage 2 — Staged apply and identity binding
 
-After review, change **only** the final `ROLLBACK` to `COMMIT` in a copy of the reviewed script and run it once in staging. Create disposable Auth users for President, Operations Administrator, Finance Administrator, Editorial Administrator, people/safeguarding administrator, a volunteer, a worker, a member, and an unauthorized user. Assign roles through a protected seed/admin flow using the Auth user ID, not email alone.
+After review, change **only** the final `ROLLBACK` to `COMMIT` in a copy of the reviewed script and run it once in staging. Then use the separate [`hmsi_role_identity_backfill_review_dry_run.sql`](../supabase/hmsi_role_identity_backfill_review_dry_run.sql) package to create the private, review-first candidate queue. Create disposable Auth users for President, Operations Administrator, Finance Administrator, Editorial Administrator, people/safeguarding administrator, a volunteer, a worker, a member, and an unauthorized user. Assign roles through a protected seed/admin flow using the Auth user ID, not email alone.
 
 ### Stage 3 — Server and dashboard cutover
 

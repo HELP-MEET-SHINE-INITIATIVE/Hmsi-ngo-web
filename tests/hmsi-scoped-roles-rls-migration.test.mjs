@@ -5,9 +5,15 @@ import { fileURLToPath } from 'node:url';
 
 const migrationPath = fileURLToPath(new URL('../supabase/hmsi_scoped_roles_rls_dry_run_migration.sql', import.meta.url));
 const planPath = fileURLToPath(new URL('../docs/hmsi_scoped_roles_rls_migration_plan_2026-08-27.md', import.meta.url));
+const backfillPath = fileURLToPath(new URL('../supabase/hmsi_role_identity_backfill_review_dry_run.sql', import.meta.url));
+const backfillRunbookPath = fileURLToPath(new URL('../docs/hmsi_role_identity_backfill_activation_runbook_2026-08-27.md', import.meta.url));
 
 async function readMigration() {
   return readFile(migrationPath, 'utf8');
+}
+
+async function readBackfill() {
+  return readFile(backfillPath, 'utf8');
 }
 
 test('scoped-role migration remains a dry-run, prerequisite-checked package', async () => {
@@ -29,6 +35,8 @@ test('scoped-role migration ties capabilities to named Supabase Auth identities'
   assert.match(sql, /create table if not exists public\.authorization_audit_events/i);
   assert.match(sql, /create or replace function hmsi_auth\.has_capability/i);
   assert.match(sql, /revoke all on table public\.organization_roles from anon, authenticated/i);
+  assert.doesNotMatch(sql, /update public\.organization_roles as role_record[\s\S]*from auth\.users as auth_user/i);
+  assert.match(sql, /hmsi_role_identity_backfill_review_dry_run\.sql/i);
 });
 
 test('executive room access is comprehensive but direct room writes remain unavailable', async () => {
@@ -51,4 +59,25 @@ test('implementation plan preserves independent approval for high-risk operation
   assert.match(sql, /\('governance\.role_grant', 2, false, true\)/);
   assert.match(plan, /self-approval/i);
   assert.match(plan, /not authorized for database application or authentication changes/i);
+});
+
+test('email-match backfill only creates a private candidate review queue', async () => {
+  const sql = await readBackfill();
+  assert.match(sql, /begin;[\s\S]*rollback;\s*$/i);
+  assert.match(sql, /create table if not exists public\.role_identity_backfill_reviews/i);
+  assert.match(sql, /revoke all on table public\.role_identity_backfill_reviews from anon, authenticated/i);
+  assert.match(sql, /Never auto-populate organization_roles\.auth_user_id/i);
+  assert.match(sql, /email_confirmed_at/i);
+  assert.match(sql, /candidate_not_eligible/i);
+  assert.doesNotMatch(sql, /set auth_user_id\s*=/i);
+  assert.doesNotMatch(sql, /insert into public\.role_capability_grants/i);
+});
+
+test('email-match activation runbook requires independent evidence and approval', async () => {
+  const runbook = await readFile(backfillRunbookPath, 'utf8');
+  assert.match(runbook, /two \*\*distinct\*\* approver Auth UUIDs/i);
+  assert.match(runbook, /candidate cannot be an approver/i);
+  assert.match(runbook, /requester self-approval/i);
+  assert.match(runbook, /not a direct browser or SQL-console flow/i);
+  assert.match(runbook, /first President or first Operations Administrator/i);
 });
