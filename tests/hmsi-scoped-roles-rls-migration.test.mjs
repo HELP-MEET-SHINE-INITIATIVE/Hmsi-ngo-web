@@ -7,6 +7,7 @@ const migrationPath = fileURLToPath(new URL('../supabase/hmsi_scoped_roles_rls_d
 const planPath = fileURLToPath(new URL('../docs/hmsi_scoped_roles_rls_migration_plan_2026-08-27.md', import.meta.url));
 const backfillPath = fileURLToPath(new URL('../supabase/hmsi_role_identity_backfill_review_dry_run.sql', import.meta.url));
 const backfillRunbookPath = fileURLToPath(new URL('../docs/hmsi_role_identity_backfill_activation_runbook_2026-08-27.md', import.meta.url));
+const activationRpcPath = fileURLToPath(new URL('../supabase/hmsi_activate_role_rpc_dry_run.sql', import.meta.url));
 
 async function readMigration() {
   return readFile(migrationPath, 'utf8');
@@ -14,6 +15,10 @@ async function readMigration() {
 
 async function readBackfill() {
   return readFile(backfillPath, 'utf8');
+}
+
+async function readActivationRpc() {
+  return readFile(activationRpcPath, 'utf8');
 }
 
 test('scoped-role migration remains a dry-run, prerequisite-checked package', async () => {
@@ -79,6 +84,26 @@ test('email-match backfill only creates a private candidate review queue', async
   assert.doesNotMatch(sql, /source_email_fingerprint|\bmd5\s*\(/i);
   assert.doesNotMatch(sql, /set auth_user_id\s*=/i);
   assert.doesNotMatch(sql, /insert into public\.role_capability_grants/i);
+});
+
+test('atomic activation RPC is locked, fail-closed, and dry-run only', async () => {
+  const sql = await readActivationRpc();
+  assert.match(sql, /begin;[\s\S]*rollback;\s*$/i);
+  assert.match(sql, /create or replace function hmsi_auth\.activate_role_identity/i);
+  assert.match(sql, /auth\.uid\(\)\s+<>\s+p_executing_auth_user_id/i);
+  assert.match(sql, /hmsi_auth\.has_capability\('governance\.roles\.manage'/i);
+  assert.match(sql, /from public\.role_identity_backfill_reviews[\s\S]*for update/i);
+  assert.match(sql, /from public\.organization_roles[\s\S]*for update/i);
+  assert.match(sql, /from public\.approval_requests[\s\S]*for update/i);
+  assert.match(sql, /review_status <> 'approved_for_activation'/i);
+  assert.match(sql, /lower\(btrim\(v_candidate\.email\)\) is distinct from v_source_email/i);
+  assert.match(sql, /count\(distinct event\.actor_auth_user_id\)/i);
+  assert.match(sql, /Insufficient independent role-grant approvals/i);
+  assert.match(sql, /Role already has capability history/i);
+  assert.match(sql, /get diagnostics v_capability_count = row_count/i);
+  assert.match(sql, /insert into public\.authorization_audit_events/i);
+  assert.match(sql, /revoke all on function hmsi_auth\.activate_role_identity/i);
+  assert.doesNotMatch(sql, /grant execute on function hmsi_auth\.activate_role_identity[\s\S]*to anon/i);
 });
 
 test('email-match activation runbook requires independent evidence and approval', async () => {

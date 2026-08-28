@@ -994,3 +994,6 @@ The existing data model does not currently provide a volunteer task-assignment t
 - [x] Validate the backfill script structure and document the evidence, co-approval, staging verification, rollback, and production cutover requirements.
 - [x] Remove the deterministic email fingerprint from the role-identity review queue and rely on a live activation-time identity recheck instead.
 - [x] Harden review-queue refresh transitions so changed candidates become stale instead of silently replacing a pending candidate.
+- [x] Design an atomic role-activation RPC/server transaction with row-level locks, independent approval validation, idempotent capability grants, and complete rollback on any failed assertion.
+- [x] Draft the reviewed SQL/RPC structure and protected server-call contract without applying it to production.
+- [x] Validate the activation RPC contract against the HMSI schema and document staging concurrency tests and deployment gates.
