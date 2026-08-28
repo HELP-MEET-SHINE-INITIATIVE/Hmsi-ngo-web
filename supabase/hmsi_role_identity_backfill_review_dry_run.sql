@@ -54,13 +54,13 @@ $$;
 
 -- ============================================================================
 -- 1. Private review queue. The source email remains in organization_roles;
---    this queue stores a non-authorizing fingerprint, outcome, and candidate ID
---    to minimize duplicate personal-data storage.
+--    this queue stores only non-authorizing candidate state and outcome. The
+--    source email remains solely in organization_roles and is rechecked in the
+--    protected activation route.
 -- ============================================================================
 create table if not exists public.role_identity_backfill_reviews (
   id uuid primary key default gen_random_uuid(),
   organization_role_id uuid not null unique references public.organization_roles(id) on delete cascade,
-  source_email_fingerprint text not null check (source_email_fingerprint ~ '^[a-f0-9]{32}$'),
   candidate_auth_user_id uuid references auth.users(id) on delete set null,
   exact_auth_match_count smallint not null default 0 check (exact_auth_match_count >= 0),
   candidate_email_confirmed boolean,
@@ -144,7 +144,6 @@ with normalized_roles as (
 ), discovery as (
   select
     summary.organization_role_id,
-    md5(coalesce(summary.normalized_email, '')) as source_email_fingerprint,
     case when summary.exact_auth_match_count = 1 then summary.candidate_auth_user_id else null end as candidate_auth_user_id,
     summary.exact_auth_match_count,
     case when summary.exact_auth_match_count = 1 then summary.candidate_email_confirmed else null end as candidate_email_confirmed,
@@ -162,7 +161,6 @@ with normalized_roles as (
 )
 insert into public.role_identity_backfill_reviews (
   organization_role_id,
-  source_email_fingerprint,
   candidate_auth_user_id,
   exact_auth_match_count,
   candidate_email_confirmed,
@@ -171,7 +169,6 @@ insert into public.role_identity_backfill_reviews (
 )
 select
   organization_role_id,
-  source_email_fingerprint,
   candidate_auth_user_id,
   exact_auth_match_count,
   candidate_email_confirmed,
@@ -179,8 +176,7 @@ select
   review_status
 from discovery
 on conflict (organization_role_id) do update
-set source_email_fingerprint = excluded.source_email_fingerprint,
-    candidate_auth_user_id = excluded.candidate_auth_user_id,
+set candidate_auth_user_id = excluded.candidate_auth_user_id,
     exact_auth_match_count = excluded.exact_auth_match_count,
     candidate_email_confirmed = excluded.candidate_email_confirmed,
     candidate_not_banned = excluded.candidate_not_banned,

@@ -69,6 +69,7 @@ test('email-match backfill only creates a private candidate review queue', async
   assert.match(sql, /Never auto-populate organization_roles\.auth_user_id/i);
   assert.match(sql, /email_confirmed_at/i);
   assert.match(sql, /candidate_not_eligible/i);
+  assert.doesNotMatch(sql, /source_email_fingerprint|\bmd5\s*\(/i);
   assert.doesNotMatch(sql, /set auth_user_id\s*=/i);
   assert.doesNotMatch(sql, /insert into public\.role_capability_grants/i);
 });

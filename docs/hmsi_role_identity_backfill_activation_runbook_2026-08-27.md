@@ -29,7 +29,7 @@ Both SQL artifacts end with `ROLLBACK` for staging review. To persist their DDL 
 
 Create named, disposable Auth accounts for a President candidate, Operations Administrator candidate, finance and safeguarding/compliance reviewers, a volunteer, a worker, a member, and an unauthorised user. The reviewer accounts must not be shared. Run the base scoped-role migration in dry-run form, inspect its output, then persist the reviewed copy only in staging.
 
-Run `hmsi_role_identity_backfill_review_dry_run.sql` unchanged. It confirms the required base tables and the `auth.users.email_confirmed_at` field before it creates the queue. The script deliberately returns only opaque review IDs, role names, candidate Auth UUIDs, counts, and status indicators; it does not export email addresses.
+Run `hmsi_role_identity_backfill_review_dry_run.sql` unchanged. It confirms the required base tables and the `auth.users.email_confirmed_at` field before it creates the queue. The script deliberately returns only opaque review IDs, role names, candidate Auth UUIDs, counts, and status indicators; it does not export email addresses or persist a deterministic email fingerprint. The protected activation route re-reads the source email from `organization_roles` and compares it with the reviewed candidate account in the same final transaction.
 
 ### 2. Triage each result
 
@@ -92,7 +92,8 @@ begin;
 
 -- Lock the review and role rows, then re-check all conditions:
 -- 1. review_status = 'approved_for_activation';
--- 2. source_email_fingerprint still equals md5(lower(trim(principal_email)));
+-- 2. the live lower(trim(principal_email)) still exactly equals the reviewed
+--    candidate's current lower(trim(auth.users.email));
 -- 3. exactly one current auth.users email matches and it is the reviewed UUID;
 -- 4. candidate email_confirmed_at is non-null and banned_until is null/past;
 -- 5. role.auth_user_id is null; role status is active;
