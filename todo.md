@@ -993,3 +993,4 @@ The existing data model does not currently provide a volunteer task-assignment t
 - [x] Draft a dry-run-first SQL backfill and separately approved activation script that handles no-match, duplicate-match, mismatch, and already-bound role records safely.
 - [x] Validate the backfill script structure and document the evidence, co-approval, staging verification, rollback, and production cutover requirements.
 - [x] Remove the deterministic email fingerprint from the role-identity review queue and rely on a live activation-time identity recheck instead.
+- [x] Harden review-queue refresh transitions so changed candidates become stale instead of silently replacing a pending candidate.

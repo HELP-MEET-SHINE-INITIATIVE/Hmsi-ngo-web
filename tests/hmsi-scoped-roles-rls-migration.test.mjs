@@ -69,6 +69,13 @@ test('email-match backfill only creates a private candidate review queue', async
   assert.match(sql, /Never auto-populate organization_roles\.auth_user_id/i);
   assert.match(sql, /email_confirmed_at/i);
   assert.match(sql, /candidate_not_eligible/i);
+  assert.match(sql, /discovered_candidate_auth_user_id/i);
+  assert.match(sql, /candidate_changed_at/i);
+  assert.match(sql, /then 'stale'/i);
+  assert.match(sql, /review_status in \('pending_identity_verification', 'stale'\)/i);
+  assert.match(sql, /when public\.role_identity_backfill_reviews\.review_status = 'stale'[\s\S]{0,80}then 'stale'/i);
+  assert.match(sql, /coalesce\(public\.role_identity_backfill_reviews\.candidate_changed_at, timezone\('utc', now\(\)\)\)/i);
+  assert.match(sql, /the reviewed candidate is preserved and cannot silently be[\s\S]*replaced/i);
   assert.doesNotMatch(sql, /source_email_fingerprint|\bmd5\s*\(/i);
   assert.doesNotMatch(sql, /set auth_user_id\s*=/i);
   assert.doesNotMatch(sql, /insert into public\.role_capability_grants/i);

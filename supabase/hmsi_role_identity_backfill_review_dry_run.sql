@@ -62,6 +62,7 @@ create table if not exists public.role_identity_backfill_reviews (
   id uuid primary key default gen_random_uuid(),
   organization_role_id uuid not null unique references public.organization_roles(id) on delete cascade,
   candidate_auth_user_id uuid references auth.users(id) on delete set null,
+  discovered_candidate_auth_user_id uuid references auth.users(id) on delete set null,
   exact_auth_match_count smallint not null default 0 check (exact_auth_match_count >= 0),
   candidate_email_confirmed boolean,
   candidate_not_banned boolean,
@@ -89,6 +90,8 @@ create table if not exists public.role_identity_backfill_reviews (
   activation_started_at timestamptz,
   activated_at timestamptz,
   activated_by_auth_user_id uuid references auth.users(id) on delete set null,
+  candidate_changed_at timestamptz,
+  discovery_refreshed_at timestamptz not null default timezone('utc', now()),
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now()),
   check (
@@ -114,7 +117,10 @@ revoke all on table public.role_identity_backfill_reviews from anon, authenticat
 -- ============================================================================
 -- 2. Refresh candidate discovery. This is an UPSERT of a private review queue,
 --    not an authorization write. It examines active legacy roles only and does
---    not change role status, user binding, or capability grants.
+--    not change role status, user binding, or capability grants. If a candidate
+--    or eligibility input changes after manual review begins, the queue is
+--    marked `stale`; the reviewed candidate is preserved and cannot silently be
+--    replaced by the discovery refresh.
 -- ============================================================================
 with normalized_roles as (
   select
@@ -162,6 +168,7 @@ with normalized_roles as (
 insert into public.role_identity_backfill_reviews (
   organization_role_id,
   candidate_auth_user_id,
+  discovered_candidate_auth_user_id,
   exact_auth_match_count,
   candidate_email_confirmed,
   candidate_not_banned,
@@ -170,17 +177,50 @@ insert into public.role_identity_backfill_reviews (
 select
   organization_role_id,
   candidate_auth_user_id,
+  candidate_auth_user_id,
   exact_auth_match_count,
   candidate_email_confirmed,
   candidate_not_banned,
   review_status
 from discovery
 on conflict (organization_role_id) do update
-set candidate_auth_user_id = excluded.candidate_auth_user_id,
+set candidate_auth_user_id = case
+      when public.role_identity_backfill_reviews.review_status in ('pending_identity_verification', 'stale')
+           and (
+             public.role_identity_backfill_reviews.candidate_auth_user_id is distinct from excluded.candidate_auth_user_id
+             or public.role_identity_backfill_reviews.exact_auth_match_count is distinct from excluded.exact_auth_match_count
+             or public.role_identity_backfill_reviews.candidate_email_confirmed is distinct from excluded.candidate_email_confirmed
+             or public.role_identity_backfill_reviews.candidate_not_banned is distinct from excluded.candidate_not_banned
+           )
+        then public.role_identity_backfill_reviews.candidate_auth_user_id
+      else excluded.candidate_auth_user_id
+    end,
+    discovered_candidate_auth_user_id = excluded.discovered_candidate_auth_user_id,
     exact_auth_match_count = excluded.exact_auth_match_count,
     candidate_email_confirmed = excluded.candidate_email_confirmed,
     candidate_not_banned = excluded.candidate_not_banned,
-    review_status = excluded.review_status,
+    review_status = case
+      when public.role_identity_backfill_reviews.review_status = 'pending_identity_verification'
+           and (
+             public.role_identity_backfill_reviews.candidate_auth_user_id is distinct from excluded.candidate_auth_user_id
+             or public.role_identity_backfill_reviews.exact_auth_match_count is distinct from excluded.exact_auth_match_count
+             or public.role_identity_backfill_reviews.candidate_email_confirmed is distinct from excluded.candidate_email_confirmed
+             or public.role_identity_backfill_reviews.candidate_not_banned is distinct from excluded.candidate_not_banned
+           )
+        then 'stale'
+      when public.role_identity_backfill_reviews.review_status = 'stale'
+        then 'stale'
+      else excluded.review_status
+    end,
+    candidate_changed_at = case
+      when public.role_identity_backfill_reviews.candidate_auth_user_id is distinct from excluded.candidate_auth_user_id
+        or public.role_identity_backfill_reviews.exact_auth_match_count is distinct from excluded.exact_auth_match_count
+        or public.role_identity_backfill_reviews.candidate_email_confirmed is distinct from excluded.candidate_email_confirmed
+        or public.role_identity_backfill_reviews.candidate_not_banned is distinct from excluded.candidate_not_banned
+        then coalesce(public.role_identity_backfill_reviews.candidate_changed_at, timezone('utc', now()))
+      else public.role_identity_backfill_reviews.candidate_changed_at
+    end,
+    discovery_refreshed_at = timezone('utc', now()),
     updated_at = timezone('utc', now())
 where public.role_identity_backfill_reviews.review_status not in (
   'approved_for_activation', 'rejected', 'activated'
@@ -199,9 +239,12 @@ select
   review.review_status,
   review.exact_auth_match_count,
   review.candidate_auth_user_id,
+  review.discovered_candidate_auth_user_id,
   review.candidate_email_confirmed,
   review.candidate_not_banned,
   review.approval_request_id,
+  review.candidate_changed_at,
+  review.discovery_refreshed_at,
   review.updated_at
 from public.role_identity_backfill_reviews as review
 join public.organization_roles as role_record on role_record.id = review.organization_role_id
@@ -211,6 +254,8 @@ limit 500;
 -- ============================================================================
 -- 4. Activation is intentionally absent. It must happen only through the
 --    separately approved server workflow described in the companion runbook.
---    This dry run must never be converted into an activation script.
+--    A `stale` review must be manually reopened by a protected review route
+--    after fresh identity evidence is recorded; this dry run must never be
+--    converted into an activation script.
 -- ============================================================================
 rollback;

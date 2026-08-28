@@ -43,7 +43,7 @@ Run `hmsi_role_identity_backfill_review_dry_run.sql` unchanged. It confirms the 
 | `already_bound_same` | The role already maps to the exact candidate. | Treat as a historical reconciliation finding. Verify existing permissions; do not issue duplicate grants. |
 | `already_bound_conflict` | The role maps to a different Auth ID than the discovered candidate. | Treat as a security incident or data-integrity exception. Suspend affected role capability grants while investigated. |
 | `approved_for_activation` | A protected reviewer recorded the evidence and approval request ID. | Proceed only after the separate approval workflow is complete and still valid. |
-| `stale` | The source email or candidate record changed after review. | Re-run discovery and identity verification; prior approvals cannot be reused. |
+| `stale` | The source email, exact-match count, candidate Auth UUID, confirmation status, or ban eligibility changed after the review started. The previously reviewed candidate remains preserved and the newly discovered candidate is recorded separately. | A protected reviewer must manually reopen the record after fresh identity evidence is recorded. Prior approvals cannot be reused and the refresh routine cannot clear this state automatically. |
 
 ### 3. Verify identity outside of the email-match query
 
