@@ -155,7 +155,7 @@ Administrator actions are protected in server route handlers. Do not expose the 
 
 ### Prerequisites
 
-Install Node.js 20.x, npm, Git, and access to a Supabase project. The repository declares Node 20.x as its supported runtime. A different local Node version may emit an engine warning even when the application builds.
+Install Node.js 22.x, npm, Git, and access to a Supabase project. The repository declares Node 22.x as its supported runtime. A different local Node version may emit an engine warning even when the application builds.
 
 ### Clone and install
 
@@ -299,7 +299,7 @@ npm run lint
 npm run build
 ```
 
-The workflow uses Node 20.x, npm caching, read-only repository permissions, a 15-minute timeout, and concurrency cancellation for superseded runs.
+The workflow uses Node 22.x, npm caching, read-only repository permissions, a 15-minute timeout, and concurrency cancellation for superseded runs.
 
 ### Dependency audit
 

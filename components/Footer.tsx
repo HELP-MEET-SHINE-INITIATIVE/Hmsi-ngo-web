@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { ArrowRight, ExternalLink } from 'lucide-react';
 import AwardRecognition from './AwardRecognition';
+import GreatNonprofitsBadge from './GreatNonprofitsBadge';
 
 export default function Footer() {
   return (
@@ -14,6 +15,7 @@ export default function Footer() {
             </Link>
             <p className="mt-6 max-w-xs text-sm leading-6 text-white/60">A Nigerian nonprofit organization based in Benin City, Edo State, with stated activities in humanitarian assistance, education, livelihoods, and community development.</p>
             <div className="mt-5 max-w-sm"><AwardRecognition compact /></div>
+            <GreatNonprofitsBadge />
           </div>
           <div>
             <p className="text-xs font-black uppercase tracking-[0.17em] text-[#e1ad45]">Explore</p>
