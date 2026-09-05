@@ -1,0 +1,121 @@
+groups:
+  - name: hmsi-security-event-alerts
+    interval: 30s
+    rules:
+      - alert: HMSIAdminOriginValidationBurst
+        expr: |
+          sum(increase(hmsi_security_event_total{
+            event_type="admin_origin_rejected",
+            route_key="admin_governance",
+            environment="production"
+          }[5m])) >= 50
+        for: 10m
+        labels:
+          severity: warning
+          service: hmsi-portal
+          category: security
+        annotations:
+          summary: "Repeated administrator origin-validation failures"
+          description: "At least 50 fixed-vocabulary origin failures occurred in a rolling five-minute window for ten minutes."
+          runbook_url: "https://internal.example/hmsi/runbooks/origin-timeout"
+
+      - alert: HMSIAdminOriginValidationCriticalBurst
+        expr: |
+          sum(increase(hmsi_security_event_total{
+            event_type="admin_origin_rejected",
+            route_key="admin_governance",
+            environment="production"
+          }[10m])) >= 500
+        for: 5m
+        labels:
+          severity: critical
+          service: hmsi-portal
+          category: security
+        annotations:
+          summary: "Critical burst of administrator origin-validation failures"
+          description: "A sustained high-volume origin-failure burst requires immediate edge and deployment review."
+          runbook_url: "https://internal.example/hmsi/runbooks/origin-timeout"
+
+      - alert: HMSIOriginValidationConfigurationRegression
+        expr: |
+          (
+            sum(rate(hmsi_security_event_total{
+              event_type="admin_origin_rejected",
+              route_key="admin_governance",
+              environment="production"
+            }[10m]))
+            /
+            clamp_min(sum(rate(hmsi_security_event_total{
+              route_key="admin_governance",
+              environment="production"
+            }[10m])), 0.01)
+          ) > 0.25
+          and sum(rate(hmsi_security_event_total{
+            event_type="admin_origin_rejected",
+            reason_code="origin_missing",
+            route_key="admin_governance",
+            environment="production"
+          }[10m])) > 0.1
+        for: 15m
+        labels:
+          severity: warning
+          service: hmsi-portal
+          category: configuration
+        annotations:
+          summary: "Possible frontend or custom-domain origin regression"
+          description: "Origin rejections exceed 25 percent of governance traffic and missing-origin failures are sustained."
+          runbook_url: "https://internal.example/hmsi/runbooks/origin-timeout"
+
+      - alert: HMSISecurityEventWriterTimeouts
+        expr: |
+          sum(increase(hmsi_security_event_write_failures_total{
+            error_code="timeout",
+            route_key="admin_governance",
+            environment="production"
+          }[5m])) >= 5
+        for: 5m
+        labels:
+          severity: warning
+          service: hmsi-portal
+          category: reliability
+        annotations:
+          summary: "Security-event writer timeouts"
+          description: "At least five bounded security-event writes timed out in a rolling five-minute window. Authorization remains fail-closed."
+          runbook_url: "https://internal.example/hmsi/runbooks/origin-timeout"
+
+      - alert: HMSISecurityEventWriterCriticalFailure
+        expr: |
+          sum(increase(hmsi_security_event_write_failures_total{
+            route_key="admin_governance",
+            environment="production"
+          }[5m])) >= 25
+        for: 5m
+        labels:
+          severity: critical
+          service: hmsi-portal
+          category: reliability
+        annotations:
+          summary: "Critical security-event sink failure rate"
+          description: "The event sink is repeatedly unavailable or rejecting writes; inspect Supabase health and grants without weakening route authorization."
+          runbook_url: "https://internal.example/hmsi/runbooks/origin-timeout"
+
+      - alert: HMSISecurityEventWriterLatencyHigh
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum by (le, route_key, environment) (
+              rate(hmsi_security_event_write_duration_seconds_bucket{
+                route_key="admin_governance",
+                environment="production"
+              }[10m])
+            )
+          ) > 0.25
+        for: 10m
+        labels:
+          severity: warning
+          service: hmsi-portal
+          category: reliability
+        annotations:
+          summary: "Security-event writer latency approaching timeout bound"
+          description: "The p95 event-write duration exceeds 250 ms; investigate before the 300 ms application bound is reached."
+          runbook_url: "https://internal.example/hmsi/runbooks/origin-timeout"

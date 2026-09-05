@@ -1,0 +1,134 @@
+name: Terraform security-monitoring CI
+
+on:
+  pull_request:
+    paths:
+      - 'infra/terraform/security-monitoring/**'
+      - '.github/workflows/terraform-security-monitoring-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'infra/terraform/security-monitoring/**'
+      - '.github/workflows/terraform-security-monitoring-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: terraform-security-monitoring-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static:
+    name: Terraform format, lint, and validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: infra/terraform/security-monitoring
+    steps:
+      - name: Checkout without credential persistence
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+          terraform_wrapper: false
+
+      - name: Terraform format check
+        run: terraform fmt -check -diff
+
+      - name: Terraform init without backend
+        run: terraform init -backend=false -input=false -lockfile=readonly
+
+      - name: Terraform validate
+        run: terraform validate -no-color
+
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v5
+        with:
+          tflint_version: v0.53.0
+
+      - name: TFLint
+        run: tflint --init --config="$GITHUB_WORKSPACE/infra/terraform/security-monitoring/.tflint.hcl" && tflint --config="$GITHUB_WORKSPACE/infra/terraform/security-monitoring/.tflint.hcl" --format compact
+
+      - name: Checkov static scan
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: infra/terraform/security-monitoring
+          framework: terraform
+          quiet: true
+          soft_fail: false
+          download_external_modules: false
+
+  oidc-plan:
+    name: OIDC identity and read-only Terraform plan
+    needs: static
+    if: >-
+      (github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository) &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch' ||
+      github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: staging-monitoring
+    permissions:
+      contents: read
+      id-token: write
+    defaults:
+      run:
+        working-directory: infra/terraform/security-monitoring
+    steps:
+      - name: Checkout without credential persistence
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Configure AWS through GitHub OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_TERRAFORM_PLAN_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: gha-tf-plan-${{ github.run_id }}
+          mask-aws-account-id: true
+          unset-current-credentials: true
+
+      - name: Verify federated identity without printing credentials
+        run: aws sts get-caller-identity --query '{Account:Account,Arn:Arn}' --output json
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+          terraform_wrapper: false
+
+      - name: Terraform init without backend
+        run: terraform init -backend=false -input=false -lockfile=readonly
+
+      - name: Read-only plan with all provisioning switches disabled
+        run: |
+          terraform plan \
+            -refresh=false \
+            -lock=false \
+            -input=false \
+            -no-color \
+            -var='enable_github_oidc=false' \
+            -var='enable_staging_monitoring=false' \
+            -var='manage_supabase_project=false' \
+            -var='manage_supabase_settings=false' \
+            -out=tfplan
+
+      - name: Show plan summary without secrets
+        run: terraform show -no-color tfplan | sed -E 's/(password|token|secret|access_key)[^=]*=.*/\1=<redacted>/Ig' | tail -n 200
+
+      - name: Remove local plan artifact
+        if: always()
+        run: rm -f tfplan .terraform.lock.hcl

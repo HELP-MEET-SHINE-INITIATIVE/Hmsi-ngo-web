@@ -1,0 +1,134 @@
+name: Deploy Staging Monitoring Configuration
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'deploy/monitoring/supavisor-pool-alerts.yml'
+      - 'deploy/grafana/hmsi-supavisor-realtime-dashboard.json'
+      - 'scripts/deploy-staging-monitoring.mjs'
+      - 'tests/supavisor-dashboard-config.test.mjs'
+      - '.github/workflows/deploy-staging-monitoring.yml'
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: Apply validated configuration to the protected staging monitoring environment
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hmsi-staging-monitoring
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate monitoring artifacts
+    runs-on: ubuntu-24.04
+    env:
+      HMSI_DEPLOY_ENVIRONMENT: staging
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run static dashboard tests
+        run: node --test tests/supavisor-dashboard-config.test.mjs
+      - name: Run staging guard validation
+        run: node scripts/deploy-staging-monitoring.mjs validate
+      - name: Validate Prometheus rule syntax
+        run: |
+          docker run --rm \
+            --volume "$GITHUB_WORKSPACE:/workspace:ro" \
+            prom/prometheus:v2.54.1 \
+            promtool check rules /workspace/deploy/monitoring/supavisor-pool-alerts.yml
+      - name: Upload validated monitoring artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: hmsi-staging-monitoring-artifacts
+          if-no-files-found: error
+          retention-days: 7
+          path: |
+            deploy/monitoring/supavisor-pool-alerts.yml
+            deploy/grafana/hmsi-supavisor-realtime-dashboard.json
+
+  deploy-staging:
+    name: Deploy to protected staging monitoring environment
+    needs: validate
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event.inputs.apply == 'true')
+    runs-on: ubuntu-24.04
+    environment: staging-monitoring
+    env:
+      HMSI_DEPLOY_ENVIRONMENT: staging
+      GRAFANA_URL: ${{ vars.HMSI_STAGING_GRAFANA_URL }}
+      HMSI_STAGING_GRAFANA_ALLOWED_HOSTS: ${{ vars.HMSI_STAGING_GRAFANA_ALLOWED_HOSTS }}
+      GRAFANA_API_TOKEN: ${{ secrets.HMSI_STAGING_GRAFANA_API_TOKEN }}
+      KUBE_CONFIG_DATA: ${{ secrets.HMSI_STAGING_MONITORING_KUBECONFIG_B64 }}
+      KUBE_NAMESPACE: ${{ vars.HMSI_STAGING_MONITORING_NAMESPACE }}
+      GRAFANA_BACKUP_PATH: ${{ runner.temp }}/hmsi-grafana-dashboard-backup.json
+      PROMETHEUS_RULE_OUTPUT: ${{ runner.temp }}/hmsi-supavisor-prometheus-rule.yaml
+      PROMETHEUS_URL: ${{ vars.HMSI_STAGING_PROMETHEUS_URL }}
+      HMSI_STAGING_PROMETHEUS_ALLOWED_HOSTS: ${{ vars.HMSI_STAGING_PROMETHEUS_ALLOWED_HOSTS }}
+      PROMETHEUS_API_TOKEN: ${{ secrets.HMSI_STAGING_PROMETHEUS_API_TOKEN }}
+      ALERTMANAGER_URL: ${{ vars.HMSI_STAGING_ALERTMANAGER_URL }}
+      HMSI_STAGING_ALERTMANAGER_ALLOWED_HOSTS: ${{ vars.HMSI_STAGING_ALERTMANAGER_ALLOWED_HOSTS }}
+      ALERTMANAGER_API_TOKEN: ${{ secrets.HMSI_STAGING_ALERTMANAGER_API_TOKEN }}
+      HMSI_STAGING_ALERT_SINK_URL: ${{ vars.HMSI_STAGING_ALERT_SINK_URL }}
+      HMSI_STAGING_ALERT_SINK_ALLOWED_HOSTS: ${{ vars.HMSI_STAGING_ALERT_SINK_ALLOWED_HOSTS }}
+      HMSI_STAGING_ALERT_SINK_TOKEN: ${{ secrets.HMSI_STAGING_ALERT_SINK_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Re-run safety validation in deployment job
+        run: |
+          node --test tests/supavisor-dashboard-config.test.mjs
+          node scripts/deploy-staging-monitoring.mjs validate
+      - name: Configure staging-only Kubernetes context
+        run: |
+          set +x
+          test -n "$KUBE_CONFIG_DATA"
+          test -n "$KUBE_NAMESPACE"
+          printf '%s' "$KUBE_CONFIG_DATA" | base64 --decode > "$RUNNER_TEMP/kubeconfig"
+          chmod 600 "$RUNNER_TEMP/kubeconfig"
+          echo "KUBECONFIG=$RUNNER_TEMP/kubeconfig" >> "$GITHUB_ENV"
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+      - name: Verify staging Kubernetes context and required CRD
+        run: |
+          test "$(kubectl config current-context)" = "${{ vars.HMSI_STAGING_MONITORING_KUBE_CONTEXT }}"
+          kubectl get namespace "$KUBE_NAMESPACE"
+          kubectl api-resources --api-group=monitoring.coreos.com | grep -q '^prometheusrules'
+      - name: Render and validate PrometheusRule manifest
+        run: |
+          node scripts/deploy-staging-monitoring.mjs render-prometheus-rule
+          kubectl apply --dry-run=server -f "$PROMETHEUS_RULE_OUTPUT" -n "$KUBE_NAMESPACE"
+      - name: Back up current staging Grafana dashboard
+        run: node scripts/deploy-staging-monitoring.mjs grafana-backup
+      - name: Apply Prometheus rules and Grafana dashboard
+        run: |
+          kubectl apply -f "$PROMETHEUS_RULE_OUTPUT" -n "$KUBE_NAMESPACE"
+          node scripts/deploy-staging-monitoring.mjs grafana-upsert
+      - name: Verify deployed configuration
+        run: |
+          kubectl get prometheusrule hmsi-supavisor-pool-alerts -n "$KUBE_NAMESPACE"
+          node scripts/deploy-staging-monitoring.mjs grafana-health
+      - name: Run synthetic post-deployment monitoring smoke test
+        if: vars.HMSI_STAGING_MONITORING_SMOKE_TEST_ENABLED == 'true'
+        run: node scripts/smoke-test-staging-monitoring.mjs verify
+      - name: Exercise staging Alertmanager route through restricted alert sink
+        if: vars.HMSI_STAGING_MONITORING_ROUTE_SMOKE_TEST_ENABLED == 'true'
+        run: node scripts/smoke-test-staging-monitoring.mjs exercise-routing
+      - name: Roll back Grafana dashboard if the deployment job fails after backup
+        if: failure()
+        run: node scripts/deploy-staging-monitoring.mjs grafana-restore
+      - name: Remove local credentials and backup artifact
+        if: always()
+        run: |
+          rm -f "$RUNNER_TEMP/kubeconfig" "$GRAFANA_BACKUP_PATH" "$PROMETHEUS_RULE_OUTPUT"

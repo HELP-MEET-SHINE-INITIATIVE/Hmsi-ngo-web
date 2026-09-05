@@ -1,0 +1,9 @@
+# Diagram Review Findings
+
+The rendered component architecture is legible at full resolution and clearly separates the external trust zone, HMSI public ingress boundary, HMSI controlled runtime, and protected control plane. It shows that the mutation gate is between validated input and Redis idempotency, and that the gate can pause mutation. Redis and the secret manager are depicted as protected dependencies, while the audit ledger and signed evidence store receive bounded metadata only.
+
+The consolidated sequence diagram rendered successfully at 3120 by 3276 pixels. It includes the following reviewable paths: invalid or stale HMAC rejection, schema or scrubber failure, paused or unknown mutation-gate state, completed-idempotency duplicate, successful lock acquisition and bounded Jira mutation, Jira retryable failure, Jira timeout after possible mutation, reconciliation by deterministic external key, and lock contention. The failure paths visibly prevent a Jira call before a durable idempotency decision and keep the gate paused until reconciliation and synthetic validation are complete.
+
+No secret values, personal data, raw webhook bodies, donor/worker/volunteer identifiers, or confidential incident content appear in the rendered diagrams. Synthetic references such as `HMSI-42`, `event key`, and `run ID` are control-flow examples only and are not production records.
+
+The original combined Mermaid file is retained as a source reference, but the renderer accepts one diagram per file. The final renderable sources are `hmsi-redis-webhook-architecture.mmd` and `hmsi-redis-webhook-main-sequence.mmd`. The broader `hmsi-redis-webhook-fail-closed-diagrams.mmd` contains the full diagram source collection for human reference; the two rendered artifacts are the recommended presentation files.

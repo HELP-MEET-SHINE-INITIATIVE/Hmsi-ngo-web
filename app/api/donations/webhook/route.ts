@@ -80,6 +80,10 @@ export async function POST(request: Request) {
       console.error('[Donation webhook] Verified donation recorded but campaign progress update failed:', fundraiserError instanceof Error ? fundraiserError.message : 'unknown');
     }
     await admin.from('donation_ingestion_events').insert({ donation_id: inserted.data.id, provider: 'paystack', provider_event_id: providerEventId, event_type: 'charge.success', verification_status: 'verified', reference_suffix: `…${reference.slice(-6)}` });
+    const consentedAt = new Date().toISOString();
+    const marketingOptIn = metadataValue(payment, 'marketing_opt_in').toLowerCase() === 'true';
+    const contact = await admin.from('email_contacts').upsert({ email, display_name: inserted.data.donor_name, role: 'donor', transactional_opt_in: true, marketing_opt_in: marketingOptIn, consent_source: marketingOptIn ? 'paystack_donation_opt_in' : null, consented_at: marketingOptIn ? consentedAt : null, updated_at: consentedAt }, { onConflict: 'email' });
+    if (contact.error) console.error('[Donation webhook] Email contact sync failed:', contact.error.message);
     await dispatchDonationAcknowledgement({ admin, donation: inserted.data as DonationRecord });
     return NextResponse.json({ received: true }, { status: 200 });
   } catch (error) {

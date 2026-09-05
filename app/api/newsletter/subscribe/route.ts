@@ -17,7 +17,14 @@ export async function POST(request: Request) {
   const admin = getSupabaseAdmin();
   if (!admin) return NextResponse.json({ error: 'Newsletter signup is not configured yet.' }, { status: 503 });
 
-  const { error } = await admin.from('newsletter_subscribers').upsert({ email, status: 'active', unsubscribed_at: null }, { onConflict: 'email' });
+  const consentedAt = new Date().toISOString();
+  const contact = await admin.from('email_contacts').upsert({ email, role: 'subscriber', marketing_opt_in: true, consent_source: 'newsletter_subscribe', consented_at: consentedAt, unsubscribed_at: null, suppressed_at: null, suppression_reason: null, updated_at: consentedAt }, { onConflict: 'email' });
+  if (contact.error) {
+    console.error('[Newsletter] Contact consent record failed:', contact.error.message);
+    return NextResponse.json({ error: 'Newsletter signup is temporarily unavailable. Please try again.' }, { status: 503 });
+  }
+
+  const { error } = await admin.from('newsletter_subscribers').upsert({ email, status: 'active', marketing_opt_in: true, consent_source: 'newsletter_subscribe', consented_at: consentedAt, unsubscribed_at: null }, { onConflict: 'email' });
   if (error) {
     console.error('[Newsletter] Subscriber signup failed:', error);
     return NextResponse.json({ error: 'Newsletter signup is temporarily unavailable. Please try again.' }, { status: 503 });

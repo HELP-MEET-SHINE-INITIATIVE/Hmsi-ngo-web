@@ -1,0 +1,132 @@
+rules:
+  - id: hmsi-sensitive-header-direct-log
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: >-
+      Sensitive request header reaches a log call. Classify or redact the value;
+      never log raw cookies, authorization, origin, forwarding, or referer headers.
+    metadata:
+      category: security
+      technology: [nextjs, typescript]
+      confidence: high
+      cwe: [CWE-532]
+    patterns:
+      - pattern-either:
+          - pattern: console.$METHOD($REQ.headers.get("Authorization"))
+          - pattern: console.$METHOD($REQ.headers.get("authorization"))
+          - pattern: console.$METHOD($REQ.headers.get("Cookie"))
+          - pattern: console.$METHOD($REQ.headers.get("cookie"))
+          - pattern: console.$METHOD($REQ.headers.get("Origin"))
+          - pattern: console.$METHOD($REQ.headers.get("origin"))
+          - pattern: console.$METHOD($REQ.headers.get("Referer"))
+          - pattern: console.$METHOD($REQ.headers.get("referer"))
+          - pattern: console.$METHOD($REQ.headers.get("Forwarded"))
+          - pattern: console.$METHOD($REQ.headers.get("forwarded"))
+          - pattern: console.$METHOD($REQ.headers.get("X-Forwarded-Host"))
+          - pattern: console.$METHOD($REQ.headers.get("x-forwarded-host"))
+          - pattern: $LOGGER.$METHOD($REQ.headers.get("Authorization"))
+          - pattern: $LOGGER.$METHOD($REQ.headers.get("authorization"))
+          - pattern: $LOGGER.$METHOD($REQ.headers.get("Cookie"))
+          - pattern: $LOGGER.$METHOD($REQ.headers.get("cookie"))
+          - pattern: $LOGGER.$METHOD($REQ.headers.get("Origin"))
+          - pattern: $LOGGER.$METHOD($REQ.headers.get("origin"))
+          - pattern: $LOGGER.$METHOD($REQ.headers.get("Referer"))
+          - pattern: $LOGGER.$METHOD($REQ.headers.get("referer"))
+          - pattern: $LOGGER.$METHOD($REQ.headers.get("Forwarded"))
+          - pattern: $LOGGER.$METHOD($REQ.headers.get("forwarded"))
+          - pattern: $LOGGER.$METHOD($REQ.headers.get("X-Forwarded-Host"))
+          - pattern: $LOGGER.$METHOD($REQ.headers.get("x-forwarded-host"))
+
+  - id: hmsi-sensitive-header-object-log
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: >-
+      Request or headers object reaches a log call. Log only fixed, allow-listed
+      security-event fields.
+    metadata:
+      category: security
+      technology: [nextjs, typescript]
+      confidence: high
+      cwe: [CWE-532]
+    patterns:
+      - pattern-either:
+          - pattern: console.$METHOD($REQ.headers)
+          - pattern: console.$METHOD($REQ)
+          - pattern: $LOGGER.$METHOD($REQ.headers)
+          - pattern: $LOGGER.$METHOD($REQ)
+          - pattern: console.$METHOD(JSON.stringify($REQ.headers))
+          - pattern: console.$METHOD(JSON.stringify($REQ))
+          - pattern: $LOGGER.$METHOD(JSON.stringify($REQ.headers))
+          - pattern: $LOGGER.$METHOD(JSON.stringify($REQ))
+
+  - id: hmsi-sensitive-header-metric-label
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: >-
+      A raw request header is used as a metric label. Use a fixed enum such as
+      origin_missing, origin_malformed, or origin_host_mismatch.
+    metadata:
+      category: security
+      technology: [prometheus, typescript]
+      confidence: high
+      cwe: [CWE-400, CWE-532]
+    patterns:
+      - pattern-either:
+          - pattern: $METRIC.labels($REQ.headers.get("Origin"), ...).inc()
+          - pattern: $METRIC.labels($REQ.headers.get("origin"), ...).inc()
+          - pattern: $METRIC.labels($REQ.headers.get("Host"), ...).inc()
+          - pattern: $METRIC.labels($REQ.headers.get("host"), ...).inc()
+          - pattern: $METRIC.labels($REQ.headers.get("Authorization"), ...).inc()
+          - pattern: $METRIC.labels($REQ.headers.get("authorization"), ...).inc()
+          - pattern: $METRIC.labels(..., $REQ.headers.get("Origin"), ...).inc()
+          - pattern: $METRIC.labels(..., $REQ.headers.get("origin"), ...).inc()
+          - pattern: $METRIC.labels(..., $REQ.headers.get("Host"), ...).inc()
+          - pattern: $METRIC.labels(..., $REQ.headers.get("host"), ...).inc()
+
+  - id: hmsi-sensitive-header-event-payload
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: >-
+      Raw request data is passed to the security-event writer. Pass only the
+      fixed event/reason/origin classifications and server-generated references.
+    metadata:
+      category: security
+      technology: [nextjs, typescript]
+      confidence: high
+      cwe: [CWE-532]
+    patterns:
+      - pattern-either:
+          - pattern: recordSecurityEvent({ ..., origin: $REQ.headers.get("Origin"), ... })
+          - pattern: recordSecurityEvent({ ..., origin: $REQ.headers.get("origin"), ... })
+          - pattern: recordSecurityEvent({ ..., metadata: $REQ.headers, ... })
+          - pattern: recordSecurityEvent({ ..., metadata: $REQ, ... })
+          - pattern: recordSecurityEvent({ ..., headers: $REQ.headers, ... })
+          - pattern: recordSecurityEvent({ ..., request: $REQ, ... })
+          - pattern: recordSecurityEvent({ ..., actorEmail: $REQ.headers.get("Authorization"), ... })
+          - pattern: recordSecurityEvent({ ..., actorEmail: $REQ.headers.get("authorization"), ... })
+
+  - id: hmsi-sensitive-header-template-log
+    languages: [typescript, javascript]
+    severity: WARNING
+    message: >-
+      A sensitive request header is interpolated into a log string. Replace it
+      with a fixed classification before logging.
+    metadata:
+      category: security
+      technology: [nextjs, typescript]
+      confidence: medium
+      cwe: [CWE-532]
+    patterns:
+      - pattern-either:
+          - pattern: console.$METHOD(`...${$REQ.headers.get("Origin")}...`)
+          - pattern: console.$METHOD(`...${$REQ.headers.get("origin")}...`)
+          - pattern: console.$METHOD(`...${$REQ.headers.get("Authorization")}...`)
+          - pattern: console.$METHOD(`...${$REQ.headers.get("authorization")}...`)
+          - pattern: console.$METHOD(`...${$REQ.headers.get("Cookie")}...`)
+          - pattern: console.$METHOD(`...${$REQ.headers.get("cookie")}...`)
+          - pattern: $LOGGER.$METHOD(`...${$REQ.headers.get("Origin")}...`)
+          - pattern: $LOGGER.$METHOD(`...${$REQ.headers.get("origin")}...`)
+          - pattern: $LOGGER.$METHOD(`...${$REQ.headers.get("Authorization")}...`)
+          - pattern: $LOGGER.$METHOD(`...${$REQ.headers.get("authorization")}...`)
+          - pattern: $LOGGER.$METHOD(`...${$REQ.headers.get("Cookie")}...`)
+          - pattern: $LOGGER.$METHOD(`...${$REQ.headers.get("cookie")}...`)

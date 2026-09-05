@@ -1,0 +1,206 @@
+name: Terraform security-monitoring rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      state_version_id:
+        description: 'Exact prior S3 object VersionId to restore'
+        required: true
+        type: string
+      confirmation:
+        description: 'Type RESTORE_PREVIOUS_STATE to authorize the state rollback'
+        required: true
+        type: string
+      reason:
+        description: 'Short incident/change reference; do not include secrets or personal data'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: terraform-security-monitoring-rollback
+  cancel-in-progress: false
+
+jobs:
+  rollback:
+    name: Restore selected Terraform state version
+    if: github.event.inputs.confirmation == 'RESTORE_PREVIOUS_STATE'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: staging-monitoring-rollback
+    permissions:
+      contents: read
+      id-token: write
+    defaults:
+      run:
+        working-directory: infra/terraform/security-monitoring
+    env:
+      TF_IN_AUTOMATION: true
+      TF_INPUT: false
+      TF_CLI_ARGS: -no-color
+      TF_STATE_BUCKET: ${{ vars.TF_STATE_BUCKET }}
+      TF_STATE_KEY: ${{ vars.TF_STATE_KEY }}
+      TF_STATE_REGION: ${{ vars.TF_STATE_REGION }}
+      TF_STATE_DDB_TABLE: ${{ vars.TF_STATE_DDB_TABLE }}
+      TF_VAR_aws_region: ${{ vars.AWS_REGION }}
+      TF_VAR_github_repository: HELP-MEET-SHINE-INITIATIVE/Hmsi-ngo-web
+      TF_VAR_github_environment: staging-monitoring
+      TF_VAR_manage_supabase_project: false
+      TF_VAR_manage_supabase_settings: false
+      TF_VAR_enable_github_oidc: false
+      TF_VAR_enable_staging_monitoring: false
+
+    steps:
+      - name: Checkout the protected main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Configure AWS through GitHub OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_TERRAFORM_ROLLBACK_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: gha-tf-rollback-${{ github.run_id }}
+          mask-aws-account-id: true
+          unset-current-credentials: true
+
+      - name: Verify federated identity without printing credentials
+        run: aws sts get-caller-identity --query '{Account:Account,Arn:Arn}' --output json
+
+      - name: Validate operator inputs
+        env:
+          STATE_VERSION_ID: ${{ github.event.inputs.state_version_id }}
+          ROLLBACK_REASON: ${{ github.event.inputs.reason }}
+        run: |
+          test -n "$STATE_VERSION_ID"
+          test "$STATE_VERSION_ID" != "null"
+          test -n "$ROLLBACK_REASON"
+          test "${#STATE_VERSION_ID}" -le 200
+          test "${#ROLLBACK_REASON}" -le 240
+          case "$STATE_VERSION_ID" in
+            *[!A-Za-z0-9_./=-]*) echo 'Invalid S3 VersionId characters' >&2; exit 1 ;;
+          esac
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+          terraform_wrapper: false
+
+      - name: Initialize the protected remote state backend
+        run: |
+          test -n "$TF_STATE_BUCKET"
+          test -n "$TF_STATE_KEY"
+          test -n "$TF_STATE_REGION"
+          terraform init \
+            -input=false \
+            -lockfile=readonly \
+            -backend-config="bucket=$TF_STATE_BUCKET" \
+            -backend-config="key=$TF_STATE_KEY" \
+            -backend-config="region=$TF_STATE_REGION" \
+            -backend-config="encrypt=true" \
+            ${TF_STATE_DDB_TABLE:+-backend-config="dynamodb_table=$TF_STATE_DDB_TABLE"}
+
+      - name: Confirm the selected version belongs to the exact state key
+        env:
+          STATE_VERSION_ID: ${{ github.event.inputs.state_version_id }}
+        run: |
+          aws s3api head-object \
+            --bucket "$TF_STATE_BUCKET" \
+            --key "$TF_STATE_KEY" \
+            --version-id "$STATE_VERSION_ID" \
+            --query '{VersionId:VersionId,ETag:ETag,LastModified:LastModified,ServerSideEncryption:ServerSideEncryption}' \
+            --output json
+
+      - name: Record the current state version without reading state contents
+        env:
+          STATE_VERSION_ID: ${{ github.event.inputs.state_version_id }}
+          ROLLBACK_REASON: ${{ github.event.inputs.reason }}
+        run: |
+          CURRENT_VERSION_ID="$(aws s3api list-object-versions \
+            --bucket "$TF_STATE_BUCKET" \
+            --prefix "$TF_STATE_KEY" \
+            --query "Versions[?Key=='$TF_STATE_KEY' && IsLatest==\`true\`].VersionId | [0]" \
+            --output text)"
+          test -n "$CURRENT_VERSION_ID"
+          test "$CURRENT_VERSION_ID" != "None"
+          {
+            echo '### Rollback state audit'
+            echo "- Workflow run: $GITHUB_RUN_ID"
+            echo "- State key: $TF_STATE_KEY"
+            echo "- Current version before rollback: $CURRENT_VERSION_ID"
+            echo "- Requested prior version: $STATE_VERSION_ID"
+            echo "- Operator reason: $ROLLBACK_REASON"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Pull and validate the selected previous state locally
+        env:
+          STATE_VERSION_ID: ${{ github.event.inputs.state_version_id }}
+        run: |
+          aws s3api get-object \
+            --bucket "$TF_STATE_BUCKET" \
+            --key "$TF_STATE_KEY" \
+            --version-id "$STATE_VERSION_ID" \
+            previous.tfstate >/dev/null
+          test -s previous.tfstate
+          jq -e '(.version | numbers) and (.serial | numbers) and (.lineage | strings)' previous.tfstate >/dev/null
+          terraform state list -state=previous.tfstate >/dev/null
+
+      - name: Restore exactly the selected state version under Terraform locking
+        id: push
+        run: terraform state push -force previous.tfstate
+
+      - name: Confirm the restored state can be read
+        id: confirm_state
+        if: steps.replay.outputs.already_reported != 'true'
+        run: terraform state pull | jq -e '(.version | numbers) and (.serial | numbers) and (.lineage | strings)' >/dev/null
+
+      - name: Verify restored state against expected configuration
+        id: post_plan
+        if: >-
+          always() &&
+          steps.replay.outputs.already_reported != 'true' &&
+          (steps.current.outputs.already_current == 'true' || (steps.push.outcome == 'success' && steps.confirm_state.outcome == 'success'))
+        shell: bash
+        run: |
+          set +e
+          terraform plan \
+            -input=false \
+            -refresh=false \
+            -lock=true \
+            -detailed-exitcode \
+            -no-color > post-rollback-plan.log 2>&1
+          plan_status=$?
+          set -e
+          case "$plan_status" in
+            0)
+              verdict='match'
+              ;;
+            2)
+              verdict='drift-detected'
+              ;;
+            *)
+              verdict='plan-error'
+              ;;
+          esac
+          echo "verdict=$verdict" >> "$GITHUB_OUTPUT"
+          echo "post_rollback_plan=$verdict" >> "$GITHUB_ENV"
+          {
+            echo '### Post-rollback plan verification'
+            echo "- Verdict: **$verdict**"
+            echo '- Refresh: disabled'
+            echo '- Apply: not run'
+            echo '- Plan output: retained only on the ephemeral runner and removed during cleanup'
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [[ "$plan_status" -ne 0 ]]; then
+            exit "$plan_status"
+          fi
+
+      - name: Remove local state and plan material
+        if: always()
+        run: rm -f previous.tfstate post-rollback-plan.log .terraform.lock.hcl

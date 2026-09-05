@@ -1,0 +1,125 @@
+name: Deploy Staging Security-Event Monitoring
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'deploy/monitoring/hmsi-security-event-alerts.yml'
+      - 'deploy/grafana/hmsi-security-events-dashboard.json'
+      - 'scripts/deploy-security-events-monitoring.mjs'
+      - 'tests/security-monitoring-provisioning.test.mjs'
+      - '.github/workflows/deploy-staging-security-events.yml'
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: Apply validated configuration to the protected staging monitoring environment
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hmsi-staging-security-events-monitoring
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate security monitoring artifacts
+    runs-on: ubuntu-24.04
+    env:
+      HMSI_DEPLOY_ENVIRONMENT: staging
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Validate monitoring artifacts and privacy boundary
+        run: node scripts/deploy-security-events-monitoring.mjs validate
+      - name: Validate Prometheus rule syntax
+        run: |
+          docker run --rm \
+            --volume "$GITHUB_WORKSPACE:/workspace:ro" \
+            prom/prometheus:v2.54.1 \
+            promtool check rules /workspace/deploy/monitoring/hmsi-security-event-alerts.yml
+      - name: Validate dashboard JSON
+        run: node -e "JSON.parse(require('fs').readFileSync('deploy/grafana/hmsi-security-events-dashboard.json','utf8')); console.log('GRAFANA_DASHBOARD_JSON_OK')"
+      - name: Upload validated monitoring artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: hmsi-staging-security-event-monitoring-artifacts
+          if-no-files-found: error
+          retention-days: 7
+          path: |
+            deploy/monitoring/hmsi-security-event-alerts.yml
+            deploy/grafana/hmsi-security-events-dashboard.json
+
+  deploy-staging:
+    name: Deploy to protected staging monitoring environment
+    needs: validate
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event.inputs.apply == 'true')
+    runs-on: ubuntu-24.04
+    environment: staging-monitoring
+    env:
+      HMSI_DEPLOY_ENVIRONMENT: staging
+      GRAFANA_URL: ${{ vars.HMSI_STAGING_GRAFANA_URL }}
+      HMSI_STAGING_GRAFANA_ALLOWED_HOSTS: ${{ vars.HMSI_STAGING_GRAFANA_ALLOWED_HOSTS }}
+      GRAFANA_API_TOKEN: ${{ secrets.HMSI_STAGING_GRAFANA_API_TOKEN }}
+      KUBE_CONFIG_DATA: ${{ secrets.HMSI_STAGING_MONITORING_KUBECONFIG_B64 }}
+      KUBE_NAMESPACE: ${{ vars.HMSI_STAGING_MONITORING_NAMESPACE }}
+      HMSI_STAGING_MONITORING_KUBE_CONTEXT: ${{ vars.HMSI_STAGING_MONITORING_KUBE_CONTEXT }}
+      GRAFANA_BACKUP_PATH: ${{ runner.temp }}/hmsi-security-events-dashboard-backup.json
+      PROMETHEUS_RULE_OUTPUT: ${{ runner.temp }}/hmsi-security-event-alerts.yaml
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Re-run safety validation in deployment job
+        run: node scripts/deploy-security-events-monitoring.mjs validate
+      - name: Configure staging-only Kubernetes context
+        shell: bash
+        run: |
+          set +x
+          test -n "$KUBE_CONFIG_DATA"
+          test -n "$KUBE_NAMESPACE"
+          printf '%s' "$KUBE_CONFIG_DATA" | base64 --decode > "$RUNNER_TEMP/kubeconfig"
+          chmod 600 "$RUNNER_TEMP/kubeconfig"
+          echo "KUBECONFIG=$RUNNER_TEMP/kubeconfig" >> "$GITHUB_ENV"
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+      - name: Verify staging Kubernetes context and PrometheusRule CRD
+        run: |
+          test "$(kubectl config current-context)" = "$HMSI_STAGING_MONITORING_KUBE_CONTEXT"
+          kubectl get namespace "$KUBE_NAMESPACE"
+          kubectl api-resources --api-group=monitoring.coreos.com | grep -q '^prometheusrules'
+      - name: Render and validate PrometheusRule manifest
+        run: |
+          node scripts/deploy-security-events-monitoring.mjs render-prometheus-rule
+          kubectl apply --dry-run=server -f "$PROMETHEUS_RULE_OUTPUT" -n "$KUBE_NAMESPACE"
+      - name: Back up current staging Grafana dashboard
+        run: node scripts/deploy-security-events-monitoring.mjs grafana-backup
+      - name: Apply Prometheus rules and upsert Grafana dashboard
+        run: |
+          kubectl apply -f "$PROMETHEUS_RULE_OUTPUT" -n "$KUBE_NAMESPACE"
+          node scripts/deploy-security-events-monitoring.mjs grafana-upsert
+      - name: Verify deployed configuration
+        run: |
+          kubectl get prometheusrule hmsi-security-event-alerts -n "$KUBE_NAMESPACE"
+          node scripts/deploy-security-events-monitoring.mjs grafana-health
+      - name: Restore Grafana dashboard after failed deployment
+        if: failure()
+        run: node scripts/deploy-security-events-monitoring.mjs grafana-restore
+      - name: Remove local credentials and backup artifact
+        if: always()
+        run: |
+          rm -f "$RUNNER_TEMP/kubeconfig" "$GRAFANA_BACKUP_PATH" "$PROMETHEUS_RULE_OUTPUT"

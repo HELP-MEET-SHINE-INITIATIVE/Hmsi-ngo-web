@@ -1,0 +1,75 @@
+name: Semgrep Sensitive-Header Policy
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - 'lib/**'
+      - 'components/**'
+      - 'scripts/**'
+      - 'tests/**'
+      - '.semgrep/**'
+      - '.github/workflows/semgrep-sensitive-header-pr.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - 'lib/**'
+      - 'components/**'
+      - 'scripts/**'
+      - 'tests/**'
+      - '.semgrep/**'
+      - '.github/workflows/semgrep-sensitive-header-pr.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: semgrep-sensitive-header-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  semgrep:
+    name: Block sensitive-header logging violations
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Run local Semgrep policy in pinned container
+        run: |
+          docker run --rm \
+            --volume "$GITHUB_WORKSPACE:/src:ro" \
+            --workdir /src \
+            semgrep/semgrep:1.99.0 \
+            semgrep --config .semgrep/hmsi-sensitive-header-logging.yml \
+              app lib components scripts tests \
+              --error --no-git-ignore --metrics=off
+
+      - name: Execute the positive fixture contract in the pinned container
+        shell: bash
+        run: |
+          set +e
+          docker run --rm \
+            --volume "$GITHUB_WORKSPACE:/src:ro" \
+            --workdir /src \
+            semgrep/semgrep:1.99.0 \
+            semgrep --config .semgrep/hmsi-sensitive-header-logging.yml \
+              tests/fixtures/semgrep-sensitive-header-logging.ts \
+              --error --no-git-ignore --metrics=off
+          status=$?
+          set -e
+          test "$status" -eq 1
+
+      - name: Confirm safe fixture is clean
+        run: |
+          docker run --rm \
+            --volume "$GITHUB_WORKSPACE:/src:ro" \
+            --workdir /src \
+            semgrep/semgrep:1.99.0 \
+            semgrep --config .semgrep/hmsi-sensitive-header-logging.yml \
+              tests/fixtures/semgrep-sensitive-header-logging.safe.ts \
+              --error --no-git-ignore --metrics=off

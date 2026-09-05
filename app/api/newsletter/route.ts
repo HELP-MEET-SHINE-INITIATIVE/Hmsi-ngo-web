@@ -150,10 +150,10 @@ export async function POST(request: Request) {
     if (draft.status !== 'approved') return errorResponse('Only an approved newsletter can be sent.');
 
     const apiKey = process.env.RESEND_API_KEY?.trim();
-    const from = process.env.RESEND_FROM_EMAIL?.trim();
-    if (!apiKey || !from) return errorResponse('Newsletter delivery is not configured. Add RESEND_API_KEY and RESEND_FROM_EMAIL to Vercel.', 503);
+    const from = process.env.RESEND_FROM_EMAIL?.trim() || 'HMSI Notifications <notifications@hmsi.org.ng>';
+    if (!apiKey) return errorResponse('Newsletter delivery is not configured. Add RESEND_API_KEY to Vercel.', 503);
 
-    const subscribers = await admin.from('newsletter_subscribers').select('email,unsubscribe_token').eq('status', 'active').order('subscribed_at', { ascending: true });
+    const subscribers = await admin.from('newsletter_subscribers').select('email,unsubscribe_token').eq('status', 'active').eq('marketing_opt_in', true).is('unsubscribed_at', null).order('subscribed_at', { ascending: true });
     if (subscribers.error) return errorResponse('Newsletter subscriber data is unavailable. Run supabase/newsletter_patch.sql.', 503);
     if (!subscribers.data || subscribers.data.length === 0) return errorResponse('There are no active newsletter subscribers yet.');
 

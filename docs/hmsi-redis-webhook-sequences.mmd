@@ -1,0 +1,181 @@
+sequenceDiagram
+  autonumber
+  participant DD as Datadog
+  participant GW as HTTPS Gateway
+  participant A as Authenticator
+  participant V as Validator/Scrubber
+  participant G as Mutation Gate
+  participant R as Redis Idempotency
+  participant O as Durable Outbox
+  participant W as Mutation Worker
+  participant J as Jira
+  participant L as Audit Ledger
+
+  DD->>GW: POST synthetic/allowlisted event + signature
+  GW->>A: Forward exact body + auth headers
+  A->>A: Verify HMAC over exact UTF-8 body
+  A->>A: Check signature format, timestamp, replay window
+  alt Invalid, stale, or missing signature
+    A-->>GW: 401, request ID only
+    A->>L: Append rejected-auth result (scrubbed)
+    GW-->>DD: 401
+  else Authenticated
+    A->>V: Pass authenticated body
+    V->>V: Validate schema and remove forbidden fields
+    alt Invalid schema or scrubber failure
+      V-->>GW: 422 or 500, no raw body
+      V->>L: Append rejected-content or scrub-failure result
+      GW-->>DD: 422/500
+    else Valid and scrubbed
+      V->>G: Ask whether mutation is enabled
+      alt Gate paused or unknown control state
+        G-->>GW: 503, retryable, no Jira call
+        G->>L: Append fail-closed gate result
+        GW-->>DD: 503
+      else Gate open
+        G->>R: Check completed key and acquire lock atomically
+        alt Completed key exists
+          R-->>G: Completed result + Jira issue reference
+          G-->>GW: 200 duplicate/no-op
+          G->>L: Append duplicate result
+          GW-->>DD: 200
+        else Lock acquired
+          R-->>G: Lock owner token
+          G->>O: Persist bounded accepted event/outbox state
+          O->>W: Dispatch mutation work
+          W->>J: Create/update bounded corrective action
+          J-->>W: Success + issue key
+          W->>L: Append mutation result
+          W->>R: Store bounded completion record with replay-window TTL
+          W->>R: Compare token and release lock
+          W-->>GW: 200 accepted/completed
+          GW-->>DD: 200
+        else Lock unavailable and no completion
+          R-->>G: Another worker owns lock
+          G-->>GW: 503 or bounded duplicate-in-progress response
+          G->>L: Append contention result
+          GW-->>DD: 503
+        end
+      end
+    end
+  end
+
+---
+
+sequenceDiagram
+  autonumber
+  participant DD as Datadog
+  participant R as Redis
+  participant W1 as Worker A
+  participant W2 as Worker B
+  participant J as Jira
+  participant L as Audit Ledger
+
+  DD->>W1: Event E (first delivery)
+  W1->>R: SET lock(E) token-A NX EX 300
+  R-->>W1: OK
+  DD->>W2: Event E (duplicate delivery)
+  W2->>R: GET completed(E)
+  R-->>W2: empty
+  W2->>R: SET lock(E) token-B NX EX 300
+  R-->>W2: nil, lock owned by A
+  W2->>L: Record duplicate-in-progress
+  W2-->>DD: 503, safe to retry
+  W1->>J: Single bounded mutation for E
+  J-->>W1: HMSI-42 created
+  W1->>L: Record mutation for E
+  W1->>R: SET completed(E) bounded result EX replay-window
+  W1->>R: Compare-and-delete lock(E), token-A
+  W1-->>DD: 200
+  DD->>W2: Retry E
+  W2->>R: GET completed(E)
+  R-->>W2: HMSI-42 / completed
+  W2->>L: Record duplicate-after-completion
+  W2-->>DD: 200, no second Jira call
+
+---
+
+sequenceDiagram
+  autonumber
+  participant GW as Gateway
+  participant A as Authenticator
+  participant G as Mutation Gate
+  participant R as Redis
+  participant L as Audit Ledger
+  participant OP as On-call
+  participant DD as Datadog
+  participant J as Jira
+
+  DD->>GW: Webhook request
+  GW->>A: Request
+  A->>G: Authenticated event asks for mutation
+  G->>R: Read completed key / acquire lock
+  R--xG: Timeout or unavailable
+  G->>L: Record idempotency-unknown (scrubbed)
+  G->>G: Set gate PAUSED
+  G-->>GW: 503, no Jira call
+  GW-->>DD: 503, provider may retry
+  G->>OP: Page platform/security owner
+  OP->>R: Restore/fail over Redis under approved procedure
+  OP->>L: Record recovery and evidence reference
+  OP->>G: Keep paused until reconciliation passes
+  G->>R: Reconcile event key
+  R-->>G: No prior completion / or known completion
+  alt No prior completion
+    G->>J: Permit one bounded retry after review
+    J-->>G: Result
+  else Prior completion found
+    G->>L: Mark duplicate reconciled
+  end
+  G->>G: Reopen gate only after synthetic validation
+  G-->>DD: Subsequent requests handled normally
+
+---
+
+sequenceDiagram
+  autonumber
+  participant W as Mutation Worker
+  participant J as Jira
+  participant R as Redis
+  participant L as Audit Ledger
+  participant OP as On-call
+
+  W->>J: Create/update bounded corrective action
+  J--xW: Timeout after possible commit
+  W->>L: Record unknown external outcome
+  W->>R: Do not mark completed, retain reconciliation state
+  W->>OP: Page with event fingerprint only
+  OP->>J: Search by deterministic external alert key
+  alt Jira issue exists
+    J-->>OP: Existing issue key
+    OP->>R: Store reconciled completion record
+    OP->>L: Record reconciliation, no retry mutation
+  else No Jira issue exists
+    OP->>W: Authorize one bounded retry
+    W->>J: Retry with same deterministic external key
+    J-->>W: Success or bounded failure
+    W->>R: Store completion only after audit policy is satisfied
+    W->>L: Record final outcome
+  end
+
+---
+
+flowchart TD
+  START[Request arrives] --> AUTH{HMAC valid and fresh?}
+  AUTH -- No --> R401[401, audit rejection, no body persistence]
+  AUTH -- Yes --> SCHEMA{Allowlisted schema and scrubber pass?}
+  SCHEMA -- No --> R422[422/500, audit rejection, no mutation]
+  SCHEMA -- Yes --> GATE{Mutation gate OPEN?}
+  GATE -- No/Unknown --> R503[503, fail closed, page owner]
+  GATE -- Yes --> DONE{Completed idempotency record?}
+  DONE -- Yes --> DUP[200 duplicate, no Jira call]
+  DONE -- No --> LOCK{Atomic lock acquired?}
+  LOCK -- No --> BUSY[503 or bounded retry, no Jira call]
+  LOCK -- Yes --> OUTBOX[Durably accept bounded work]
+  OUTBOX --> JIRA{Jira outcome known?}
+  JIRA -- Success --> AUD[Audit mutation + completion record]
+  JIRA -- Retryable failure --> RETRY[Bounded retry with backoff]
+  JIRA -- Timeout/unknown --> RECON[Pause gate, reconcile by external key]
+  RETRY --> JIRA
+  RECON --> AUD
+  AUD --> OK[Release lock conditionally, 200 only after safe acceptance]

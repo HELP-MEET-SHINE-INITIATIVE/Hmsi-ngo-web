@@ -4,6 +4,7 @@ export const HMSI_SENDERS = {
   admin: 'HMSI Administration <admin@hmsi.org.ng>',
   onboarding: 'HMSI Onboarding <onboarding@hmsi.org.ng>',
   noreply: 'HMSI Portal <noreply@hmsi.org.ng>',
+  notifications: 'HMSI Notifications <notifications@hmsi.org.ng>',
   president: 'HMSI President\'s Office <president@hmsi.org.ng>',
 } as const;
 

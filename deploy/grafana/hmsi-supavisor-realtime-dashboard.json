@@ -1,0 +1,117 @@
+{
+  "uid": "hmsi-supavisor-realtime",
+  "title": "HMSI Supavisor: Pool, Queue & Timeout Safety",
+  "tags": ["hmsi", "supavisor", "database", "fail-closed"],
+  "timezone": "utc",
+  "refresh": "10s",
+  "time": { "from": "now-1h", "to": "now" },
+  "templating": {
+    "list": [
+      {
+        "name": "environment",
+        "label": "Environment",
+        "type": "custom",
+        "query": "staging,production",
+        "current": { "text": "staging", "value": "staging" },
+        "includeAll": false,
+        "multi": false
+      },
+      {
+        "name": "pool_mode",
+        "label": "Pool mode",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(hmsi_supavisor_pool_size{environment=\"$environment\"}, pool_mode)",
+        "includeAll": true,
+        "multi": true
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Pool utilization",
+      "description": "Database-side Supavisor connections divided by configured pool size. Yellow at 80%, red at 90%.",
+      "datasource": "Prometheus",
+      "targets": [{ "refId": "A", "expr": "max(hmsi:supavisor_pool_utilization_ratio{environment=\"$environment\",pool_mode=~\"$pool_mode\"})" }],
+      "fieldConfig": { "defaults": { "unit": "percentunit", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 0.8 }, { "color": "red", "value": 0.9 }] } } },
+      "gridPos": { "h": 7, "w": 6, "x": 0, "y": 0 }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "p95 checkout queue wait",
+      "description": "Time a client waits for a pooled database connection. Red at 250 ms.",
+      "datasource": "Prometheus",
+      "targets": [{ "refId": "A", "expr": "max(hmsi:supavisor_checkout_queue_latency_p95_seconds{environment=\"$environment\",pool_mode=~\"$pool_mode\"})" }],
+      "fieldConfig": { "defaults": { "unit": "s", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 0.1 }, { "color": "red", "value": 0.25 }] } } },
+      "gridPos": { "h": 7, "w": 6, "x": 6, "y": 0 }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "p99 checkout queue wait",
+      "description": "Critical queue signal. Red at 1 second.",
+      "datasource": "Prometheus",
+      "targets": [{ "refId": "A", "expr": "max(hmsi:supavisor_checkout_queue_latency_p99_seconds{environment=\"$environment\",pool_mode=~\"$pool_mode\"})" }],
+      "fieldConfig": { "defaults": { "unit": "s", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 0.5 }, { "color": "red", "value": 1 }] } } },
+      "gridPos": { "h": 7, "w": 6, "x": 12, "y": 0 }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Assignment statement timeout ratio",
+      "description": "Timed-out assignment queries divided by all assignment queries over 5 minutes. Red at 2%.",
+      "datasource": "Prometheus",
+      "targets": [{ "refId": "A", "expr": "max(hmsi:db_statement_timeout_rate_ratio{environment=\"$environment\",route=~\"portal_tasks|admin_assignments|volunteer_proofs\"})" }],
+      "fieldConfig": { "defaults": { "unit": "percentunit", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 0.01 }, { "color": "red", "value": 0.02 }] } } },
+      "gridPos": { "h": 7, "w": 6, "x": 18, "y": 0 }
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Supavisor client and database-side connections",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "sum by (pool_mode) (hmsi_supavisor_pool_clients{environment=\"$environment\",pool_mode=~\"$pool_mode\"})", "legendFormat": "clients {{pool_mode}}" },
+        { "refId": "B", "expr": "sum by (pool_mode) (hmsi_supavisor_pool_database_connections{environment=\"$environment\",pool_mode=~\"$pool_mode\"})", "legendFormat": "database connections {{pool_mode}}" },
+        { "refId": "C", "expr": "sum by (pool_mode) (hmsi_supavisor_pool_size{environment=\"$environment\",pool_mode=~\"$pool_mode\"})", "legendFormat": "configured capacity {{pool_mode}}" }
+      ],
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 7 }
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Checkout queue latency percentiles",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "hmsi:supavisor_checkout_queue_latency_p95_seconds{environment=\"$environment\",pool_mode=~\"$pool_mode\"}", "legendFormat": "p95 {{pool_mode}}" },
+        { "refId": "B", "expr": "hmsi:supavisor_checkout_queue_latency_p99_seconds{environment=\"$environment\",pool_mode=~\"$pool_mode\"}", "legendFormat": "p99 {{pool_mode}}" }
+      ],
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 7 }
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Query timeout errors by protected route",
+      "datasource": "Prometheus",
+      "targets": [{ "refId": "A", "expr": "sum by (route) (rate(hmsi_db_statement_timeout_total{environment=\"$environment\"}[5m]))", "legendFormat": "{{route}}" }],
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 16 }
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Fail-closed mutation-gate state",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "hmsi_mutation_gate_state{environment=\"$environment\",service=\"mutation_gate\",state=\"open\"}", "legendFormat": "open" },
+        { "refId": "B", "expr": "hmsi_mutation_gate_state{environment=\"$environment\",service=\"mutation_gate\",state=~\"paused|unknown\"}", "legendFormat": "{{state}}" },
+        { "refId": "C", "expr": "sum by (reason_code) (rate(hmsi_mutation_gate_admission_total{environment=\"$environment\",service=\"mutation_gate\",result=\"blocked\"}[5m]))", "legendFormat": "blocked {{reason_code}}" }
+      ],
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 16 }
+    }
+  ],
+  "schemaVersion": 39,
+  "version": 1
+}

@@ -51,32 +51,61 @@ export function createAdminSession(email: string) {
   return `${payload}.${sign(payload, config.secret)}`;
 }
 
-export function getAdminEmailFromCookie(cookieHeader: string | null) {
+export type AdminSessionFailureReason =
+  | 'missing_session'
+  | 'expired_session'
+  | 'malformed_session'
+  | 'invalid_signature'
+  | 'administrator_mismatch'
+  | 'auth_configuration_missing';
+
+export type AdminSessionCheck =
+  | { ok: true; email: string }
+  | { ok: false; reasonCode: AdminSessionFailureReason };
+
+function safeEqual(left: Buffer, right: Buffer) {
+  return left.length === right.length && timingSafeEqual(left, right);
+}
+
+export function inspectAdminSession(cookieHeader: string | null): AdminSessionCheck {
   const config = getAdminConfig();
-  if (!config || !cookieHeader) return null;
+  if (!config) return { ok: false, reasonCode: 'auth_configuration_missing' };
+  if (!cookieHeader) return { ok: false, reasonCode: 'missing_session' };
 
   const cookie = cookieHeader
     .split(';')
     .map((part) => part.trim())
     .find((part) => part.startsWith(`${ADMIN_SESSION_COOKIE}=`));
   const token = cookie?.slice(`${ADMIN_SESSION_COOKIE}=`.length);
-  if (!token) return null;
+  if (!token) return { ok: false, reasonCode: 'missing_session' };
 
-  const [encodedEmail, expiresAtText, signature] = token.split('.');
+  const parts = token.split('.');
+  if (parts.length !== 3) return { ok: false, reasonCode: 'malformed_session' };
+  const [encodedEmail, expiresAtText, signature] = parts;
   const expiresAt = Number(expiresAtText);
-  if (!encodedEmail || !Number.isFinite(expiresAt) || !signature || expiresAt < Math.floor(Date.now() / 1000)) return null;
+  if (!encodedEmail || !Number.isFinite(expiresAt) || !signature) {
+    return { ok: false, reasonCode: 'malformed_session' };
+  }
+  if (expiresAt < Math.floor(Date.now() / 1000)) {
+    return { ok: false, reasonCode: 'expired_session' };
+  }
 
   const payload = `${encodedEmail}.${expiresAt}`;
   const expectedSignature = sign(payload, config.secret);
-  const supplied = Buffer.from(signature);
-  const expected = Buffer.from(expectedSignature);
-  if (supplied.length !== expected.length || !timingSafeEqual(supplied, expected)) return null;
+  if (!safeEqual(Buffer.from(signature), Buffer.from(expectedSignature))) {
+    return { ok: false, reasonCode: 'invalid_signature' };
+  }
 
   const decodedEmail = Buffer.from(encodedEmail, 'base64url').toString('utf8').trim().toLowerCase();
-  const suppliedEmail = digest(decodedEmail);
-  const configuredEmail = digest(config.email);
-  if (!decodedEmail || suppliedEmail.length !== configuredEmail.length || !timingSafeEqual(suppliedEmail, configuredEmail)) return null;
-  return decodedEmail;
+  if (!decodedEmail || !safeEqual(digest(decodedEmail), digest(config.email))) {
+    return { ok: false, reasonCode: 'administrator_mismatch' };
+  }
+  return { ok: true, email: decodedEmail };
+}
+
+export function getAdminEmailFromCookie(cookieHeader: string | null) {
+  const checked = inspectAdminSession(cookieHeader);
+  return checked.ok ? checked.email : null;
 }
 
 export function adminCookieOptions() {

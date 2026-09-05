@@ -1,0 +1,58 @@
+%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#e8f1f5", "primaryTextColor": "#102a43", "primaryBorderColor": "#486581", "lineColor": "#627d98", "secondaryColor": "#fff4e6", "tertiaryColor": "#e3f9e5", "fontFamily": "Inter, Arial"}}}%%
+flowchart LR
+  subgraph External[External trust zone]
+    DD[Datadog monitor webhook\nallowlisted event fields]
+    JR[Jira Cloud\nscoped corrective-action API]
+  end
+
+  subgraph Edge[HMSI public ingress boundary]
+    GW[HTTPS gateway / WAF\nTLS, route, size, content type]
+    AUTH[Authenticator\nHMAC-SHA-256\nconstant-time compare\nreplay-window check]
+    VAL[Schema validator + scrubber\nallowlist fields\nno raw payload persistence]
+  end
+
+  subgraph Runtime[HMSI controlled runtime]
+    GATE[Mutation gate\nOPEN / PAUSED\nfail-closed default]
+    IDEM[Idempotency adapter\ncompleted record + lock\nSET NX EX; compare-delete]
+    OUTBOX[Durable outbox\nbounded retry state]
+    WORKER[Mutation worker\nno public-content actions]
+    AUDIT[Append-only audit ledger\nrequest/control/result refs]
+    ALERT[Alert + Jira sync dispatcher\nscrubbed metadata only]
+    VERIFY[Compliance verifier\nstatic + synthetic probes]
+  end
+
+  subgraph Protected[Protected control plane]
+    REDIS[(Redis\nTLS + ACL + isolated prefix\nno unsafe eviction)]
+    SECRETS[Secret manager\nactive/previous HMAC\nRedis/Jira credentials]
+    EVIDENCE[(Signed evidence store\nhashes, manifests, retention)]
+    IAM[Admin / reviewer IAM\nleast privilege + SoD]
+  end
+
+  DD -->|HTTPS signed request| GW
+  GW --> AUTH
+  AUTH -->|401 on failure| GW
+  AUTH --> VAL
+  VAL -->|422 on invalid content| GW
+  VAL --> GATE
+  GATE -->|paused: reject or bounded 503| GW
+  GATE --> IDEM
+  IDEM <--> REDIS
+  IDEM -->|completed duplicate: 200 no mutation| GW
+  IDEM -->|lock acquired| OUTBOX
+  OUTBOX --> WORKER
+  WORKER -->|bounded mutation| JR
+  WORKER --> AUDIT
+  WORKER -->|retryable failure| OUTBOX
+  OUTBOX -->|bounded retry| WORKER
+  AUDIT --> ALERT
+  ALERT -->|bounded corrective action| JR
+  AUTH -. reads secret version .-> SECRETS
+  IDEM -. runtime credential .-> SECRETS
+  WORKER -. runtime credential .-> SECRETS
+  IAM -. controls .-> SECRETS
+  IAM -. controls .-> GATE
+  VERIFY -. reads redacted config .-> SECRETS
+  VERIFY -. probes isolated namespace .-> REDIS
+  VERIFY --> EVIDENCE
+  VERIFY -. gates enablement .-> GATE
+  AUDIT --> EVIDENCE

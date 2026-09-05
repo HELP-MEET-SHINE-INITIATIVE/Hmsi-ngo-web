@@ -40,7 +40,8 @@ test('onboarding and setup paths support members without weakening worker or vol
 test('governance API requires administrator authentication and same-origin mutations while dry runs cannot send messages', async () => {
   const route = await read('app/api/admin/governance/route.ts');
   const controls = await read('app/admin/governance/GovernanceControls.tsx');
-  assert.match(route, /getAdminEmailFromCookie/);
+  assert.match(route, /inspectAdminSession/);
+  assert.match(route, /bestEffortSecurityEvent/);
   assert.match(route, /Cross-site governance requests are not allowed/);
   assert.match(route, /mode: 'dry_run'/);
   assert.match(route, /No notification, task, approval, or data change was executed/);

@@ -1,0 +1,258 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: hmsi-staging
+  labels:
+    hmsi.org/environment: staging
+    hmsi.org/data-classification: restricted
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: hmsi-mutation-gate
+  namespace: hmsi-staging
+  annotations:
+    # Replace with the workload-identity annotation for the chosen cloud provider.
+    hmsi.org/secret-store-role: hmsi-staging-mutation-gate
+automountServiceAccountToken: true
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hmsi-mutation-gate-config
+  namespace: hmsi-staging
+data:
+  NODE_ENV: "staging"
+  HMSI_ENVIRONMENT: "staging"
+  HTTP_PORT: "8080"
+  LOG_LEVEL: "info"
+  LOG_FORMAT: "json"
+  LOG_REDACTION_MODE: "strict"
+  WEBHOOK_ROUTE: "/api/integrations/datadog"
+  WEBHOOK_MAX_BODY_BYTES: "65536"
+  WEBHOOK_MAX_CLOCK_SKEW_SECONDS: "300"
+  WEBHOOK_RATE_LIMIT_RPS: "25"
+  WEBHOOK_RATE_LIMIT_BURST: "50"
+  MUTATION_GATE_INITIAL_STATE: "PAUSED"
+  MUTATION_GATE_FAIL_CLOSED: "true"
+  MUTATION_GATE_ALLOW_OPEN: "true"
+  MUTATION_GATE_OPEN_REQUIRES_APPROVAL: "true"
+  MUTATION_GATE_OPEN_REQUIRES_SYNTHETIC_PROBE: "true"
+  SYNC_DRY_RUN: "true"
+  JIRA_MUTATION_ENABLED: "false"
+  JIRA_RETRY_MAX_ATTEMPTS: "3"
+  JIRA_RETRY_BASE_DELAY_MS: "500"
+  JIRA_REQUEST_TIMEOUT_MS: "3000"
+  JIRA_EXTERNAL_KEY_FIELD: "customfield_10001"
+  REDIS_TLS: "true"
+  REDIS_CONNECT_TIMEOUT_MS: "1000"
+  REDIS_COMMAND_TIMEOUT_MS: "1000"
+  REDIS_RECONNECT_MAX_ATTEMPTS: "0"
+  REDIS_FAIL_CLOSED: "true"
+  IDEMPOTENCY_KEY_PREFIX: "hmsi:staging:datadog:idempotency:v1:"
+  IDEMPOTENCY_LOCK_TTL_SECONDS: "300"
+  IDEMPOTENCY_COMPLETION_TTL_SECONDS: "7776000"
+  IDEMPOTENCY_UNKNOWN_OUTCOME_STATE: "reconciliation_required"
+  IDEMPOTENCY_REQUIRE_ATOMIC_ACQUIRE: "true"
+  IDEMPOTENCY_REQUIRE_CONDITIONAL_RELEASE: "true"
+  AUDIT_REQUIRED: "true"
+  AUDIT_FAIL_CLOSED: "true"
+  AUDIT_RAW_PAYLOADS: "false"
+  AUDIT_REDACTION_MODE: "strict"
+  EVIDENCE_SIGNING_REQUIRED: "true"
+  SYNTHETIC_ONLY: "true"
+---
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: hmsi-mutation-gate-secrets
+  namespace: hmsi-staging
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: hmsi-staging-secret-store
+    kind: ClusterSecretStore
+  target:
+    name: hmsi-mutation-gate-secrets
+    creationPolicy: Owner
+    deletionPolicy: Retain
+  data:
+    - secretKey: HMAC_SECRET_CURRENT
+      remoteRef:
+        key: hmsi/staging/mutation-gate
+        property: hmac_secret_current
+    - secretKey: HMAC_SECRET_PREVIOUS
+      remoteRef:
+        key: hmsi/staging/mutation-gate
+        property: hmac_secret_previous
+    - secretKey: REDIS_URL
+      remoteRef:
+        key: hmsi/staging/mutation-gate
+        property: redis_url
+    - secretKey: REDIS_USERNAME
+      remoteRef:
+        key: hmsi/staging/mutation-gate
+        property: redis_username
+    - secretKey: REDIS_PASSWORD
+      remoteRef:
+        key: hmsi/staging/mutation-gate
+        property: redis_password
+    - secretKey: REDIS_CA_PEM
+      remoteRef:
+        key: hmsi/staging/mutation-gate
+        property: redis_ca_pem
+    - secretKey: JIRA_API_TOKEN
+      remoteRef:
+        key: hmsi/staging/mutation-gate
+        property: jira_api_token
+    - secretKey: AUDIT_DATABASE_URL
+      remoteRef:
+        key: hmsi/staging/mutation-gate
+        property: audit_database_url
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hmsi-mutation-gate
+  namespace: hmsi-staging
+  labels:
+    app.kubernetes.io/name: hmsi-mutation-gate
+    app.kubernetes.io/part-of: hmsi-integrations
+    hmsi.org/control: fail-closed-mutation-gate
+spec:
+  replicas: 2
+  revisionHistoryLimit: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: hmsi-mutation-gate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: hmsi-mutation-gate
+        hmsi.org/control: fail-closed-mutation-gate
+    spec:
+      serviceAccountName: hmsi-mutation-gate
+      automountServiceAccountToken: true
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: mutation-gate
+          # Pin this image to a reviewed immutable digest before applying.
+          image: ghcr.io/hmsi/mutation-gate:staging
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: hmsi-mutation-gate-config
+            - secretRef:
+                name: hmsi-mutation-gate-secrets
+          env:
+            - name: JIRA_BASE_URL
+              value: "https://<staging-jira-host>"
+            - name: DATADOG_ALLOWED_HOST
+              value: "app.datadoghq.com"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          startupProbe:
+            httpGet:
+              path: /health/startup
+              port: http
+              scheme: HTTP
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 30
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+              readOnly: false
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hmsi-mutation-gate
+  namespace: hmsi-staging
+  labels:
+    app.kubernetes.io/name: hmsi-mutation-gate
+spec:
+  selector:
+    app.kubernetes.io/name: hmsi-mutation-gate
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: hmsi-mutation-gate
+  namespace: hmsi-staging
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: hmsi-mutation-gate
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: hmsi-mutation-gate-ingress
+  namespace: hmsi-staging
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: hmsi-mutation-gate
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 8080

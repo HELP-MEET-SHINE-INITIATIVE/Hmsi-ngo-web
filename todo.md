@@ -997,3 +997,27 @@ The existing data model does not currently provide a volunteer task-assignment t
 - [x] Design an atomic role-activation RPC/server transaction with row-level locks, independent approval validation, idempotent capability grants, and complete rollback on any failed assertion.
 - [x] Draft the reviewed SQL/RPC structure and protected server-call contract without applying it to production.
 - [x] Validate the activation RPC contract against the HMSI schema and document staging concurrency tests and deployment gates.
+- [x] Review HMSI activation test coverage for actual concurrent attempts, row-level-lock behavior, and database integration gaps.
+- [x] Assess Facebook account-blocking recovery options through official channels only; do not build or run enforcement-bypass automation or use credentials in scripts.
+- [ ] Add real staging integration coverage for two concurrent role-activation attempts, lock timeout behavior, role-binding races, and all-or-nothing audit/capability writes.
+- [x] Document that local CI remains static-only unless an explicitly configured isolated staging Supabase database is available; never use production credentials or data for concurrency tests.
+- [x] Validate the official GreatNonprofits profile and badge parameters before embedding the supplied third-party widget.
+- [x] Add a privacy-safe, resilient GreatNonprofits badge to the HMSI shared public footer without presenting it as an award, certification, endorsement, or fabricated review.
+- [x] Test the badge integration on representative public routes, including blocked-script and no-JavaScript fallback behavior, accessibility, and production build checks.
+- [x] Replace the unsupported ₦100,000 revenue claim with the approved formal financial and transparent-reporting statement across public portal content and metadata where applicable.
+- [x] Complete the GreatNonprofits shared-footer integration with verified profile targeting, accessible fallback, privacy documentation, and public-route validation.
+- [x] Update HMSI runtime and CI/deployment references from Node.js 20 to Node.js 22 where supported, without introducing a custom Dockerfile unless required.
+- [x] Run focused tests, full regression tests, lint, production build, and passive preview verification; commit and push only scoped changes.
+- [ ] Diagnose the Resend webhook disablement using redacted implementation and runtime evidence; preserve signature verification, idempotency, and fail-closed behavior.
+- [ ] Harden the Resend webhook endpoint only where a verified failure mode requires it, with regression coverage and no recipient/message data exposure.
+- [ ] Verify Vercel production and preview runtime settings use Node.js 22 and align repository/deployment declarations without exposing secrets.
+- [ ] Run focused tests, full regression tests, lint/build checks, and approved read-only deployment verification; document any manual Resend re-enable action.
+- [ ] Run a controlled signed 2xx verification against the deployed Resend webhook without exposing the signing secret or real message payload.
+- [ ] Confirm the Node.js 24 deployment is healthy and document whether the disabled Resend webhook is safe to re-enable.
+- [ ] If the signed test passes, re-enable the Resend webhook only with explicit provider-side confirmation and verify the resulting status.
+
+- [ ] Reconcile and implement the remaining protected RBAC route and role-review/activation changes from the HMSI runbook.
+- [ ] Run targeted RBAC, webhook, type-check, build, and security verification tests.
+- [ ] Commit and push only verified HMSI source changes to the configured GitHub repository.
+- [ ] Verify the resulting Vercel production deployment and live portal smoke checks without exposing secrets.
+- [ ] Record any deferred staging-only concurrency or matched-donation audit verification items.

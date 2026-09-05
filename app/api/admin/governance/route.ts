@@ -1,7 +1,9 @@
 import { randomUUID } from 'node:crypto';
 import { NextResponse } from 'next/server';
-import { getAdminEmailFromCookie } from '../../../../lib/adminSession';
+import { inspectAdminSession, type AdminSessionFailureReason } from '../../../../lib/adminSession';
 import { getSupabaseAdmin } from '../../../../lib/supabaseAdmin';
+import { inspectSameOrigin } from '../../../../lib/sameOrigin';
+import { recordSecurityEvent } from '../../../../lib/securityEventLog';
 
 export const runtime = 'nodejs';
 
@@ -10,10 +12,16 @@ const requestTypes = new Set(['governance', 'branch_activation', 'programme_acti
 const workflowKeys = new Set(['onboarding_readiness', 'approval_queue', 'notification_reconciliation', 'branch_data_quality']);
 
 function error(message: string, status = 400) { return NextResponse.json({ error: message }, { status }); }
-function sameOrigin(request: Request) {
-  const origin = request.headers.get('origin');
-  if (!origin) return false;
-  try { return new URL(origin).host === new URL(request.url).host; } catch { return false; }
+async function bestEffortSecurityEvent(input: Parameters<typeof recordSecurityEvent>[0]) {
+  try {
+    await recordSecurityEvent(input);
+  } catch {
+    console.warn('[Governance SecurityEvent] sink_failure');
+  }
+}
+async function rejectedSession(request: Request, method: 'GET' | 'POST', reasonCode: AdminSessionFailureReason) {
+  await bestEffortSecurityEvent({ eventType: 'admin_session_rejected', reasonCode, routeKey: 'admin_governance', method, httpStatus: 401, originClass: 'not_applicable' });
+  return error('Administrator authentication required.', 401);
 }
 function email(value: unknown) {
   const normalized = typeof value === 'string' ? value.trim().toLowerCase() : '';
@@ -26,8 +34,11 @@ function text(value: unknown, min: number, max: number) {
 function optionalId(value: unknown) { return typeof value === 'string' && /^[0-9a-f-]{36}$/i.test(value.trim()) ? value.trim() : null; }
 
 export async function GET(request: Request) {
-  const president = getAdminEmailFromCookie(request.headers.get('cookie'));
-  if (!president) return error('Administrator authentication required.', 401);
+  const session = inspectAdminSession(request.headers.get('cookie'));
+  if ('reasonCode' in session) {
+    return rejectedSession(request, 'GET', session.reasonCode);
+  }
+  const president = session.email;
   const admin = getSupabaseAdmin();
   if (!admin) return error('Governance records are unavailable.', 503);
   const [units, programmes, roles, delegations, approvals, runs] = await Promise.all([
@@ -54,9 +65,16 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const president = getAdminEmailFromCookie(request.headers.get('cookie'));
-  if (!president) return error('Administrator authentication required.', 401);
-  if (!sameOrigin(request)) return error('Cross-site governance requests are not allowed.', 403);
+  const session = inspectAdminSession(request.headers.get('cookie'));
+  if ('reasonCode' in session) {
+    return rejectedSession(request, 'POST', session.reasonCode);
+  }
+  const president = session.email;
+  const origin = inspectSameOrigin(request);
+  if ('reasonCode' in origin) {
+    await bestEffortSecurityEvent({ eventType: 'admin_origin_rejected', reasonCode: origin.reasonCode, routeKey: 'admin_governance', method: 'POST', httpStatus: 403, originClass: origin.originClass, actorEmail: president });
+    return error('Cross-site governance requests are not allowed.', 403);
+  }
   const admin = getSupabaseAdmin();
   if (!admin) return error('Governance records are unavailable.', 503);
   const body = await request.json().catch(() => ({})) as Record<string, unknown>;

@@ -1,0 +1,294 @@
+name: Terraform comment-authorized rollback
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: terraform-security-monitoring-comment-rollback
+  cancel-in-progress: false
+
+jobs:
+  rollback:
+    name: Roll back from an authorized failure issue comment
+    if: github.event.issue.pull_request != null
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: staging-monitoring-rollback
+    permissions:
+      contents: read
+      id-token: write
+      issues: write
+    env:
+      TF_STATE_BUCKET: ${{ vars.TF_STATE_BUCKET }}
+      TF_STATE_KEY: ${{ vars.TF_STATE_KEY }}
+      TF_STATE_REGION: ${{ vars.TF_STATE_REGION }}
+      TF_VAR_aws_region: ${{ vars.AWS_REGION }}
+      TF_VAR_github_repository: HELP-MEET-SHINE-INITIATIVE/Hmsi-ngo-web
+      TF_VAR_github_environment: staging-monitoring
+      TF_VAR_manage_supabase_project: false
+      TF_VAR_manage_supabase_settings: false
+      TF_VAR_enable_github_oidc: false
+      TF_VAR_enable_staging_monitoring: false
+      TF_STATE_DDB_TABLE: ${{ vars.TF_STATE_DDB_TABLE }}
+      TF_ROLLBACK_ALLOWED_ACTORS: ${{ vars.TF_ROLLBACK_ALLOWED_ACTORS }}
+      COMMENT_BODY: ${{ github.event.comment.body }}
+      COMMENTER_LOGIN: ${{ github.event.comment.user.login }}
+      ISSUE_NUMBER: ${{ github.event.issue.number }}
+      REPOSITORY: ${{ github.repository }}
+
+    steps:
+      - name: Checkout protected rollback configuration
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Validate comment command and authorized commenter
+        id: command
+        shell: bash
+        run: |
+          set -euo pipefail
+          body="$(printf '%s' "$COMMENT_BODY" | tr -d '\r')"
+          if [[ "$body" =~ ^/hmsi-terraform-rollback[[:space:]]+([A-Za-z0-9_./=-]{1,200})[[:space:]]*$ ]]; then
+            state_version_id="${BASH_REMATCH[1]}"
+          else
+            echo 'Comment is not the exact rollback command; stopping safely.'
+            exit 1
+          fi
+          authorized=false
+          IFS=',' read -r -a actors <<< "$TF_ROLLBACK_ALLOWED_ACTORS"
+          for actor in "${actors[@]}"; do
+            if [[ "$actor" == "$COMMENTER_LOGIN" ]]; then
+              authorized=true
+              break
+            fi
+          done
+          if [[ "$authorized" != true ]]; then
+            echo 'Commenter is not in the protected rollback allowlist.' >&2
+            exit 1
+          fi
+          {
+            echo "STATE_VERSION_ID=$state_version_id"
+            echo "COMMENTER_LOGIN=$COMMENTER_LOGIN"
+          } >> "$GITHUB_ENV"
+
+      - name: Verify the comment is on a labeled Terraform failure issue
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issue = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: Number(process.env.ISSUE_NUMBER),
+            });
+            const labels = issue.data.labels.map((label) => typeof label === 'string' ? label : label.name);
+            if (!labels.includes('terraform-apply-failure')) {
+              core.setFailed('Rollback comments are accepted only on terraform-apply-failure issues.');
+            }
+            if (issue.data.state !== 'open') {
+              core.setFailed('Rollback comments are accepted only while the failure issue is open.');
+            }
+
+      - name: Check for an existing result for this exact command
+        id: replay
+        uses: actions/github-script@v7
+        env:
+          STATE_VERSION_ID: ${{ env.STATE_VERSION_ID }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: Number(process.env.ISSUE_NUMBER),
+              per_page: 100,
+            });
+            const marker = `<!-- hmsi-terraform-comment-rollback:${process.env.ISSUE_NUMBER}:${process.env.STATE_VERSION_ID} -->`;
+            const found = comments.some((comment) => comment.body && comment.body.includes(marker));
+            core.setOutput('already_reported', found ? 'true' : 'false');
+            if (found) core.notice('This exact VersionId already has a rollback result on the issue; no second mutation will run.');
+
+      - name: Configure AWS through GitHub OIDC
+        if: steps.replay.outputs.already_reported != 'true'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_TERRAFORM_ROLLBACK_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: gha-tf-comment-rollback-${{ github.run_id }}
+          mask-aws-account-id: true
+          unset-current-credentials: true
+
+      - name: Verify federated identity without printing credentials
+        if: steps.replay.outputs.already_reported != 'true'
+        run: aws sts get-caller-identity --query '{Account:Account,Arn:Arn}' --output json
+
+      - name: Setup Terraform
+        if: steps.replay.outputs.already_reported != 'true'
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+          terraform_wrapper: false
+
+      - name: Initialize the protected remote state backend
+        if: steps.replay.outputs.already_reported != 'true'
+        run: |
+          test -n "$TF_STATE_BUCKET"
+          test -n "$TF_STATE_KEY"
+          test -n "$TF_STATE_REGION"
+          terraform init \
+            -input=false \
+            -lockfile=readonly \
+            -backend-config="bucket=$TF_STATE_BUCKET" \
+            -backend-config="key=$TF_STATE_KEY" \
+            -backend-config="region=$TF_STATE_REGION" \
+            -backend-config="encrypt=true" \
+            ${TF_STATE_DDB_TABLE:+-backend-config="dynamodb_table=$TF_STATE_DDB_TABLE"}
+
+      - name: Confirm the requested VersionId belongs to the exact state key
+        if: steps.replay.outputs.already_reported != 'true'
+        run: |
+          aws s3api head-object \
+            --bucket "$TF_STATE_BUCKET" \
+            --key "$TF_STATE_KEY" \
+            --version-id "$STATE_VERSION_ID" \
+            --query '{VersionId:VersionId,ETag:ETag,LastModified:LastModified,ServerSideEncryption:ServerSideEncryption}' \
+            --output json
+
+      - name: Detect whether the requested version is already current
+        id: current
+        if: steps.replay.outputs.already_reported != 'true'
+        run: |
+          current_version="$(aws s3api list-object-versions \
+            --bucket "$TF_STATE_BUCKET" \
+            --prefix "$TF_STATE_KEY" \
+            --query "Versions[?Key=='$TF_STATE_KEY' && IsLatest==\`true\`].VersionId | [0]" \
+            --output text)"
+          if [[ "$current_version" == "$STATE_VERSION_ID" ]]; then
+            echo 'already_current=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'already_current=false' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Pull and validate the selected state version
+        if: steps.replay.outputs.already_reported != 'true' && steps.current.outputs.already_current != 'true'
+        run: |
+          aws s3api get-object \
+            --bucket "$TF_STATE_BUCKET" \
+            --key "$TF_STATE_KEY" \
+            --version-id "$STATE_VERSION_ID" \
+            previous.tfstate >/dev/null
+          test -s previous.tfstate
+          jq -e '(.version | numbers) and (.serial | numbers) and (.lineage | strings)' previous.tfstate >/dev/null
+          terraform state list -state=previous.tfstate >/dev/null
+
+      - name: Restore the selected state version under Terraform locking
+        id: push
+        if: steps.replay.outputs.already_reported != 'true' && steps.current.outputs.already_current != 'true'
+        run: terraform state push -force previous.tfstate
+
+      - name: Confirm the restored state can be read
+        id: confirm_state
+        if: steps.replay.outputs.already_reported != 'true'
+        run: terraform state pull | jq -e '(.version | numbers) and (.serial | numbers) and (.lineage | strings)' >/dev/null
+
+      - name: Verify restored state against expected configuration
+        id: post_plan
+        if: >-
+          always() &&
+          steps.replay.outputs.already_reported != 'true' &&
+          (steps.current.outputs.already_current == 'true' || (steps.push.outcome == 'success' && steps.confirm_state.outcome == 'success'))
+        shell: bash
+        run: |
+          set +e
+          terraform plan \
+            -input=false \
+            -refresh=false \
+            -lock=true \
+            -detailed-exitcode \
+            -no-color > post-rollback-plan.log 2>&1
+          plan_status=$?
+          set -e
+          case "$plan_status" in
+            0) verdict='match' ;;
+            2) verdict='drift-detected' ;;
+            *) verdict='plan-error' ;;
+          esac
+          echo "verdict=$verdict" >> "$GITHUB_OUTPUT"
+          {
+            echo '### Post-rollback plan verification'
+            echo "- Verdict: **$verdict**"
+            echo '- Refresh: disabled'
+            echo '- Apply: not run'
+            echo '- Plan output: retained only on the ephemeral runner and removed during cleanup'
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [[ "$plan_status" -ne 0 ]]; then exit "$plan_status"; fi
+
+      - name: Add a sanitized rollback result to the failure issue
+        if: always() && steps.replay.outputs.already_reported != 'true'
+        uses: actions/github-script@v7
+        env:
+          STATE_VERSION_ID: ${{ env.STATE_VERSION_ID }}
+          COMMENTER_LOGIN: ${{ env.COMMENTER_LOGIN }}
+          ROLLBACK_RESULT: ${{ job.status }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          ALREADY_CURRENT: ${{ steps.current.outputs.already_current }}
+          PUSH_OUTCOME: ${{ steps.push.outcome }}
+          CONFIRM_OUTCOME: ${{ steps.confirm_state.outcome }}
+          POST_PLAN_OUTCOME: ${{ steps.post_plan.outcome }}
+          POST_PLAN_VERDICT: ${{ steps.post_plan.outputs.verdict }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const marker = `<!-- hmsi-terraform-comment-rollback:${process.env.ISSUE_NUMBER}:${process.env.STATE_VERSION_ID} -->`;
+            const current = process.env.ALREADY_CURRENT === 'true';
+            const rollbackSucceeded = current || process.env.PUSH_OUTCOME === 'success';
+            const planMatched = process.env.POST_PLAN_OUTCOME === 'success' && process.env.POST_PLAN_VERDICT === 'match';
+            const stateConfirmed = process.env.CONFIRM_OUTCOME === 'success';
+            const safeToClose = rollbackSucceeded && stateConfirmed && planMatched;
+            const body = [
+              marker,
+              '## Terraform comment-authorized rollback result',
+              '',
+              `Requested VersionId: \`${process.env.STATE_VERSION_ID}\``,
+              `Requested by: @${process.env.COMMENTER_LOGIN}`,
+              `Workflow result: **${process.env.ROLLBACK_RESULT}**`,
+              `Restricted run: ${process.env.RUN_URL}`,
+              '',
+              `Post-rollback plan verdict: **${process.env.POST_PLAN_VERDICT || 'not-run'}**`,
+              safeToClose
+                ? 'Rollback verification succeeded with a match verdict. This failure issue will be closed.'
+                : 'The failure issue remains open because rollback verification did not produce a confirmed match verdict.',
+              current
+                ? 'The requested VersionId was already current; no state mutation was needed.'
+                : 'The selected state version was validated and submitted under Terraform locking.',
+              '',
+              '> State contents and raw workflow logs are not copied into this issue. Review the restricted run and perform a fresh protected reconciliation plan before any infrastructure apply.',
+            ].join('\n');
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: Number(process.env.ISSUE_NUMBER),
+              body,
+            });
+            if (safeToClose) {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: Number(process.env.ISSUE_NUMBER),
+                state: 'closed',
+                state_reason: 'completed',
+              });
+              core.notice('Closed the Terraform failure issue after successful rollback verification.');
+            } else {
+              core.notice('Kept the Terraform failure issue open because verification was not a confirmed match.');
+            }
+
+      - name: Remove local state and plan material
+        if: always()
+        run: rm -f previous.tfstate post-rollback-plan.log .terraform.lock.hcl

@@ -1,0 +1,38 @@
+flowchart LR
+    A[Signal received] --> B{Immediate safety or trust concern?}
+    B -- YES --> C[STOP ordinary analysis] --> D[Confidential route] --> E[Authorized lead review]
+    B -- NO --> F{Safe, authorized participation blocked?}
+    F -- YES --> G[Protect or pause task] --> H[Owner + safe interim instruction]
+    F -- NO --> I{Any score 1–2 on Q1–4?}
+    I -- YES --> J{Signal type}
+    J --> K[Clarity: explain role/boundaries]
+    J --> L[Capacity: adjust with consent]
+    J --> M[Connection: assign owner]
+    J --> N[Confidence: worked example]
+    I -- NO --> O{System unavailable?}
+    O -- YES --> P[Status update + prevent duplicates] --> Q[Manual fallback + reconcile]
+    O -- NO --> R{Evidence too weak?}
+    R -- YES --> S[Label insufficient evidence] --> T[Extend collection neutrally]
+    R -- NO --> U{Message feels coercive?}
+    U -- YES --> V[Withdraw/correct message] --> W[Clarify voluntary choice]
+    U -- NO --> X[Routine monitoring]
+
+    H --> Y[Verify resolution]
+    K --> Y
+    L --> Y
+    M --> Y
+    N --> Y
+    Q --> Y
+    T --> Y
+    W --> Y
+    X --> Y
+    Y --> Z{Resolved safely?}
+    Z -- YES --> AA[Close or monitor]
+    Z -- NO --> AB[Activate contingency] --> AC[Raise at decision gate]
+
+    classDef critical fill:#fbeee8,stroke:#a85f38,stroke-width:2px,color:#17372e;
+    classDef action fill:#eef3ee,stroke:#1e5b49,stroke-width:1.5px,color:#17372e;
+    classDef decision fill:#fff8df,stroke:#d7a940,stroke-width:1.5px,color:#17372e;
+    class C,D,E critical;
+    class G,H,K,L,M,N,P,Q,S,T,V,W,X,Y,AA,AB,AC action;
+    class B,F,I,J,O,R,U,Z decision;

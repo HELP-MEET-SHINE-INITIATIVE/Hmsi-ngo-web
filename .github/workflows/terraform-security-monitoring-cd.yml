@@ -1,0 +1,456 @@
+name: Terraform security-monitoring CD
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+    paths:
+      - 'infra/terraform/security-monitoring/**'
+      - '.github/workflows/terraform-security-monitoring-cd.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: terraform-security-monitoring-cd-main
+  cancel-in-progress: false
+
+jobs:
+  approval-notification:
+    name: Notify production approval request
+    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Send sanitized Slack approval notification
+        continue-on-error: true
+        uses: slackapi/slack-github-action@v2.1.1
+        with:
+          webhook: ${{ secrets.SLACK_PRODUCTION_APPROVAL_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": "HMSI production Terraform deployment is waiting for manual approval. Repository: ${{ github.repository }}. Pull request: #${{ github.event.pull_request.number }}. Merge commit: ${{ github.event.pull_request.merge_commit_sha }}. Environment: production. <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Open the approval request> and click Review deployments, inspect the restricted plan, then approve or reject the production job."
+            }
+
+      - name: Comment on the merged pull request with approval instructions
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const marker = `<!-- hmsi-production-approval:${context.runId} -->`;
+            const issueNumber = context.payload.pull_request.number;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              per_page: 100,
+            });
+            if (comments.some((comment) => comment.body?.includes(marker))) {
+              core.info(`Approval comment already exists for workflow run ${context.runId}.`);
+              return;
+            }
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const body = [
+              marker,
+              '## HMSI production deployment pending approval',
+              '',
+              'The merged Terraform change is waiting for review in the protected `production` Environment.',
+              '',
+              `- **Environment:** \`production\``,
+              `- **Merge commit:** \`${context.payload.pull_request.merge_commit_sha}\``,
+              `- **Approval request:** [Open the GitHub Actions run](${runUrl})`,
+              '',
+              'Open the run, select **Review deployments**, inspect the restricted plan, and approve or reject the deployment. The production Environment timeout is 24 hours; no approval is granted by this comment.',
+            ].join('\\n');
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body,
+            });
+
+  apply:
+    needs: approval-notification
+    name: Apply merged Terraform change
+    # Apply is intentionally impossible unless GitHub reports a merged PR
+    # targeting the workflow's main branch.
+    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # GitHub pauses this job here until required reviewers configured on the
+    # production Environment approve the deployment.
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+    defaults:
+      run:
+        working-directory: infra/terraform/security-monitoring
+    env:
+      TF_IN_AUTOMATION: true
+      TF_INPUT: false
+      TF_CLI_ARGS: -no-color
+      TF_VAR_aws_region: ${{ vars.AWS_REGION }}
+      TF_VAR_github_repository: HELP-MEET-SHINE-INITIATIVE/Hmsi-ngo-web
+      TF_VAR_github_environment: production
+      TF_VAR_supabase_access_token: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      TF_VAR_enable_github_oidc: ${{ vars.TF_ENABLE_GITHUB_OIDC }}
+      TF_VAR_enable_staging_monitoring: ${{ vars.TF_ENABLE_STAGING_MONITORING }}
+      TF_VAR_manage_supabase_project: ${{ vars.TF_MANAGE_SUPABASE_PROJECT }}
+      TF_VAR_manage_supabase_settings: ${{ vars.TF_MANAGE_SUPABASE_SETTINGS }}
+
+    steps:
+      - name: Checkout the exact merged commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha || github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Configure AWS through GitHub OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_TERRAFORM_APPLY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: gha-tf-apply-${{ github.run_id }}
+          mask-aws-account-id: true
+          unset-current-credentials: true
+
+      - name: Verify federated identity without printing credentials
+        run: aws sts get-caller-identity --query '{Account:Account,Arn:Arn}' --output json
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+          terraform_wrapper: false
+
+      - name: Initialize the protected remote state backend
+        env:
+          TF_STATE_BUCKET: ${{ vars.TF_STATE_BUCKET }}
+          TF_STATE_KEY: ${{ vars.TF_STATE_KEY }}
+          TF_STATE_REGION: ${{ vars.TF_STATE_REGION }}
+          TF_STATE_DDB_TABLE: ${{ vars.TF_STATE_DDB_TABLE }}
+        run: |
+          test -n "$TF_STATE_BUCKET"
+          test -n "$TF_STATE_KEY"
+          test -n "$TF_STATE_REGION"
+          terraform init \
+            -input=false \
+            -lockfile=readonly \
+            -backend-config="bucket=$TF_STATE_BUCKET" \
+            -backend-config="key=$TF_STATE_KEY" \
+            -backend-config="region=$TF_STATE_REGION" \
+            -backend-config="encrypt=true" \
+            ${TF_STATE_DDB_TABLE:+-backend-config="dynamodb_table=$TF_STATE_DDB_TABLE"}
+
+      - name: Verify Terraform formatting and configuration
+        run: |
+          terraform fmt -check -diff
+          terraform validate -no-color
+
+      - name: Create the reviewed plan
+        run: |
+          terraform plan \
+            -input=false \
+            -lock-timeout=5m \
+            -out=merged-change.tfplan \
+            -var="enable_github_oidc=${TF_VAR_enable_github_oidc:-false}" \
+            -var="enable_staging_monitoring=${TF_VAR_enable_staging_monitoring:-false}" \
+            -var="manage_supabase_project=${TF_VAR_manage_supabase_project:-false}" \
+            -var="manage_supabase_settings=${TF_VAR_manage_supabase_settings:-false}"
+
+      - name: Apply exactly the saved plan
+        run: terraform apply -input=false merged-change.tfplan
+
+      - name: Remove the local plan and Terraform sensitive metadata
+        if: always()
+        run: rm -f merged-change.tfplan .terraform.lock.hcl
+
+  rollback-context:
+    name: List rollback state versions after failure
+    needs: apply
+    if: >-
+      always() &&
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.merged == true &&
+      needs.apply.result == 'failure'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: staging-monitoring-diagnostics
+    permissions:
+      contents: read
+      id-token: write
+      issues: write
+    env:
+      TF_STATE_BUCKET: ${{ vars.TF_STATE_BUCKET }}
+      TF_STATE_KEY: ${{ vars.TF_STATE_KEY }}
+      TF_STATE_REGION: ${{ vars.TF_STATE_REGION }}
+    steps:
+      - name: Configure AWS through GitHub OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_TERRAFORM_STATE_READ_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: gha-tf-failure-context-${{ github.run_id }}
+          mask-aws-account-id: true
+          unset-current-credentials: true
+
+      - name: Verify federated identity without printing credentials
+        run: aws sts get-caller-identity --query '{Account:Account,Arn:Arn}' --output json
+
+      - name: Validate exact state location
+        run: |
+          test -n "$TF_STATE_BUCKET"
+          test -n "$TF_STATE_KEY"
+          test -n "$TF_STATE_REGION"
+
+      - name: Query only S3 version metadata for the exact state key
+        run: |
+          aws s3api list-object-versions \
+            --bucket "$TF_STATE_BUCKET" \
+            --prefix "$TF_STATE_KEY" \
+            --region "$TF_STATE_REGION" \
+            --output json > state-versions.json
+          count="$(jq --arg key "$TF_STATE_KEY" '[ (.Versions // [])[] | select(.Key == $key) ] | length' state-versions.json)"
+          test "$count" -gt 0
+          {
+            echo '## Rollback context after Terraform CD failure'
+            echo
+            echo '| Rank | VersionId | Last modified (UTC) | Latest | Size (bytes) | ETag |'
+            echo '|---:|---|---|:---:|---:|---|'
+            jq -r --arg key "$TF_STATE_KEY" '
+              [ (.Versions // [])[] | select(.Key == $key) ]
+              | sort_by(.LastModified) | reverse | .[:5]
+              | to_entries[]
+              | "| \(.key + 1) | `\(.value.VersionId)` | \(.value.LastModified) | \(.value.IsLatest) | \(.value.Size) | \(.value.ETag // \"not-returned\") |"
+            ' state-versions.json
+            echo
+            echo 'No state contents were downloaded and no rollback was performed.'
+            echo 'Select a VersionId only after incident review, then invoke the separately protected rollback workflow.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Create or reuse a sanitized GitHub incident issue
+        if: always()
+        uses: actions/github-script@v7
+        env:
+          STATE_BUCKET: ${{ vars.TF_STATE_BUCKET }}
+          STATE_KEY: ${{ vars.TF_STATE_KEY }}
+          APPLY_RESULT: ${{ needs.apply.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+          FAILURE_MARKER: '<!-- hmsi-terraform-apply-failure:${{ github.event.pull_request.merge_commit_sha }} -->'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const marker = process.env.FAILURE_MARKER;
+            const workflowUrl = process.env.RUN_URL;
+            const applyResult = process.env.APPLY_RESULT || 'unknown';
+            const mergeSha = process.env.MERGE_SHA || 'not available';
+            const stateBucket = process.env.STATE_BUCKET || 'not configured';
+            const stateKey = process.env.STATE_KEY || 'not configured';
+
+            let versions = [];
+            try {
+              const payload = JSON.parse(fs.readFileSync('state-versions.json', 'utf8'));
+              versions = (payload.Versions || [])
+                .filter((entry) => entry.Key === stateKey)
+                .sort((a, b) => String(b.LastModified).localeCompare(String(a.LastModified)))
+                .slice(0, 5);
+            } catch (_) {
+              versions = [];
+            }
+
+            const versionTable = versions.length
+              ? [
+                  '| Rank | VersionId | Last modified (UTC) | Latest | Size (bytes) | ETag |',
+                  '|---:|---|---|:---:|---:|---|',
+                  ...versions.map((entry, index) =>
+                    `| ${index + 1} | \`${entry.VersionId}\` | ${entry.LastModified} | ${entry.IsLatest} | ${entry.Size} | ${entry.ETag || 'not-returned'} |`,
+                  ),
+                ].join('\n')
+              : 'The read-only state-version lookup did not return usable metadata. Use the approved administrative channel to inspect S3 version history.';
+
+            let labelExists = true;
+            try {
+              await github.rest.issues.getLabel({ owner, repo, name: 'terraform-apply-failure' });
+            } catch (error) {
+              if (error.status === 404) labelExists = false;
+              else throw error;
+            }
+            if (!labelExists) {
+              await github.rest.issues.createLabel({
+                owner,
+                repo,
+                name: 'terraform-apply-failure',
+                color: 'b60205',
+                description: 'Sanitized Terraform apply failure requiring operator review',
+              });
+            }
+
+            const openIssues = await github.paginate(github.rest.issues.listForRepo, {
+              owner,
+              repo,
+              state: 'open',
+              labels: 'terraform-apply-failure',
+              per_page: 100,
+            });
+            const existing = openIssues.find((issue) => issue.body && issue.body.includes(marker));
+            if (existing) {
+              core.info(`Existing failure issue reused: #${existing.number}`);
+            } else {
+              const body = [
+                marker,
+                '## Terraform apply failure',
+                '',
+                `The protected Terraform CD apply job reported **${applyResult}** for merged commit \`${mergeSha}\`.`,
+                '',
+                `**Restricted workflow logs:** ${workflowUrl}`,
+                '',
+                '> Raw workflow logs are intentionally not copied into this issue. Terraform, provider, and AWS output may contain secrets, personal data, or sensitive resource metadata. Review the restricted run directly.',
+                '',
+                '### State-version metadata',
+                '',
+                `- State bucket: \`${stateBucket}\``,
+                `- State key: \`${stateKey}\``,
+                '- State contents downloaded by this diagnostic: **No**',
+                '- Automatic rollback performed: **No**',
+                '',
+                versionTable,
+                '',
+                'Select a last-known-good VersionId only after incident review, then use the separately protected rollback workflow with its confirmation and reviewer gates.',
+              ].join('\n');
+
+              const issue = await github.rest.issues.create({
+                owner,
+                repo,
+                title: `[Terraform apply failure] merge ${mergeSha.slice(0, 12)}`,
+                body,
+                labels: ['terraform-apply-failure'],
+              });
+              core.notice(`Created sanitized Terraform failure issue #${issue.data.number}`);
+            }
+
+      - name: Remove metadata response from runner
+        if: always()
+        run: rm -f state-versions.json
+
+  cleanup-approval-comment:
+    name: Remove completed deployment approval comment
+    needs: apply
+    if: >-
+      always() &&
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.merged == true &&
+      needs.apply.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Delete only this run's pending-approval comment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issueNumber = context.payload.pull_request.number;
+            const marker = `<!-- hmsi-production-approval:${context.runId} -->`;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              per_page: 100,
+            });
+            const candidates = comments.filter((comment) =>
+              comment.user?.login === 'github-actions[bot]' &&
+              typeof comment.body === 'string' &&
+              comment.body.includes(marker),
+            );
+            for (const comment of candidates) {
+              await github.rest.issues.deleteComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: comment.id,
+              });
+              core.info(`Removed completed-deployment approval comment ${comment.id}.`);
+            }
+            if (candidates.length === 0) {
+              core.info('No matching pending-approval comment found; nothing to remove.');
+            }
+
+  final-deployment-status:
+    name: Notify final production deployment status
+    needs: apply
+    if: >-
+      always() &&
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    env:
+      APPLY_RESULT: ${{ needs.apply.result }}
+    steps:
+      - name: Send sanitized final Slack status
+        continue-on-error: true
+        uses: slackapi/slack-github-action@v2.1.1
+        with:
+          webhook: ${{ secrets.SLACK_PRODUCTION_APPROVAL_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": "HMSI production Terraform deployment completed with status: ${{ needs.apply.result }}. Repository: ${{ github.repository }}. Pull request: #${{ github.event.pull_request.number }} by @${{ github.event.pull_request.user.login }}. <${{ github.event.pull_request.html_url }}|Open the merged pull request>. Merge commit: ${{ github.event.pull_request.merge_commit_sha }}. Environment: production. <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Open the restricted GitHub Actions run> for authorized details. No Terraform output or state contents are included in this notification."
+            }
+
+  mark-production-deployed:
+    name: Mark pull request deployed to production
+    needs: apply
+    if: >-
+      always() &&
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.merged == true &&
+      needs.apply.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Create and apply deployed-to-prod label
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const labelName = 'deployed-to-prod';
+            const issueNumber = context.payload.pull_request.number;
+            try {
+              await github.rest.issues.getLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: labelName,
+              });
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              await github.rest.issues.createLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: labelName,
+                color: '0e8a16',
+                description: 'Terraform deployment completed successfully in production',
+              });
+            }
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              labels: [labelName],
+            });
+            core.info(`Applied ${labelName} to pull request #${issueNumber}.`);

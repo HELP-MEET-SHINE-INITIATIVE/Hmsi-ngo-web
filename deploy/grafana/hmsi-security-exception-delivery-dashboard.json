@@ -1,0 +1,114 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_PROMETHEUS",
+      "label": "Prometheus",
+      "type": "datasource",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus"
+    }
+  ],
+  "annotations": {"list": []},
+  "description": "HMSI aggregate-only security-exception alert delivery dashboard. Requires the bounded hmsi_security_exception_alert_* metric contract. No source paths, raw origins, cookies, tokens, request IDs, exception text, webhook URLs, or personal data are queried.",
+  "editable": false,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Delivery success rate · last 15m",
+      "description": "Successful 2xx deliveries divided by attempted deliveries. A zero-attempt window is shown as 0%, not 100%.",
+      "gridPos": {"h": 6, "w": 8, "x": 0, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "fieldConfig": {"defaults": {"unit": "percent", "decimals": 1, "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "orange", "value": 95}, {"color": "green", "value": 99}]}}},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "value", "graphMode": "area", "orientation": "auto", "textMode": "auto"},
+      "targets": [{"refId": "A", "expr": "100 * sum(rate(hmsi_security_exception_alert_delivery_total{environment=~\"$environment\",status=\"sent\"}[15m])) / clamp_min(sum(rate(hmsi_security_exception_alert_delivery_total{environment=~\"$environment\",status=~\"sent|failed\"}[15m])), 1)", "legendFormat": "success rate"}]
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Retry queue backlog",
+      "description": "Current pending plus failed records eligible for retry. The metric exporter must exclude records past retention.",
+      "gridPos": {"h": 6, "w": 8, "x": 8, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "fieldConfig": {"defaults": {"unit": "short", "decimals": 0, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "orange", "value": 10}, {"color": "red", "value": 50}]}}},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "value", "graphMode": "area", "orientation": "auto", "textMode": "auto"},
+      "targets": [{"refId": "A", "expr": "sum(hmsi_security_exception_alert_retry_queue{environment=~\"$environment\",state=~\"pending|failed\"})", "legendFormat": "retry backlog"}]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Oldest retry age",
+      "description": "Age in seconds of the oldest retryable alert state. A high value indicates a stuck queue or unavailable sink.",
+      "gridPos": {"h": 6, "w": 8, "x": 16, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "fieldConfig": {"defaults": {"unit": "s", "decimals": 0, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "orange", "value": 900}, {"color": "red", "value": 3600}]}}},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "value", "graphMode": "area", "orientation": "auto", "textMode": "auto"},
+      "targets": [{"refId": "A", "expr": "max(hmsi_security_exception_alert_retry_age_seconds{environment=~\"$environment\",state=~\"pending|failed\"})", "legendFormat": "oldest retry"}]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Delivery outcomes",
+      "description": "Fixed delivery status rates only; no exception identity or source metadata is included.",
+      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 6},
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "fieldConfig": {"defaults": {"unit": "ops", "custom": {"drawStyle": "line", "fillOpacity": 12, "lineWidth": 2, "showPoints": "never"}}},
+      "options": {"legend": {"displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [{"refId": "A", "expr": "sum by (status) (rate(hmsi_security_exception_alert_delivery_total{environment=~\"$environment\",status=~\"sent|failed\"}[15m]))", "legendFormat": "{{status}}"}]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Retryable attempt rate by fixed outcome",
+      "description": "Timeout, unavailable, and rejected attempt classes. These labels must be allow-listed at instrumentation time.",
+      "gridPos": {"h": 9, "w": 12, "x": 12, "y": 6},
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "fieldConfig": {"defaults": {"unit": "ops", "custom": {"drawStyle": "line", "fillOpacity": 12, "lineWidth": 2, "showPoints": "never"}}},
+      "options": {"legend": {"displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [{"refId": "A", "expr": "sum by (outcome) (rate(hmsi_security_exception_alert_attempts_total{environment=~\"$environment\",outcome=~\"timeout|unavailable|rejected\"}[15m]))", "legendFormat": "{{outcome}}"}]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Queue backlog by state",
+      "description": "Pending and failed retryable states over time.",
+      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 15},
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "fieldConfig": {"defaults": {"unit": "short", "decimals": 0, "custom": {"drawStyle": "line", "fillOpacity": 18, "lineWidth": 2, "showPoints": "never"}}},
+      "options": {"legend": {"displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [{"refId": "A", "expr": "sum by (state) (hmsi_security_exception_alert_retry_queue{environment=~\"$environment\",state=~\"pending|failed\"})", "legendFormat": "{{state}}"}]
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Duplicate suppression rate",
+      "description": "Duplicate claim outcomes divided by all recorded claim outcomes. This is an operational idempotency signal, not an identity metric.",
+      "gridPos": {"h": 9, "w": 12, "x": 12, "y": 15},
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "fieldConfig": {"defaults": {"unit": "percent", "decimals": 2, "custom": {"drawStyle": "line", "fillOpacity": 12, "lineWidth": 2, "showPoints": "never"}}},
+      "options": {"legend": {"displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "single", "sort": "none"}},
+      "targets": [{"refId": "A", "expr": "100 * sum(rate(hmsi_security_exception_alert_attempts_total{environment=~\"$environment\",outcome=\"duplicate\"}[15m])) / clamp_min(sum(rate(hmsi_security_exception_alert_attempts_total{environment=~\"$environment\"}[15m])), 1)", "legendFormat": "duplicate claim rate"}]
+    },
+    {
+      "id": 8,
+      "type": "text",
+      "title": "Privacy and metric contract",
+      "gridPos": {"h": 6, "w": 24, "x": 0, "y": 24},
+      "options": {"mode": "markdown", "content": "### Privacy boundary\n\nThis dashboard uses only aggregate Prometheus metrics and fixed labels: `environment`, `status`, `state`, and `outcome`. It must not be extended with source path, line number, ticket text, origin, cookie, token, URL, request ID, actor, email, IP, user agent, request body, Slack webhook, or database-message labels.\n\n### Required exporter metrics\n\nThe dashboard expects `hmsi_security_exception_alert_delivery_total`, `hmsi_security_exception_alert_attempts_total`, `hmsi_security_exception_alert_retry_queue`, and `hmsi_security_exception_alert_retry_age_seconds`. These metrics are an instrumentation contract; the SQL tables do not automatically expose Prometheus metrics. An exporter or server-side metrics adapter must emit them after applying the same fixed vocabularies and retention filters."}
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": ["hmsi", "security", "exceptions", "delivery", "privacy-minimized"],
+  "templating": {"list": [{"name": "environment", "label": "Environment", "type": "custom", "query": "staging,production", "current": {"selected": true, "text": "staging", "value": "staging"}, "options": [{"selected": true, "text": "staging", "value": "staging"}, {"selected": false, "text": "production", "value": "production"}], "skipUrlSync": true}]},
+  "time": {"from": "now-6h", "to": "now"},
+  "timepicker": {"refresh_intervals": ["30s", "1m", "5m", "15m", "30m", "1h"], "time_options": ["5m", "15m", "1h", "6h", "12h", "24h", "7d"]},
+  "timezone": "utc",
+  "title": "HMSI · Security Exception Alert Delivery",
+  "uid": "hmsi-security-exception-delivery",
+  "version": 1
+}

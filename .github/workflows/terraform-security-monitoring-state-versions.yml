@@ -1,0 +1,83 @@
+name: List Terraform state versions
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: terraform-security-monitoring-state-versions
+  cancel-in-progress: true
+
+jobs:
+  list-versions:
+    name: Display latest five state versions
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: staging-monitoring-rollback
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      TF_STATE_BUCKET: ${{ vars.TF_STATE_BUCKET }}
+      TF_STATE_KEY: ${{ vars.TF_STATE_KEY }}
+      TF_STATE_REGION: ${{ vars.TF_STATE_REGION }}
+    steps:
+      - name: Configure AWS through GitHub OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_TERRAFORM_STATE_READ_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: gha-tf-state-read-${{ github.run_id }}
+          mask-aws-account-id: true
+          unset-current-credentials: true
+
+      - name: Verify federated identity without printing credentials
+        run: aws sts get-caller-identity --query '{Account:Account,Arn:Arn}' --output json
+
+      - name: Validate state location inputs
+        run: |
+          test -n "$TF_STATE_BUCKET"
+          test -n "$TF_STATE_KEY"
+          test -n "$TF_STATE_REGION"
+          case "$TF_STATE_BUCKET" in
+            *[!A-Za-z0-9._-]*) echo 'Invalid bucket-name characters' >&2; exit 1 ;;
+          esac
+          test "${#TF_STATE_KEY}" -le 512
+
+      - name: Fetch version metadata for the exact state key
+        run: |
+          aws s3api list-object-versions \
+            --bucket "$TF_STATE_BUCKET" \
+            --prefix "$TF_STATE_KEY" \
+            --region "$TF_STATE_REGION" \
+            --output json > state-versions.json
+
+      - name: Render the five newest VersionIds and safe metadata
+        run: |
+          count="$(jq --arg key "$TF_STATE_KEY" '[ (.Versions // [])[] | select(.Key == $key) ] | length' state-versions.json)"
+          test "$count" -gt 0
+          {
+            echo '## Latest Terraform state versions'
+            echo
+            echo '| Rank | VersionId | Last modified (UTC) | Latest | Size (bytes) | ETag |'
+            echo '|---:|---|---|:---:|---:|---|'
+            jq -r --arg key "$TF_STATE_KEY" '
+              [ (.Versions // [])[] | select(.Key == $key) ]
+              | sort_by(.LastModified) | reverse | .[:5]
+              | to_entries[]
+              | "| \(.key + 1) | `\(.value.VersionId)` | \(.value.LastModified) | \(.value.IsLatest) | \(.value.Size) | \(.value.ETag // \"not-returned\") |"
+            ' state-versions.json
+            echo
+            echo 'Only S3 object metadata was retrieved. State contents were not downloaded.'
+          } >> "$GITHUB_STEP_SUMMARY"
+          jq -r --arg key "$TF_STATE_KEY" '
+            [ (.Versions // [])[] | select(.Key == $key) ]
+            | sort_by(.LastModified) | reverse | .[:5]
+            | .[] | "\(.VersionId)\t\(.LastModified)\tlatest=\(.IsLatest)\tsize=\(.Size)"
+          ' state-versions.json
+
+      - name: Remove metadata response from runner
+        if: always()
+        run: rm -f state-versions.json

@@ -1,0 +1,92 @@
+sequenceDiagram
+  autonumber
+  participant DD as Datadog
+  participant GW as HTTPS Gateway
+  participant A as HMAC Authenticator
+  participant V as Validator and Scrubber
+  participant G as Mutation Gate
+  participant R as Redis Idempotency
+  participant O as Durable Outbox
+  participant W as Mutation Worker
+  participant J as Jira
+  participant L as Audit Ledger
+  participant OP as On-call
+
+  DD->>GW: POST allowlisted synthetic event and signature
+  GW->>A: Forward exact body and headers
+  A->>A: Verify HMAC-SHA-256 over exact UTF-8 body
+  A->>A: Check format, freshness, replay window
+  alt Invalid, stale, or missing signature
+    A-->>GW: 401 request ID only
+    A->>L: Append rejected-auth result without body
+    GW-->>DD: 401
+  else Authenticated
+    A->>V: Pass authenticated request
+    V->>V: Validate allowlist and scrub forbidden fields
+    alt Invalid schema or scrubber failure
+      V-->>GW: 422 or 500 without raw body
+      V->>L: Append rejected-content or scrub-failure result
+      GW-->>DD: 422 or 500
+    else Valid and scrubbed
+      V->>G: Request mutation decision
+      alt Gate paused or control state unknown
+        G->>L: Append fail-closed gate result
+        G->>OP: Page owner with control ID and result code
+        G-->>GW: 503 retryable, no Jira call
+        GW-->>DD: 503
+      else Gate open
+        G->>R: GET completed(event key)
+        alt Completed record exists
+          R-->>G: Completed result and issue reference
+          G->>L: Append duplicate-after-completion result
+          G-->>GW: 200 no-op
+          GW-->>DD: 200
+        else No completed record
+          G->>R: SET lock(event key) token NX EX 300
+          alt Lock acquired
+            R-->>G: OK
+            G->>O: Persist bounded accepted work
+            O->>W: Dispatch mutation
+            W->>J: Create or update bounded corrective action
+            alt Jira success
+              J-->>W: Known success and issue key
+              W->>L: Append mutation result
+              W->>R: Store completion record with replay-window TTL
+              W->>R: Compare token and release lock
+              W-->>GW: 200 accepted and completed
+              GW-->>DD: 200
+            else Jira retryable failure
+              J-->>W: 429 or 5xx
+              W->>L: Append bounded retry result
+              W->>O: Keep bounded outbox item with backoff
+              W-->>GW: 503 retryable
+              GW-->>DD: 503
+            else Jira timeout after possible mutation
+              J--xW: Timeout or connection loss
+              W->>L: Append unknown external outcome
+              W->>R: Retain reconciliation state, no completion mark
+              W->>OP: Page with event fingerprint only
+              OP->>J: Search by deterministic external alert key
+              alt Issue exists
+                J-->>OP: Existing issue key
+                OP->>R: Store reconciled completion record
+                OP->>L: Append reconciliation, no retry mutation
+              else Issue absent
+                OP->>G: Keep gate paused until retry approved
+                OP->>W: Authorize one bounded retry
+                W->>J: Retry with same external key
+                J-->>W: Known result
+                W->>L: Append final outcome
+                W->>R: Store completion after audit policy passes
+              end
+            end
+          else Lock unavailable
+            R-->>G: nil, another worker owns lock
+            G->>L: Append duplicate-in-progress result
+            G-->>GW: 503 retryable, no Jira call
+            GW-->>DD: 503
+          end
+        end
+      end
+    end
+  end

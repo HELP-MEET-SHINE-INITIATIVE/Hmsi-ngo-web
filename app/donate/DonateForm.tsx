@@ -47,6 +47,8 @@ export default function DonateForm() {
   const [donorEmail, setDonorEmail] = useState("");
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [privacyAcknowledged, setPrivacyAcknowledged] = useState(false);
+  const [marketingOptIn, setMarketingOptIn] = useState(false);
+  const [checkoutSessionId, setCheckoutSessionId] = useState('');
   const [error, setError] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [paymentReference, setPaymentReference] = useState("");
@@ -71,6 +73,7 @@ export default function DonateForm() {
     setPaymentReference(reference);
     setError("");
     setRecordingWarning("");
+    if (checkoutSessionId) void fetch('/api/donations/checkout-session', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: checkoutSessionId, paystack_reference: reference }) }).catch(() => undefined);
 
     try {
       const ledgerResponse = await fetch("/api/donations", {
@@ -107,6 +110,7 @@ export default function DonateForm() {
 
   const handleClose = () => {
     setError("Payment was closed before completion. Your details are still here whenever you are ready.");
+    if (checkoutSessionId) void fetch(`/api/donations/checkout-session?session_id=${encodeURIComponent(checkoutSessionId)}`, { method: 'DELETE' }).catch(() => undefined);
   };
 
   const handleDownloadReceipt = async () => {
@@ -139,7 +143,7 @@ export default function DonateForm() {
     }
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
 
@@ -179,6 +183,18 @@ export default function DonateForm() {
       currency,
     });
 
+    let sessionId = '';
+    try {
+      const sessionResponse = await fetch('/api/donations/checkout-session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ donor_name: isAnonymous ? 'Anonymous donor' : donorName, donor_email: donorEmail, amount: amountInMajorUnits, currency, fundraiser_id: fundraiserId || undefined, marketing_opt_in: marketingOptIn }) });
+      const sessionResult = await sessionResponse.json().catch(() => ({}));
+      if (!sessionResponse.ok) throw new Error(sessionResult.error || 'Donation checkout could not be started.');
+      sessionId = sessionResult.session_id || '';
+      setCheckoutSessionId(sessionId);
+    } catch (sessionError) {
+      setError(sessionError instanceof Error ? sessionError.message : 'Donation checkout could not be started.');
+      return;
+    }
+
     const popup = new window.PaystackPop();
     popup.newTransaction({
       key: publicKey,
@@ -193,6 +209,8 @@ export default function DonateForm() {
             value: isAnonymous ? "Anonymous donor" : donorName,
           },
           ...(fundraiserId ? [{ display_name: "HMSI Campaign", variable_name: "fundraiser_id", value: fundraiserId }] : []),
+          { display_name: "HMSI Checkout Session", variable_name: "checkout_session_id", value: sessionId },
+          { display_name: "Marketing Follow-ups", variable_name: "marketing_opt_in", value: marketingOptIn ? "true" : "false" },
         ],
       },
       onSuccess: handleSuccess,
@@ -253,7 +271,7 @@ export default function DonateForm() {
           <div className="flex items-start justify-between gap-6 border-b border-white/15 pb-7"><div><p className="text-xs font-black uppercase tracking-[0.18em] text-[#e1ad45]">Secure Paystack giving</p><h2 className="mt-3 text-3xl font-black tracking-[-0.035em]">Choose your gift</h2></div><LockKeyhole className="mt-1 text-[#e1ad45]" size={25} /></div>
           <div className="mt-7 rounded-2xl border border-white/15 bg-white/5 px-4 py-4 text-xs leading-5 text-white/70"><p><strong className="text-white">Organisation:</strong> The Incorporated Trustees of HELP-MEET SHINE INITIATIVE · CAC/IT/NO 125103.</p><p className="mt-2"><strong className="text-white">FIRS tax identification:</strong> TIN 21249981, as shown on the supplied FIRS taxpayer-results record. This is a tax identifier, not a tax-exemption certificate. HMSI does not describe donations as tax-exempt or tax-deductible unless the applicable authority confirms that status.</p></div>\n          <form onSubmit={handleSubmit} className="mt-8 space-y-7">
             <fieldset><legend className="mb-3 text-xs font-black uppercase tracking-[0.14em] text-white/70">Donation amount</legend><div className="mb-4 grid gap-3 sm:grid-cols-2"><label className="block text-xs font-black uppercase tracking-widest text-white/70">Payment currency<select value={currency} onChange={(event) => { const next = event.target.value as HmsiPaymentCurrency; setCurrency(next); setSelectedAmount(next === "NGN" ? 25000 : 100); setCustomAmount(""); }} className="mt-2 w-full rounded-xl border border-white/20 bg-[#17221e] px-4 py-3 text-sm font-bold text-white"><option value="NGN">NGN — Nigerian naira</option><option value="USD">USD — US dollar</option></select></label><p className="self-end text-xs leading-5 text-white/55">International cards can pay from abroad. Paystack supports NGN or USD for a Nigeria-based account; settlement depends on your approved Paystack setup.</p></div><div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{presetAmounts[currency].map((amount) => <button key={amount} type="button" onClick={() => { setSelectedAmount(amount); setCustomAmount(""); }} className={`rounded-xl border px-3 py-3 text-sm font-black transition ${selectedAmount === amount ? "border-[#e1ad45] bg-[#e1ad45] text-[#17221e]" : "border-white/20 bg-white/5 text-white hover:border-white/50"}`}>{formatDonationAmount(amount, currency)}</button>)}</div><div className={`mt-3 flex items-center rounded-xl border px-4 transition ${selectedAmount === null ? "border-[#e1ad45] bg-white/10" : "border-white/20 bg-white/5"}`}><span className="text-white/60">{currency === "NGN" ? "₦" : "$"}</span><input aria-label="Custom donation amount" type="number" min={currency === "NGN" ? 100 : 1} step={currency === "NGN" ? 100 : 1} value={customAmount} onChange={(event) => { setCustomAmount(event.target.value); setSelectedAmount(null); }} placeholder={`Enter a custom amount in ${currency}`} className="w-full bg-transparent px-3 py-3 text-sm font-bold outline-none placeholder:text-white/35" /></div></fieldset>
-            <div className="grid gap-5 sm:grid-cols-2"><div><label htmlFor="donor-name" className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/70">Your name {isAnonymous && <span className="font-normal normal-case tracking-normal text-white/45">(optional)</span>}</label><input id="donor-name" type="text" required={!isAnonymous} value={donorName} onChange={(event) => setDonorName(event.target.value)} placeholder={isAnonymous ? "Hidden from public records" : "e.g. Amina Yusuf"} className="w-full rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-sm font-semibold outline-none transition placeholder:text-white/35 focus:border-[#e1ad45]" /></div><div><label htmlFor="donor-email" className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/70">Email address</label><div className="flex items-center rounded-xl border border-white/20 bg-white/5 px-4 focus-within:border-[#e1ad45]"><Mail size={16} className="text-white/50" /><input id="donor-email" type="email" required value={donorEmail} onChange={(event) => setDonorEmail(event.target.value)} placeholder="you@example.com" className="w-full bg-transparent px-3 py-3 text-sm font-semibold outline-none placeholder:text-white/35" /></div></div></div><label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-white/15 bg-white/5 p-4 text-sm text-white/75"><input type="checkbox" checked={isAnonymous} onChange={(event) => setIsAnonymous(event.target.checked)} className="mt-0.5 h-4 w-4 accent-[#e1ad45]" /><span><strong className="font-black text-white">Donate anonymously</strong><span className="mt-1 block text-xs leading-5 text-white/50">Your name will be recorded as Anonymous donor. Paystack still requires your email to verify the payment.</span></span></label><label htmlFor="donation-privacy" className="flex cursor-pointer items-start gap-3 rounded-2xl border border-white/15 bg-white/5 p-4 text-sm leading-6 text-white/75"><input id="donation-privacy" type="checkbox" required checked={privacyAcknowledged} onChange={(event) => setPrivacyAcknowledged(event.target.checked)} className="mt-1 h-4 w-4 shrink-0 accent-[#e1ad45]" /><span>I have read the <Link href="/privacy" className="font-bold text-[#e1ad45] underline">Privacy notice</Link> and <Link href="/safeguarding" className="font-bold text-[#e1ad45] underline">Safeguarding commitment</Link>.</span></label>
+            <div className="grid gap-5 sm:grid-cols-2"><div><label htmlFor="donor-name" className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/70">Your name {isAnonymous && <span className="font-normal normal-case tracking-normal text-white/45">(optional)</span>}</label><input id="donor-name" type="text" required={!isAnonymous} value={donorName} onChange={(event) => setDonorName(event.target.value)} placeholder={isAnonymous ? "Hidden from public records" : "e.g. Amina Yusuf"} className="w-full rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-sm font-semibold outline-none transition placeholder:text-white/35 focus:border-[#e1ad45]" /></div><div><label htmlFor="donor-email" className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/70">Email address</label><div className="flex items-center rounded-xl border border-white/20 bg-white/5 px-4 focus-within:border-[#e1ad45]"><Mail size={16} className="text-white/50" /><input id="donor-email" type="email" required value={donorEmail} onChange={(event) => setDonorEmail(event.target.value)} placeholder="you@example.com" className="w-full bg-transparent px-3 py-3 text-sm font-semibold outline-none placeholder:text-white/35" /></div></div></div><label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-white/15 bg-white/5 p-4 text-sm text-white/75"><input type="checkbox" checked={isAnonymous} onChange={(event) => setIsAnonymous(event.target.checked)} className="mt-0.5 h-4 w-4 accent-[#e1ad45]" /><span><strong className="font-black text-white">Donate anonymously</strong><span className="mt-1 block text-xs leading-5 text-white/50">Your name will be recorded as Anonymous donor. Paystack still requires your email to verify the payment.</span></span></label><label htmlFor="donation-privacy" className="flex cursor-pointer items-start gap-3 rounded-2xl border border-white/15 bg-white/5 p-4 text-sm leading-6 text-white/75"><input id="donation-privacy" type="checkbox" required checked={privacyAcknowledged} onChange={(event) => setPrivacyAcknowledged(event.target.checked)} className="mt-1 h-4 w-4 shrink-0 accent-[#e1ad45]" /><span>I have read the <Link href="/privacy" className="font-bold text-[#e1ad45] underline">Privacy notice</Link> and <Link href="/safeguarding" className="font-bold text-[#e1ad45] underline">Safeguarding commitment</Link>.</span></label><label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-white/15 bg-white/5 p-4 text-sm leading-6 text-white/75"><input type="checkbox" checked={marketingOptIn} onChange={(event) => setMarketingOptIn(event.target.checked)} className="mt-1 h-4 w-4 shrink-0 accent-[#e1ad45]" /><span>I agree to receive occasional HMSI donor updates and follow-up emails. I can unsubscribe at any time.</span></label>
             {error && <p role="alert" className="rounded-xl border border-red-300/30 bg-red-400/10 px-4 py-3 text-sm leading-6 text-red-100">{error}</p>}
             <div className="rounded-2xl bg-white/10 p-4"><div className="flex items-center justify-between text-sm"><span className="text-white/65">Your gift today</span><strong className="text-xl text-[#e1ad45]">{Number.isFinite(amountInMajorUnits) && amountInMajorUnits > 0 ? formatDonationAmount(amountInMajorUnits, currency) : "Choose an amount"}</strong></div><p className="mt-2 text-xs leading-5 text-white/45">You will complete your donation securely in the Paystack popup. No payment details are stored by HMSI.</p></div>
             <button type="submit" className="w-full rounded-full bg-[#e1ad45] px-6 py-4 text-sm font-black uppercase tracking-[0.14em] text-[#17221e] transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-[#e1ad45] focus:ring-offset-2 focus:ring-offset-[#17221e]">Continue to Paystack <span aria-hidden="true">→</span></button>

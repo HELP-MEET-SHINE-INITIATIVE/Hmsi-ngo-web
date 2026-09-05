@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HMSI Team-Lead Pulse-Check Cheat Sheet</title>
+  <style>
+    @page { size: A4 portrait; margin: 12mm; }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: #17372e; background: #ffffff; font-family: Arial, Helvetica, sans-serif; font-size: 9.5pt; line-height: 1.25; }
+    .sheet { max-width: 186mm; margin: 0 auto; }
+    .masthead { border-bottom: 5px solid #e3b34c; padding-bottom: 8px; margin-bottom: 10px; }
+    .eyebrow { color: #a85f38; font-size: 8.5pt; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; }
+    h1 { font-size: 22pt; line-height: 1; letter-spacing: -0.6px; margin: 5px 0 4px; }
+    .subtitle { color: #5e7168; font-size: 9.5pt; margin: 0; }
+    .purpose { background: #eef3ee; border-left: 4px solid #1e5b49; padding: 7px 9px; margin: 9px 0; color: #294b3f; }
+    .purpose strong { color: #17372e; }
+    h2 { font-size: 11pt; text-transform: uppercase; letter-spacing: 1.2px; margin: 10px 0 5px; color: #1e5b49; border-bottom: 1.5px solid #c6d2c8; padding-bottom: 3px; }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: #17372e; color: #f7f2e8; text-align: left; font-size: 8pt; text-transform: uppercase; letter-spacing: .6px; padding: 5px 6px; }
+    td { border-bottom: 1px solid #d8e0da; padding: 5px 6px; vertical-align: top; }
+    .q-num { color: #a85f38; font-weight: 800; width: 7%; }
+    .dimension { font-weight: 800; width: 19%; color: #1e5b49; }
+    .question { width: 59%; }
+    .score { width: 15%; color: #a85f38; font-weight: 800; text-align: center; white-space: nowrap; }
+    .scale { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin: 5px 0 8px; }
+    .scale div { border: 1px solid #b9c9bc; padding: 4px 3px; text-align: center; font-size: 8pt; }
+    .scale b { display: block; color: #a85f38; font-size: 10pt; }
+    .trigger { width: 20%; font-weight: 800; color: #17372e; }
+    .threshold { width: 29%; }
+    .response { width: 51%; }
+    .critical td { background: #fbf0ea; }
+    .critical .trigger { color: #a85f38; }
+    .badge { display: inline-block; background: #a85f38; color: #ffffff; padding: 2px 4px; font-size: 7pt; letter-spacing: .5px; text-transform: uppercase; margin-bottom: 2px; }
+    .bottom { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+    .box { border-top: 3px solid #e3b34c; background: #f7f2e8; padding: 7px 8px; }
+    .box h3 { margin: 0 0 4px; font-size: 9pt; text-transform: uppercase; letter-spacing: .8px; }
+    .box p { margin: 0 0 4px; color: #40584d; }
+    .box ol { margin: 3px 0 0 17px; padding: 0; }
+    .box li { margin-bottom: 2px; }
+    .footer { border-top: 1px solid #c6d2c8; margin-top: 8px; padding-top: 5px; color: #5e7168; font-size: 7.5pt; display: flex; justify-content: space-between; gap: 12px; }
+    @media print { body { background: #ffffff; } .sheet { max-width: none; } }
+  </style>
+</head>
+<body>
+  <main class="sheet">
+    <header class="masthead">
+      <div class="eyebrow">Help Meet Shine Initiative · Team-Lead Quick Reference</div>
+      <h1>First-Month Pulse Check</h1>
+      <p class="subtitle">Listen early. Respond proportionately. Protect people and information.</p>
+    </header>
+
+    <div class="purpose"><strong>Purpose:</strong> Use this check to identify early friction, support needs, and trust risks. It is <strong>not</strong> a performance score, attendance tracker, or requirement to remain active.</div>
+
+    <h2>1 · Ask these five questions</h2>
+    <table aria-label="Five pulse-check questions">
+      <thead><tr><th>#</th><th>Dimension</th><th>Question</th><th>Record</th></tr></thead>
+      <tbody>
+        <tr><td class="q-num">01</td><td class="dimension">Clarity</td><td class="question">I understand what HMSI is asking me to do at this stage.</td><td class="score">1–5 / N/A</td></tr>
+        <tr><td class="q-num">02</td><td class="dimension">Capacity</td><td class="question">I can participate within my available time, skills, location, and capacity.</td><td class="score">1–5 / N/A</td></tr>
+        <tr><td class="q-num">03</td><td class="dimension">Connection</td><td class="question">I know who to contact and can get help when I need it.</td><td class="score">1–5 / N/A</td></tr>
+        <tr><td class="q-num">04</td><td class="dimension">Confidence</td><td class="question">I feel confident about the next task or contribution step.</td><td class="score">1–5 / N/A</td></tr>
+        <tr><td class="q-num">05</td><td class="dimension">Safety &amp; respect</td><td class="question">I feel safe, respected, and able to pause or raise a concern.</td><td class="score">1–5 / N/A</td></tr>
+      </tbody>
+    </table>
+
+    <h2>2 · Use the response scale consistently</h2>
+    <div class="scale" aria-label="Response scale">
+      <div><b>1</b>Not at all</div><div><b>2</b>A little</div><div><b>3</b>Partly / unsure</div><div><b>4</b>Mostly</div><div><b>5</b>Completely</div><div><b>N/A</b>Not applicable</div>
+    </div>
+
+    <h2>3 · Trigger thresholds and first response</h2>
+    <table aria-label="Trigger thresholds and responses">
+      <thead><tr><th>Trigger</th><th>Threshold / signal</th><th>First response</th></tr></thead>
+      <tbody>
+        <tr><td class="trigger">Clarity</td><td class="threshold">Score 1–2 on Q1; repeated role-boundary confusion.</td><td class="response">Give plain-language guidance and name the authorized contact. Pause the task if authorization is uncertain.</td></tr>
+        <tr><td class="trigger">Capacity</td><td class="threshold">Score 1–2 on Q2; pause request; repeated missed or declined tasks.</td><td class="response">Ask what level is sustainable. Reduce or reassign work with consent; do not punish a pause.</td></tr>
+        <tr><td class="trigger">Connection</td><td class="threshold">Score 1–2 on Q3; unanswered support request; blocker beyond [time].</td><td class="response">Acknowledge the request and assign a named owner. Extend the deadline if needed.</td></tr>
+        <tr><td class="trigger">Confidence</td><td class="threshold">Score 1–2 on Q4; failed first-task flow; repeated proof errors.</td><td class="response">Provide a worked example, check-in, or supervised next step. Pause unclear guidance.</td></tr>
+        <tr class="critical"><td class="trigger"><span class="badge">Confidential</span><br>Safety &amp; trust</td><td class="threshold">Score 1–2 on Q5; unsafe, pressured, excluded, or confidentiality concern.</td><td class="response"><strong>Stop ordinary analysis.</strong> Protect the response and use the designated safeguarding, privacy, security, or wellbeing route.</td></tr>
+        <tr><td class="trigger">System availability</td><td class="threshold">Portal, room, support, or notification route unavailable beyond [duration].</td><td class="response">Publish a bounded status update, prevent duplicate submissions, and activate the approved manual fallback.</td></tr>
+        <tr><td class="trigger">Evidence quality</td><td class="threshold">Response count or cohort coverage is too weak for a conclusion.</td><td class="response">Label the result insufficient evidence. Extend collection neutrally; do not set a target from it.</td></tr>
+        <tr><td class="trigger">Messaging pressure</td><td class="threshold">Recognition or follow-up feels coercive, competitive, or punitive.</td><td class="response">Correct or withdraw the message and clarify that participation remains voluntary.</td></tr>
+      </tbody>
+    </table>
+
+    <section class="bottom">
+      <div class="box">
+        <h3>When in doubt</h3>
+        <p>A single low score normally creates a support opportunity, not an automatic escalation.</p>
+        <ol><li>Check for immediate safety or confidentiality risk.</li><li>Protect the task and assign an owner.</li><li>Respond within the agreed service level.</li><li>Verify whether the trigger resolved.</li></ol>
+      </div>
+      <div class="box">
+        <h3>Never record here</h3>
+        <p>Do not put passwords, tokens, private beneficiary details, medical details, raw safeguarding disclosures, or sensitive case information in the pulse or team dashboard.</p>
+        <p><strong>Use the designated confidential route</strong> for urgent safety, safeguarding, privacy, security, harassment, or wellbeing concerns.</p>
+      </div>
+    </section>
+
+    <footer class="footer"><span>Help Meet. Shine. Initiative.</span><span>Template only · Replace [time] and [duration] with approved service levels.</span></footer>
+  </main>
+</body>
+</html>

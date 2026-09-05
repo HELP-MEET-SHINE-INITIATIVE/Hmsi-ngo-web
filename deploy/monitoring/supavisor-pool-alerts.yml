@@ -1,0 +1,128 @@
+groups:
+  - name: hmsi.supavisor.recording
+    interval: 30s
+    rules:
+      # Metric adapter contract:
+      # - hmsi_supavisor_pool_clients is a gauge of client connections.
+      # - hmsi_supavisor_pool_database_connections is a gauge of database-side connections.
+      # - hmsi_supavisor_pool_size is the configured database-side capacity.
+      # - hmsi_supavisor_checkout_queue_seconds is a histogram of client checkout wait.
+      # - hmsi_db_statement_timeout_total counts PostgreSQL statement timeouts.
+      # These normalized metrics are emitted by the HMSI collector after mapping
+      # Supabase Metrics API or approved Supavisor /metrics data. Do not use
+      # tenant IDs, hosts, user IDs, assignment IDs, URLs, or query text as labels.
+      - record: hmsi:supavisor_pool_utilization_ratio
+        expr: |
+          clamp_max(
+            hmsi_supavisor_pool_database_connections
+            /
+            clamp_min(hmsi_supavisor_pool_size, 1),
+            1
+          )
+      - record: hmsi:supavisor_pool_client_to_database_ratio
+        expr: |
+          hmsi_supavisor_pool_clients
+          /
+          clamp_min(hmsi_supavisor_pool_database_connections, 1)
+      - record: hmsi:supavisor_checkout_queue_latency_p95_seconds
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum by (le, environment, pool_mode) (
+              rate(hmsi_supavisor_checkout_queue_seconds_bucket[5m])
+            )
+          )
+      - record: hmsi:supavisor_checkout_queue_latency_p99_seconds
+        expr: |
+          histogram_quantile(
+            0.99,
+            sum by (le, environment, pool_mode) (
+              rate(hmsi_supavisor_checkout_queue_seconds_bucket[5m])
+            )
+          )
+      - record: hmsi:db_statement_timeout_rate_ratio
+        expr: |
+          sum by (environment, service, route) (rate(hmsi_db_statement_timeout_total[5m]))
+          /
+          clamp_min(
+            sum by (environment, service, route) (rate(hmsi_db_query_total[5m])),
+            0.001
+          )
+      - record: hmsi:supavisor_pool_saturation_seconds
+        expr: |
+          sum_over_time((hmsi:supavisor_pool_utilization_ratio >= bool 0.90)[5m:30s]) * 30
+
+  - name: hmsi.supavisor.alerts
+    rules:
+      - alert: HmsiSupavisorPoolSaturation
+        expr: hmsi:supavisor_pool_utilization_ratio >= 0.90
+        for: 5m
+        labels:
+          severity: warning
+          service: mutation_gate
+          dependency: supavisor
+          reason_code: pool_saturation
+        annotations:
+          summary: Supavisor database-side pool utilization is at or above 90 percent.
+          runbook: https://runbooks.invalid/hmsi/supavisor-pool-saturation
+          action: Hold load increases, inspect connection state and query latency, and do not raise pool size without capacity review.
+      - alert: HmsiSupavisorPoolExhausted
+        expr: hmsi:supavisor_pool_utilization_ratio >= 0.98
+        for: 2m
+        labels:
+          severity: critical
+          service: mutation_gate
+          dependency: supavisor
+          reason_code: pool_exhausted
+        annotations:
+          summary: Supavisor database-side pool is effectively exhausted.
+          runbook: https://runbooks.invalid/hmsi/supavisor-pool-exhausted
+          action: Pause the mutation gate, rate-limit webhook intake, inspect blocked and idle-in-transaction sessions, and avoid blind session termination.
+      - alert: HmsiSupavisorCheckoutQueueLatencyHigh
+        expr: hmsi:supavisor_checkout_queue_latency_p95_seconds > 0.25
+        for: 5m
+        labels:
+          severity: warning
+          service: mutation_gate
+          dependency: supavisor
+          reason_code: checkout_queue_latency_high
+        annotations:
+          summary: Supavisor p95 checkout wait exceeds 250 ms.
+          runbook: https://runbooks.invalid/hmsi/supavisor-queue-latency
+          action: Inspect query latency, pool utilization, and connection waits before increasing capacity.
+      - alert: HmsiSupavisorCheckoutQueueLatencyCritical
+        expr: hmsi:supavisor_checkout_queue_latency_p99_seconds > 1
+        for: 2m
+        labels:
+          severity: critical
+          service: mutation_gate
+          dependency: supavisor
+          reason_code: checkout_queue_latency_critical
+        annotations:
+          summary: Supavisor p99 checkout wait exceeds 1 second.
+          runbook: https://runbooks.invalid/hmsi/supavisor-queue-latency
+          action: Pause mutation if durable idempotency or audit writes are timing out; preserve bounded evidence.
+      - alert: HmsiAssignmentQueryTimeoutRateHigh
+        expr: hmsi:db_statement_timeout_rate_ratio > 0.02
+        for: 5m
+        labels:
+          severity: critical
+          service: mutation_gate
+          dependency: postgres
+          reason_code: statement_timeout_rate_high
+        annotations:
+          summary: More than 2 percent of assignment queries are timing out.
+          runbook: https://runbooks.invalid/hmsi/database-statement-timeouts
+          action: Pause mutation gate, inspect query plans and locks, and do not raise global timeouts without review.
+      - alert: HmsiSupavisorMetricsAbsent
+        expr: absent(hmsi_supavisor_pool_size{environment="staging"})
+        for: 10m
+        labels:
+          severity: warning
+          service: mutation_gate
+          dependency: supavisor
+          reason_code: metrics_missing
+        annotations:
+          summary: Staging Supavisor capacity metric is absent.
+          runbook: https://runbooks.invalid/hmsi/metrics-pipeline
+          action: Treat capacity as unknown; do not increase traffic until telemetry is restored.
