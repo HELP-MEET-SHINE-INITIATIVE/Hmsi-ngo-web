@@ -49,7 +49,7 @@ jobs:
       - name: Validate dashboard JSON
         run: node -e "JSON.parse(require('fs').readFileSync('deploy/grafana/hmsi-security-events-dashboard.json','utf8')); console.log('GRAFANA_DASHBOARD_JSON_OK')"
       - name: Upload validated monitoring artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: hmsi-staging-security-event-monitoring-artifacts
           if-no-files-found: error
