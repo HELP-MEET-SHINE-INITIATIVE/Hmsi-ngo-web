@@ -78,7 +78,7 @@ jobs:
           } >> "$GITHUB_ENV"
 
       - name: Verify the comment is on a labeled Terraform failure issue
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -97,7 +97,7 @@ jobs:
 
       - name: Check for an existing result for this exact command
         id: replay
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           STATE_VERSION_ID: ${{ env.STATE_VERSION_ID }}
         with:
@@ -231,7 +231,7 @@ jobs:
 
       - name: Add a sanitized rollback result to the failure issue
         if: always() && steps.replay.outputs.already_reported != 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           STATE_VERSION_ID: ${{ env.STATE_VERSION_ID }}
           COMMENTER_LOGIN: ${{ env.COMMENTER_LOGIN }}
