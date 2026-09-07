@@ -27,7 +27,7 @@ jobs:
     steps:
       - name: Send sanitized Slack approval notification
         continue-on-error: true
-        uses: slackapi/slack-github-action@v2.1.1
+        uses: slackapi/slack-github-action@v4.0.0
         with:
           webhook: ${{ secrets.SLACK_PRODUCTION_APPROVAL_WEBHOOK_URL }}
           webhook-type: incoming-webhook
@@ -401,7 +401,7 @@ jobs:
     steps:
       - name: Send sanitized final Slack status
         continue-on-error: true
-        uses: slackapi/slack-github-action@v2.1.1
+        uses: slackapi/slack-github-action@v4.0.0
         with:
           webhook: ${{ secrets.SLACK_PRODUCTION_APPROVAL_WEBHOOK_URL }}
           webhook-type: incoming-webhook
