@@ -46,7 +46,7 @@ jobs:
             prom/prometheus:v2.54.1 \
             promtool check rules /workspace/deploy/monitoring/supavisor-pool-alerts.yml
       - name: Upload validated monitoring artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: hmsi-staging-monitoring-artifacts
           if-no-files-found: error
