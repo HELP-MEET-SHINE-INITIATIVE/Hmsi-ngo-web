@@ -1,9 +1,11 @@
 
-- [ ] Integrate protected volunteer and member directories into the President’s Office admin navigation.
-- [ ] Add the verified TIN 2621241776765 to public organizational references and the admin organization panel.
-- [ ] Keep the Vercel and CI runtime declaration on Node.js 24.x.
-- [ ] Add directory authorization regression coverage and run the full test/build verification.
+- [x] Integrate protected volunteer and member directories into the President’s Office admin navigation.
+- [x] Add the verified TIN 2621241776765 to public organizational references and the admin organization panel.
+- [x] Keep the Vercel and CI runtime declaration on Node.js 24.x.
+- [x] Add directory authorization regression coverage and run the full test/build verification.
 - [ ] Perform passive production smoke checks for `/news`, volunteer directory, and member directory routes after deployment.
+
+Deployment note: the pushed commit is present on GitHub, but the canonical Vercel domain still serves the prior deployment and the Vercel connector is not authenticated in this session. The new admin routes therefore remain pending live verification.
 
 - [x] Replace the HMSI Assistant Manus transport with a server-side Gemini API transport using `GEMINI_API_KEY`.
 - [x] Add Gemini transport regression coverage, validate the production build, and verify a harmless live Assistant reply.
