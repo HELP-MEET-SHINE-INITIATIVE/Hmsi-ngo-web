@@ -46,7 +46,7 @@ HMSI is a Next.js App Router application with TypeScript and Tailwind CSS. It is
 
 ## Verified organizational profile
 
-The organization profile supplied for publication identifies HMSI as **The Incorporated Trustees of HELP-MEET SHINE INITIATIVE**, registered with the Corporate Affairs Commission of the Federal Republic of Nigeria under **CAC/IT/NO 125103** and incorporated on **21 February 2019**. The supplied tax identification number is **21249981**, under the Federal Inland Revenue Service. HMSI’s headquarters are in **Benin City, Edo State, Nigeria**.
+The organization profile supplied for publication identifies HMSI as **The Incorporated Trustees of HELP-MEET SHINE INITIATIVE**, registered with the Corporate Affairs Commission of the Federal Republic of Nigeria under **CAC/IT/NO 125103** and incorporated on **21 February 2019**. The supplied tax identification number is **2621241776765**, under the Federal Inland Revenue Service. HMSI’s headquarters are in **Benin City, Edo State, Nigeria**.
 
 The appointed Board of Trustees is **Mary Ogbeide** and **Godspower Folorunsho Adebusoye**. **Godspower Folorunsho Adebusoye** is identified as President. The supplied recognition is the **MEA Award for Most Productive NGO (2022)**. These details are published from HMSI-provided information and should be kept synchronized with official organizational records.
 
@@ -60,7 +60,7 @@ The website applies an evidence-first communication rule: the meals, field-perso
 
 ## Uploaded evidence review
 
-The uploaded scans were reviewed and classified before use. One CAC Certificate of Incorporation supports the legal name, CAC/IT/NO 125103, 21 February 2019 incorporation date, and trustee names. A CAC application and public notice support the registered office, broad objects, and trustee structure. An FIRS corporate-taxpayer result shows TIN 21249981 for HELP-MEET SHINE INITIATIVE and lists MTO Abuja as the tax office; it is not a tax-clearance certificate. Constitutional pages support governance quorums, trustee limits, mission-use of funds, record keeping, annual independent-audit provisions, non-distribution of profits, and charitable transfer on dissolution.
+The uploaded scans were reviewed and classified before use. One CAC Certificate of Incorporation supports the legal name, CAC/IT/NO 125103, 21 February 2019 incorporation date, and trustee names. A CAC application and public notice support the registered office, broad objects, and trustee structure. An FIRS corporate-taxpayer result shows TIN 2621241776765 for HELP-MEET SHINE INITIATIVE and lists MTO Abuja as the tax office; it is not a tax-clearance certificate. Constitutional pages support governance quorums, trustee limits, mission-use of funds, record keeping, annual independent-audit provisions, non-distribution of profits, and charitable transfer on dissolution.
 
 Raw scans are not published in the web app or repository because several images contain personal phone numbers, email addresses, handwritten signatures, private filing information, partially legible text, and unrelated private-company records. The detailed classification and transcription notes are retained outside the project repository. Any future public document library should use redacted, approved PDFs or images supplied by HMSI.
 
@@ -155,7 +155,7 @@ Administrator actions are protected in server route handlers. Do not expose the 
 
 ### Prerequisites
 
-Install Node.js 22.x, npm, Git, and access to a Supabase project. The repository declares Node 22.x as its supported runtime. A different local Node version may emit an engine warning even when the application builds.
+Install Node.js 24.x, npm, Git, and access to a Supabase project. The repository declares Node 24.x as its supported runtime. A different local Node version may emit an engine warning even when the application builds.
 
 ### Clone and install
 
@@ -299,7 +299,7 @@ npm run lint
 npm run build
 ```
 
-The workflow uses Node 22.x, npm caching, read-only repository permissions, a 15-minute timeout, and concurrency cancellation for superseded runs.
+The workflow uses Node 24.x, npm caching, read-only repository permissions, a 15-minute timeout, and concurrency cancellation for superseded runs.
 
 ### Dependency audit
 

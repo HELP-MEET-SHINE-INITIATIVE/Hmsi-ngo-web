@@ -15,11 +15,19 @@ export default function NewsPageContent() {
   useEffect(() => {
     fetch('/api/news', { cache: 'no-store' })
       .then(async (response) => {
-        const result = await response.json();
+        const rawBody = await response.text();
+        let result: { articles?: NewsArticle[]; error?: string } = {};
+        if (rawBody.trim()) {
+          try {
+            result = JSON.parse(rawBody) as { articles?: NewsArticle[]; error?: string };
+          } catch {
+            throw new Error('News is temporarily unavailable.');
+          }
+        }
         if (!response.ok) throw new Error(result.error || 'News is temporarily unavailable.');
-        setArticles(result.articles || []);
+        setArticles(Array.isArray(result.articles) ? result.articles : []);
       })
-      .catch((loadError) => setError(loadError instanceof Error ? loadError.message : 'News is temporarily unavailable.'))
+      .catch(() => setError('News is temporarily unavailable.'))
       .finally(() => setIsLoading(false));
   }, []);
 

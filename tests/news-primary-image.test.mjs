@@ -33,6 +33,12 @@ test('public newsroom and homepage news flash use the stored primary image inste
   assert.match(newsFlashSource, /activeArticle\.image_url/);
 });
 
+test('public newsroom converts empty or malformed API bodies into a generic safe error', () => {
+  assert.match(newsPageSource, /await response\.text\(\)/);
+  assert.match(newsPageSource, /JSON\.parse\(rawBody\)/);
+  assert.match(newsPageSource, /News is temporarily unavailable/);
+  assert.doesNotMatch(newsPageSource, /response\.json\(\)/);
+});
 test('Live News ticker requests only the newest published record and links to that exact article', () => {
   assert.match(newsApiSource, /query = query\.eq\('status', 'published'\)/);
   assert.match(newsApiSource, /\.order\('published_at', \{ ascending: false, nullsFirst: false \}\)/);

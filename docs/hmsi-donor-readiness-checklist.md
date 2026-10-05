@@ -6,7 +6,7 @@ This checklist translates the 2026 **HMSI Professional Institutional Profile & D
 
 ## Public institutional information
 
-The public website currently identifies **The Incorporated Trustees of HELP-MEET SHINE INITIATIVE** as a Nigerian nonprofit incorporated on **21 February 2019** under **CAC/IT/NO 125103**, with headquarters in **Benin City, Edo State, Nigeria**. It identifies **Mary Ogbeide** and **Godspower Folorunsho Adebusoye** as the Board of Trustees and **Godspower Folorunsho Adebusoye** as President. The supplied tax identification number is **TIN 21249981**. An uploaded FIRS corporate-taxpayer result shows that TIN against HELP-MEET SHINE INITIATIVE and lists MTO Abuja as the tax office; it is not a tax-clearance certificate. These details should be checked against current CAC, FIRS, governing, and organizational records before each major proposal or public revision.
+The public website currently identifies **The Incorporated Trustees of HELP-MEET SHINE INITIATIVE** as a Nigerian nonprofit incorporated on **21 February 2019** under **CAC/IT/NO 125103**, with headquarters in **Benin City, Edo State, Nigeria**. It identifies **Mary Ogbeide** and **Godspower Folorunsho Adebusoye** as the Board of Trustees and **Godspower Folorunsho Adebusoye** as President. The supplied tax identification number is **TIN 2621241776765**. An uploaded FIRS corporate-taxpayer result shows that TIN against HELP-MEET SHINE INITIATIVE and lists MTO Abuja as the tax office; it is not a tax-clearance certificate. These details should be checked against current CAC, FIRS, governing, and organizational records before each major proposal or public revision.
 
 The public site now has the following donor-facing routes:
 

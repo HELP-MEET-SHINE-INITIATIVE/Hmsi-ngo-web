@@ -30,7 +30,7 @@ For privacy, the site references Nigeria’s current national framework, the **N
 
 ## Evidence status
 
-The supplied scans support the existence and wording of key registration and constitutional records. They support the CAC legal name, CAC/IT/NO 125103, the 21 February 2019 incorporation date, named trustees, the registered office shown on the CAC application, broad organizational objects, TIN 21249981 in an FIRS taxpayer-results record, and constitutional provisions concerning mission-use of funds, record keeping, annual independent-audit processes, non-distribution, and charitable dissolution.
+The supplied scans support the existence and wording of key registration and constitutional records. They support the CAC legal name, CAC/IT/NO 125103, the 21 February 2019 incorporation date, named trustees, the registered office shown on the CAC application, broad organizational objects, TIN 2621241776765 in an FIRS taxpayer-results record, and constitutional provisions concerning mission-use of funds, record keeping, annual independent-audit processes, non-distribution, and charitable dissolution.
 
 The scans do **not** by themselves prove that every annual audit, annual return, policy approval, safeguarding training, programme result, award record, or current tax-compliance certificate exists. These should not be described as completed or independently verified until HMSI supplies the relevant records.
 

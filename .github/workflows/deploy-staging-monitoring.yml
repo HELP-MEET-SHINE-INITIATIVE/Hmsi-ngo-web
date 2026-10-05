@@ -34,7 +34,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
       - name: Run static dashboard tests
         run: node --test tests/supavisor-dashboard-config.test.mjs
       - name: Run staging guard validation
@@ -85,7 +85,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
       - name: Re-run safety validation in deployment job
         run: |
           node --test tests/supavisor-dashboard-config.test.mjs

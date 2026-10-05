@@ -77,7 +77,7 @@ To connect your live Google Tag Manager container and activate Google Ads conver
 | 4. DataLayer helper functions handle SSR / `window !== 'undefined'`   | Verified in `lib/gtm.ts`  |
 | 5. Paystack inline modal dispatches dynamic NGN conversion values     | Verified on `/donate`     |
 | 6. Lead forms fire conversion events only on HTTP 200 API response    | Verified on forms         |
-| 7. FIRS TIN reconciled to 21249981 across all public disclosures      | Verified & Deployed       |
+| 7. FIRS TIN reconciled to 2621241776765 across all public disclosures      | Verified & Deployed       |
 | 8. Google Ads policy compliance disclosure active on `/donate`        | Verified & Deployed       |
 | 9. Unsupported legacy claims ("0% fees", "24h verification") purged   | Verified & Deployed       |
 | 10. GTM Preview & DataLayer inspector active on `/gtm-preview`        | Verified HTTP 200 Live    |

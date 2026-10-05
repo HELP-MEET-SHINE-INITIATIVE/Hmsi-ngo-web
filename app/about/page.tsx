@@ -47,7 +47,7 @@ export default function AboutPage() {
     'description': 'HMSI describes its activities as humanitarian assistance, education, empowerment, livelihoods, and community development in Nigeria and Africa.',
     'foundingDate': '2019-02-21',
     'identifier': 'CAC/IT/NO 125103',
-    'taxID': '21249981',
+    'taxID': '2621241776765',
     'award': '2020 Entrepreneurship Support NGO of the Year – West Africa',
     'sameAs': [
       'https://www.instagram.com/hmsinitiative/',
@@ -156,7 +156,7 @@ export default function AboutPage() {
                 <div><dt className="font-black uppercase tracking-widest text-slate-400">Headquarters</dt><dd className="mt-1 text-slate-900">Benin City, Edo State, Nigeria</dd></div>
                 <div><dt className="font-black uppercase tracking-widest text-slate-400">Board of Trustees</dt><dd className="mt-1 text-slate-900">Mary Ogbeide; Godspower Folorunsho Adebusoye</dd></div>
                 <div><dt className="font-black uppercase tracking-widest text-slate-400">Executive leadership</dt><dd className="mt-1 text-slate-900">Godspower Folorunsho Adebusoye, President</dd></div>
-                <div><dt className="font-black uppercase tracking-widest text-slate-400">FIRS tax identification</dt><dd className="mt-1 text-slate-900">TIN 21249981 · FIRS taxpayer-results record; not a tax-exemption certificate</dd></div>
+                <div><dt className="font-black uppercase tracking-widest text-slate-400">FIRS tax identification</dt><dd className="mt-1 text-slate-900">TIN 2621241776765 · FIRS taxpayer-results record; not a tax-exemption certificate</dd></div>
               </dl>
             </div>
             <div className="bg-slate-900 text-white p-6 md:p-8">

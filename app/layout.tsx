@@ -76,7 +76,7 @@ export default function RootLayout({
     'description': 'HMSI describes its activities as humanitarian assistance, education, empowerment, livelihoods, and community development in Nigeria and Africa.',
     'foundingDate': '2019-02-21',
     'identifier': 'CAC/IT/NO 125103',
-    'taxID': '21249981',
+    'taxID': '2621241776765',
     'award': '2020 Entrepreneurship Support NGO of the Year – West Africa',
     'awardSource': 'African Excellence Awards',
     'awardSourceUrl': 'https://meamarkets.digital/winners/help-meet-shine-initiative-2/',

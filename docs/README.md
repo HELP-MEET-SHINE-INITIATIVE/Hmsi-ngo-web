@@ -35,7 +35,7 @@
 
 | Document | Purpose & Scope |
 |---|---|
-| [`hmsi-tin-tax-status-reconciliation.md`](./hmsi-tin-tax-status-reconciliation.md) | Formal decision record confirming FIRS TIN 21249981 (MTO Abuja), correcting mislabeled evidence assets, and defining public tax disclosure standards. |
+| [`hmsi-tin-tax-status-reconciliation.md`](./hmsi-tin-tax-status-reconciliation.md) | Formal decision record confirming FIRS TIN 2621241776765 (MTO Abuja), correcting mislabeled evidence assets, and defining public tax disclosure standards. |
 | [`hmsi-production-security-audit-2026-08.md`](./hmsi-production-security-audit-2026-08.md) | Full security posture audit covering environment variable boundaries, HTTP-only admin cookies, and Supabase service-role key protections. |
 
 ---
