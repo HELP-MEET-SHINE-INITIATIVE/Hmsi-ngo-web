@@ -96,7 +96,7 @@ jobs:
           chmod 600 "$RUNNER_TEMP/kubeconfig"
           echo "KUBECONFIG=$RUNNER_TEMP/kubeconfig" >> "$GITHUB_ENV"
       - name: Install kubectl
-        uses: azure/setup-kubectl@v4
+        uses: azure/setup-kubectl@v5
       - name: Verify staging Kubernetes context and PrometheusRule CRD
         run: |
           test "$(kubectl config current-context)" = "$HMSI_STAGING_MONITORING_KUBE_CONTEXT"
