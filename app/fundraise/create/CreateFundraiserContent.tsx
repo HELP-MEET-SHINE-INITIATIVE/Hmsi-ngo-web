@@ -33,6 +33,9 @@ export default function CreateFundraiserContent({ mode = 'fundraise' }: { mode?:
     description: '',
     category: 'medical',
     targetAmount: '',
+    email: '',
+    phone: '',
+    location: '',
     privacyAcknowledged: false,
   });
 
@@ -85,6 +88,9 @@ export default function CreateFundraiserContent({ mode = 'fundraise' }: { mode?:
       body.append('description', formData.description.trim());
       body.append('category', formData.category);
       body.append('targetAmount', String(targetAmount));
+      body.append('email', formData.email.trim());
+      body.append('phone', formData.phone.trim());
+      body.append('location', formData.location.trim());
       body.append('image', selectedImage);
 
       const controller = new AbortController();
@@ -204,6 +210,11 @@ export default function CreateFundraiserContent({ mode = 'fundraise' }: { mode?:
                 </div>
               </div>
 
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div><label htmlFor="fundraiser-email" className="mb-3 block text-xs font-black uppercase tracking-widest text-[#17221e]">Creator email</label><input id="fundraiser-email" type="email" required value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="you@example.com" className="w-full rounded-2xl bg-[#f6f4ef] px-6 py-4 text-sm outline-none focus:ring-2 focus:ring-[#1e5b49]" /></div>
+                <div><label htmlFor="fundraiser-phone" className="mb-3 block text-xs font-black uppercase tracking-widest text-[#17221e]">Creator phone</label><input id="fundraiser-phone" type="tel" required value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="+234 801 234 5678" className="w-full rounded-2xl bg-[#f6f4ef] px-6 py-4 text-sm outline-none focus:ring-2 focus:ring-[#1e5b49]" /></div>
+                <div className="md:col-span-2"><label htmlFor="fundraiser-location" className="mb-3 block text-xs font-black uppercase tracking-widest text-[#17221e]">City, State, or community location</label><input id="fundraiser-location" type="text" required maxLength={160} value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} placeholder="Benin City, Edo State" className="w-full rounded-2xl bg-[#f6f4ef] px-6 py-4 text-sm outline-none focus:ring-2 focus:ring-[#1e5b49]" /><p className="mt-2 text-xs leading-5 text-[#66716a]">These details are used for HMSI review and follow-up. They are not shown on public campaign pages.</p></div>
+              </div>
               <div>
 <label htmlFor="fundraiser-description" className="mb-3 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[#17221e]">
                     <FileText size={16} className="text-[#e1ad45]" /> {isHelpRequest ? 'Describe the situation' : 'The story'}

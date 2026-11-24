@@ -1,5 +1,6 @@
 import seedFundraisers from '../data/fundraisers/fundraisers.json';
 import { getSupabaseAdmin } from './supabaseAdmin';
+import { FUNDRAISER_PUBLIC_SELECT } from './fundraiserContacts';
 
 export type Fundraiser = {
   id: string;
@@ -13,6 +14,12 @@ export type Fundraiser = {
   donorCount: number;
   status: string;
   createdAt: string;
+};
+
+export type FundraiserContact = {
+  contact_email: string | null;
+  contact_phone: string | null;
+  contact_location: string | null;
 };
 
 type FundraiserRow = {
@@ -83,7 +90,7 @@ export async function getFundraisers() {
 
   const { data, error } = await admin
     .from('fundraisers')
-    .select('id,title,description,category,target_amount,raised_amount,image_url,image_path,status,created_at')
+    .select(FUNDRAISER_PUBLIC_SELECT)
     .eq('status', 'active')
     .order('created_at', { ascending: false });
 
@@ -111,7 +118,7 @@ export async function getFundraiserById(id: string) {
 
   const { data, error } = await admin
     .from('fundraisers')
-    .select('id,title,description,category,target_amount,raised_amount,image_url,image_path,status,created_at')
+    .select(FUNDRAISER_PUBLIC_SELECT)
     .eq('id', id)
     .eq('status', 'active')
     .maybeSingle();
@@ -130,6 +137,9 @@ export async function createFundraiser(input: {
   targetAmount: number;
   imageUrl: string;
   imagePath: string;
+  contactEmail: string;
+  contactPhone: string;
+  contactLocation: string;
 }) {
   const admin = getSupabaseAdmin();
   if (!admin) throw new Error('Supabase is not configured on the server.');
@@ -145,9 +155,12 @@ export async function createFundraiser(input: {
       raised_amount: 0,
       image_url: input.imageUrl,
       image_path: input.imagePath,
+      contact_email: input.contactEmail,
+      contact_phone: input.contactPhone,
+      contact_location: input.contactLocation,
       status: 'pending',
     })
-    .select('id,title,description,category,target_amount,raised_amount,image_url,image_path,status,created_at')
+    .select(FUNDRAISER_PUBLIC_SELECT)
     .single();
 
   if (error) throw error;

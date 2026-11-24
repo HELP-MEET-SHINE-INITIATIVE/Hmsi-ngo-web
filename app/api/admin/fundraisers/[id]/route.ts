@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getAdminEmailFromCookie } from '../../../../../lib/adminSession';
 import { getSupabaseAdmin, getSupabaseStorageBucket } from '../../../../../lib/supabaseAdmin';
+import { sendFundraiserApproved } from '../../../../../lib/fundraiserNotifications';
 
 export const runtime = 'nodejs';
 
@@ -52,6 +53,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
   try {
     const { id } = await params;
     const body = await request.json().catch(() => ({}));
+    const existingForNotification = body.status === 'active' ? await admin.from('fundraisers').select('id,title,target_amount,status,contact_email').eq('id', id).maybeSingle() : null;
     const status = body.status === undefined ? undefined : String(body.status).toLowerCase();
 
     if (status && !ALLOWED_STATUSES.has(status)) {
@@ -129,11 +131,16 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 
     if (error) throw error;
     if (!data) return NextResponse.json({ error: 'Fundraiser record was not found.' }, { status: 404 });
+    if (status === 'active' && existingForNotification?.data?.status === 'pending' && existingForNotification.data.contact_email) {
+      void sendFundraiserApproved({ fundraiserId: id, title: String(existingForNotification.data.title || data.title), targetAmount: Number(existingForNotification.data.target_amount || data.target_amount), recipientEmail: String(existingForNotification.data.contact_email) }).catch((notificationError) => {
+        console.warn('[Admin] Fundraiser approval email dispatch failed:', notificationError instanceof Error ? notificationError.message : 'unknown');
+      });
+    }
     return NextResponse.json({ fundraiser: data });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown database error';
     console.error('[Admin] Failed to update fundraiser:', message);
-    return NextResponse.json({ error: `We could not update this fundraiser: ${message}` }, { status: 500 });
+    return NextResponse.json({ error: 'We could not update this fundraiser right now. Please try again.' }, { status: 500 });
   }
 }
 
