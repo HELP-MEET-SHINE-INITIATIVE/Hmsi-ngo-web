@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { createFundraiser, getFundraisers } from '../../../lib/fundraisers';
 import { optimizeUploadedImage } from '../../../lib/optimizeImage';
 import { getSupabaseAdmin, getSupabaseStorageBucket, hasSupabaseConfig } from '../../../lib/supabaseAdmin';
+import { normalizeFundraiserContact } from '../../../lib/fundraiserContacts';
+import { sendFundraiserSubmissionReceived } from '../../../lib/fundraiserNotifications';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -37,7 +39,11 @@ export async function POST(request: Request) {
     const category = String(formData.get('category') || '').trim().toLowerCase();
     const targetAmount = Number(formData.get('targetAmount'));
     const image = formData.get('image');
+    const contact = normalizeFundraiserContact({ email: formData.get('email'), phone: formData.get('phone'), location: formData.get('location') });
 
+    if (contact.ok === false) {
+      return NextResponse.json({ error: contact.error, field: contact.field, code: 'INVALID_CONTACT' }, { status: 400 });
+    }
     if (!title || title.length > 160) {
       return NextResponse.json({ error: 'Title is required and must be 160 characters or fewer.' }, { status: 400 });
     }
@@ -93,6 +99,13 @@ export async function POST(request: Request) {
       targetAmount,
       imageUrl: publicUrlData.publicUrl,
       imagePath: uploadedPath,
+      contactEmail: contact.value.email,
+      contactPhone: contact.value.phone,
+      contactLocation: contact.value.location,
+    });
+
+    void sendFundraiserSubmissionReceived({ fundraiserId: id, title, targetAmount, recipientEmail: contact.value.email }).catch((notificationError) => {
+      console.warn('[Fundraisers] Submission email dispatch failed:', notificationError instanceof Error ? notificationError.message : 'unknown');
     });
 
     return NextResponse.json({ fundraiser }, { status: 201 });
@@ -104,6 +117,6 @@ export async function POST(request: Request) {
     }
     const message = error instanceof Error ? error.message : 'Unknown storage or database error';
     console.error('[Fundraisers] Failed to create fundraiser:', message);
-    return NextResponse.json({ error: `We could not submit this fundraiser: ${message}` }, { status: 500 });
+    return NextResponse.json({ error: 'We could not submit this fundraiser right now. Please try again.' }, { status: 500 });
   }
 }

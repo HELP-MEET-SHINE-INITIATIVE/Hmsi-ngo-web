@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const legacyHosts = new Set(['helpmeetshine.org.ng', 'www.helpmeetshine.org.ng']);
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const hostname = request.headers.get('host')?.split(':')[0].toLowerCase();
 
   if (!hostname || !legacyHosts.has(hostname)) {

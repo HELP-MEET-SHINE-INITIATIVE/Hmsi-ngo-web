@@ -80,9 +80,10 @@ export async function createDonorReceiptPdf(data: DonorReceiptData): Promise<Uin
   page.drawText('HMSI does not publish donor contact details. Anonymous gifts are labelled “Anonymous donor”', { x: 42, y: 210, size: 9, font: regular, color: muted });
   page.drawText('in the internal ledger while the receipt is sent only to the payment email supplied by the donor.', { x: 42, y: 195, size: 9, font: regular, color: muted });
 
-  page.drawText('Help Meet Shine Initiative · CAC/IT/NO 125103', { x: 42, y: 88, size: 8.5, font: bold, color: dark });
-  page.drawText('For receipt questions, contact contact@hmsi.org.ng', { x: 42, y: 72, size: 8.5, font: regular, color: muted });
-  page.drawText('Generated automatically after verified Paystack payment', { x: 42, y: 56, size: 8, font: regular, color: muted });
+  page.drawText('Help Meet Shine Initiative · CAC/IT/NO 125103 · TIN 2621241776765', { x: 42, y: 88, size: 8.5, font: bold, color: dark });
+  page.drawText('SCUML RN: SC 121406403 · Certificate ref. 3957429 · Issued 14 September 2026', { x: 42, y: 72, size: 7.5, font: regular, color: muted });
+  page.drawText('For receipt questions, contact contact@hmsi.org.ng', { x: 42, y: 56, size: 8.5, font: regular, color: muted });
+  page.drawText('Generated automatically after verified Paystack payment', { x: 42, y: 42, size: 8, font: regular, color: muted });
 
   return pdf.save();
 }

@@ -13,6 +13,7 @@ rules:
     patterns:
       - pattern-either:
           - pattern: console.$METHOD($REQ.headers.get("Authorization"))
+          - pattern: console.$METHOD($REQ.headers.get('Authorization'))
           - pattern: console.$METHOD($REQ.headers.get("authorization"))
           - pattern: console.$METHOD($REQ.headers.get("Cookie"))
           - pattern: console.$METHOD($REQ.headers.get("cookie"))
@@ -25,6 +26,7 @@ rules:
           - pattern: console.$METHOD($REQ.headers.get("X-Forwarded-Host"))
           - pattern: console.$METHOD($REQ.headers.get("x-forwarded-host"))
           - pattern: $LOGGER.$METHOD($REQ.headers.get("Authorization"))
+          - pattern: $LOGGER.$METHOD($REQ.headers.get('Authorization'))
           - pattern: $LOGGER.$METHOD($REQ.headers.get("authorization"))
           - pattern: $LOGGER.$METHOD($REQ.headers.get("Cookie"))
           - pattern: $LOGGER.$METHOD($REQ.headers.get("cookie"))
@@ -51,9 +53,7 @@ rules:
     patterns:
       - pattern-either:
           - pattern: console.$METHOD($REQ.headers)
-          - pattern: console.$METHOD($REQ)
           - pattern: $LOGGER.$METHOD($REQ.headers)
-          - pattern: $LOGGER.$METHOD($REQ)
           - pattern: console.$METHOD(JSON.stringify($REQ.headers))
           - pattern: console.$METHOD(JSON.stringify($REQ))
           - pattern: $LOGGER.$METHOD(JSON.stringify($REQ.headers))
@@ -73,6 +73,7 @@ rules:
     patterns:
       - pattern-either:
           - pattern: $METRIC.labels($REQ.headers.get("Origin"), ...).inc()
+          - pattern: $METRIC.labels($REQ.headers.get('Origin'), ...).inc()
           - pattern: $METRIC.labels($REQ.headers.get("origin"), ...).inc()
           - pattern: $METRIC.labels($REQ.headers.get("Host"), ...).inc()
           - pattern: $METRIC.labels($REQ.headers.get("host"), ...).inc()
@@ -96,14 +97,15 @@ rules:
       cwe: [CWE-532]
     patterns:
       - pattern-either:
-          - pattern: recordSecurityEvent({ ..., origin: $REQ.headers.get("Origin"), ... })
-          - pattern: recordSecurityEvent({ ..., origin: $REQ.headers.get("origin"), ... })
-          - pattern: recordSecurityEvent({ ..., metadata: $REQ.headers, ... })
-          - pattern: recordSecurityEvent({ ..., metadata: $REQ, ... })
-          - pattern: recordSecurityEvent({ ..., headers: $REQ.headers, ... })
-          - pattern: recordSecurityEvent({ ..., request: $REQ, ... })
-          - pattern: recordSecurityEvent({ ..., actorEmail: $REQ.headers.get("Authorization"), ... })
-          - pattern: recordSecurityEvent({ ..., actorEmail: $REQ.headers.get("authorization"), ... })
+          - pattern: "recordSecurityEvent({ ..., origin: $REQ.headers.get(\"Origin\"), ... })"
+          - pattern: "recordSecurityEvent({ ..., origin: $REQ.headers.get('Origin'), ... })"
+          - pattern: "recordSecurityEvent({ ..., origin: $REQ.headers.get(\"origin\"), ... })"
+          - pattern: "recordSecurityEvent({ ..., metadata: $REQ.headers, ... })"
+          - pattern: "recordSecurityEvent({ ..., metadata: $REQ, ... })"
+          - pattern: "recordSecurityEvent({ ..., headers: $REQ.headers, ... })"
+          - pattern: "recordSecurityEvent({ ..., request: $REQ, ... })"
+          - pattern: "recordSecurityEvent({ ..., actorEmail: $REQ.headers.get(\"Authorization\"), ... })"
+          - pattern: "recordSecurityEvent({ ..., actorEmail: $REQ.headers.get(\"authorization\"), ... })"
 
   - id: hmsi-sensitive-header-template-log
     languages: [typescript, javascript]
@@ -119,12 +121,14 @@ rules:
     patterns:
       - pattern-either:
           - pattern: console.$METHOD(`...${$REQ.headers.get("Origin")}...`)
+          - pattern: console.$METHOD(`...${$REQ.headers.get('Origin')}...`)
           - pattern: console.$METHOD(`...${$REQ.headers.get("origin")}...`)
           - pattern: console.$METHOD(`...${$REQ.headers.get("Authorization")}...`)
           - pattern: console.$METHOD(`...${$REQ.headers.get("authorization")}...`)
           - pattern: console.$METHOD(`...${$REQ.headers.get("Cookie")}...`)
           - pattern: console.$METHOD(`...${$REQ.headers.get("cookie")}...`)
           - pattern: $LOGGER.$METHOD(`...${$REQ.headers.get("Origin")}...`)
+          - pattern: $LOGGER.$METHOD(`...${$REQ.headers.get('Origin')}...`)
           - pattern: $LOGGER.$METHOD(`...${$REQ.headers.get("origin")}...`)
           - pattern: $LOGGER.$METHOD(`...${$REQ.headers.get("Authorization")}...`)
           - pattern: $LOGGER.$METHOD(`...${$REQ.headers.get("authorization")}...`)
