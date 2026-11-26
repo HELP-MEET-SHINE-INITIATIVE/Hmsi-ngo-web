@@ -157,7 +157,7 @@ export default function AboutPage() {
                 <div><dt className="font-black uppercase tracking-widest text-slate-400">Board of Trustees</dt><dd className="mt-1 text-slate-900">Mary Ogbeide; Godspower Folorunsho Adebusoye</dd></div>
                 <div><dt className="font-black uppercase tracking-widest text-slate-400">Executive leadership</dt><dd className="mt-1 text-slate-900">Godspower Folorunsho Adebusoye, President</dd></div>
                 <div><dt className="font-black uppercase tracking-widest text-slate-400">FIRS tax identification</dt><dd className="mt-1 text-slate-900">TIN 2621241776765 · FIRS taxpayer-results record; not a tax-exemption certificate</dd></div>
-                <div><dt className="font-black uppercase tracking-widest text-slate-400">SCUML information</dt><dd className="mt-1 text-slate-900">Registered Entity Name: HELP-MEET SHINE INITIATIVE · RN: SC 121406403 · Certificate serial/reference: 3957429 · Issued 14 September 2026</dd></div>
+                <div><dt className="font-black uppercase tracking-widest text-slate-400">SCUML information</dt><dd className="mt-1 text-slate-900">Registered Entity Name: HELP-MEET SHINE INITIATIVE · RN: SC 121406403 · Certificate serial/reference: 3957429 · Issued 14th September 2026</dd></div>
               </dl>
             </div>
             <div className="bg-slate-900 text-white p-6 md:p-8">
