@@ -16,10 +16,16 @@ jobs:
           SUPABASE_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
           if [ -z "$SUPABASE_KEY" ]; then
-            echo "Error: SUPABASE_ANON_KEY secret is empty or missing."
+            echo "Error: SUPABASE_ANON_KEY secret is empty."
             exit 1
           fi
-          curl -f -s -o /dev/null \
+
+          STATUS=$(curl -s -o /tmp/response.txt -w "%{http_code}" \
             -H "apikey: $SUPABASE_KEY" \
-            -H "Authorization: Bearer $SUPABASE_KEY" \
-            "${SUPABASE_URL}/rest/v1/"
+            "${SUPABASE_URL}/rest/v1/")
+
+          echo "HTTP Status: $STATUS"
+          if [ "$STATUS" -lt 200 ] || [ "$STATUS" -ge 300 ]; then
+            cat /tmp/response.txt
+            exit 1
+          fi
