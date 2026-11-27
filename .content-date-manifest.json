@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "source": "lib/seoContent.ts",
+  "records": {
+    "programmes:project-feed-a-home": {
+      "fingerprint": "3f4e7621c44d839c1ef78fc8d00c254df958dd98c4dee82532b2d5769469b36f"
+    },
+    "programmes:food-security-community-relief-edo": {
+      "fingerprint": "d6f73da141141a1b977af1b4716ae78ad92d719552b22bf7b7baacb6072cac97"
+    },
+    "programmes:youth-empowerment-nigeria": {
+      "fingerprint": "eb9585b9b86db57483c39f0b490b986d37c5fbb64f1cf330c3262eb654e95785"
+    },
+    "programmes:climate-resilient-community-agriculture": {
+      "fingerprint": "1f719012a47108cfbe7f3ddd75f38c38ea90985cc02a6c02bcbf961a8fb24fe6"
+    },
+    "fieldStories:food-insecurity-edo-project-feed-a-home": {
+      "fingerprint": "225932c892d42d25e1ebd9588ff72200943721890c8113dcc289830f13333b01"
+    },
+    "fieldStories:immediate-relief-to-climate-resilient-farms": {
+      "fingerprint": "d352dd4483959a22a16c6ed14827eb89216f8f23f8b04094c3f7245b6df6e663"
+    },
+    "fieldStories:governance-and-scuml-compliance-nonprofits-nigeria": {
+      "fingerprint": "d952c5c534a53b488651f3dc176d265a3d8e7bfc7667ce08414846c55d2c28a0"
+    },
+    "fieldStories:grassroots-volunteerism-hmsi-model": {
+      "fingerprint": "31160d0cf22d3d1a4fce318f6f15b3861e9b9b6f116ab64b7edc2fab3002dc05"
+    }
+  }
+}

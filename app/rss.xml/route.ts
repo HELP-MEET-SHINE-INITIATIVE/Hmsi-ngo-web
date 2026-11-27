@@ -68,12 +68,11 @@ async function getPublishedNewsItems(): Promise<FeedItem[]> {
 }
 
 function getStaticItems(): FeedItem[] {
-  const staticDate = new Date('2026-11-26T12:00:00.000Z');
   const storyItems = fieldStories.map((story) => ({
     title: story.title,
     link: `${SITE_URL}/field-stories/${story.slug}`,
     description: story.dek,
-    pubDate: staticDate.toUTCString(),
+    pubDate: validDate(story.updatedAt || story.publishedAt).toUTCString(),
     category: story.category,
     guid: `${SITE_URL}/field-stories/${story.slug}`,
   }));
@@ -81,7 +80,7 @@ function getStaticItems(): FeedItem[] {
     title: programme.title,
     link: `${SITE_URL}/programmes/${programme.slug}`,
     description: programme.description,
-    pubDate: staticDate.toUTCString(),
+    pubDate: validDate(programme.updatedAt || programme.publishedAt).toUTCString(),
     category: 'HMSI programme',
     guid: `${SITE_URL}/programmes/${programme.slug}`,
   }));

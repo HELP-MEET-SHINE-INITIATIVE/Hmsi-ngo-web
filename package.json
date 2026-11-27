@@ -12,6 +12,8 @@
     "lint": "eslint .",
     "test": "node --test tests/*.test.mjs",
     "test:vitest": "vitest run --config vitest.config.ts",
+    "content:dates": "node scripts/update-static-content-dates.mjs",
+    "content:dates:check": "node scripts/update-static-content-dates.mjs --check",
     "test:semgrep": "SEMGREP_REQUIRED=1 node --test tests/semgrep-sensitive-header-logging.test.mjs"
   },
   "dependencies": {

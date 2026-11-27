@@ -1,5 +1,6 @@
 export const SITE_URL = 'https://www.hmsi.org.ng';
 export const ORGANIZATION_NAME = 'Help Meet Shine Initiative';
+export const DEFAULT_STATIC_PUBLISHED_AT = '2026-11-26T12:00:00.000Z';
 
 export const organizationSchema = {
   '@context': 'https://schema.org',
@@ -53,6 +54,8 @@ export type Programme = {
   shortTitle: string;
   title: string;
   description: string;
+  publishedAt: string;
+  updatedAt?: string;
   keywords: string[];
   audience: string;
   intro: string;
@@ -65,6 +68,8 @@ export const programmes: Programme[] = [
     shortTitle: 'Project Feed a Home',
     title: 'Project Feed a Home: practical food support in Nigeria',
     description: 'Learn how HMSI frames Project Feed a Home as a community-centred response to food insecurity, with pathways for beneficiaries, volunteers, donors, and partners in Edo State and Nigeria.',
+    publishedAt: DEFAULT_STATIC_PUBLISHED_AT,
+    updatedAt: DEFAULT_STATIC_PUBLISHED_AT,
     keywords: ['Project Feed a Home', 'food insecurity Nigeria', 'food support Benin City', 'Edo State NGO'],
     audience: 'Households seeking information, volunteers, donors, and community partners who want to support responsible food-security work.',
     intro: 'Project Feed a Home is HMSI’s public programme name for practical support related to hunger, household food access, and community relief. The programme is described here in plain language so community members and prospective partners can understand the purpose, the limits of the public information, and how to take a responsible next step.',
@@ -98,6 +103,8 @@ export const programmes: Programme[] = [
     shortTitle: 'Food security and community relief',
     title: 'Food security and community relief in Benin City and Edo State',
     description: 'HMSI’s approach to community relief and food-security support in Benin City and Edo State, including safe engagement routes for residents, volunteers, donors, and partners.',
+    publishedAt: DEFAULT_STATIC_PUBLISHED_AT,
+    updatedAt: DEFAULT_STATIC_PUBLISHED_AT,
     keywords: ['food security Edo State', 'community relief Benin City', 'humanitarian NGO Edo', 'Nigeria community support'],
     audience: 'Residents, community groups, local institutions, volunteers, donors, and development partners looking for a responsible NGO engagement route in Edo State.',
     intro: 'Help Meet Shine Initiative is based in Benin City, Edo State. This page explains the public programme area of food security and community relief without presenting estimates as confirmed outcomes. It is designed to help people understand how to approach HMSI, what information to prepare, and how relief work connects with safeguarding, accountability, and local partnership.',
@@ -131,6 +138,8 @@ export const programmes: Programme[] = [
     shortTitle: 'Youth empowerment',
     title: 'Youth empowerment and skills pathways in Nigeria',
     description: 'Explore HMSI’s stated youth empowerment and education focus, with practical guidance for young people, volunteers, mentors, donors, and institutional partners.',
+    publishedAt: DEFAULT_STATIC_PUBLISHED_AT,
+    updatedAt: DEFAULT_STATIC_PUBLISHED_AT,
     keywords: ['youth empowerment Nigeria', 'youth skills NGO Edo State', 'education and livelihoods Nigeria', 'youth outreach Benin City'],
     audience: 'Young people, educators, mentors, volunteers, employers, donors, and partners interested in practical youth opportunity in Nigeria.',
     intro: 'Youth empowerment is more than a motivational message. It can include access to information, skills, mentorship, safe participation, livelihood pathways, and the confidence to contribute to community decisions. This page explains the area of work HMSI publicly associates with education, empowerment, livelihoods, and youth outreach.',
@@ -164,6 +173,8 @@ export const programmes: Programme[] = [
     shortTitle: 'Climate-resilient community agriculture',
     title: 'Climate-resilient community agriculture and local livelihoods',
     description: 'Understand HMSI’s stated climate-resilience and agriculture focus, and how community groups, farmers, volunteers, donors, and technical partners can explore responsible collaboration.',
+    publishedAt: DEFAULT_STATIC_PUBLISHED_AT,
+    updatedAt: DEFAULT_STATIC_PUBLISHED_AT,
     keywords: ['climate-resilient agriculture Nigeria', 'community agriculture Edo State', 'livelihoods and food security Nigeria', 'ecosystem-based adaptation NGO'],
     audience: 'Community groups, farmers, youth, agricultural practitioners, volunteers, donors, and technical partners exploring locally grounded resilience work.',
     intro: 'Climate-resilient community agriculture connects food, livelihoods, land, water, skills, and local decision-making. HMSI identifies agriculture, livelihoods, food security, and climate resilience among its stated areas of interest. This page sets out a practical and evidence-aware way to understand that work while avoiding claims about a farm, harvest, or beneficiary result that has not been publicly verified.',
@@ -200,6 +211,8 @@ export type FieldStory = {
   dek: string;
   category: string;
   publishedLabel: string;
+  publishedAt: string;
+  updatedAt?: string;
   programmeSlug: string;
   sections: Array<{ heading: string; paragraphs: string[] }>;
 };
@@ -211,6 +224,8 @@ export const fieldStories: FieldStory[] = [
     dek: 'An HMSI field note on how immediate food support can be planned with dignity, community listening, and a path toward longer-term food security.',
     category: 'Food security',
     publishedLabel: 'Programme field note',
+    publishedAt: DEFAULT_STATIC_PUBLISHED_AT,
+    updatedAt: DEFAULT_STATIC_PUBLISHED_AT,
     programmeSlug: 'project-feed-a-home',
     sections: [
       { heading: 'Starting with the household experience', paragraphs: ['Food insecurity is often described with a statistic, but a community response begins with the household experience: whether food is available, whether a family can make it to the next market day, whether children can focus on school, and whether a person can ask for help without losing dignity. Project Feed a Home gives HMSI a public way to talk about practical food support while keeping the person, not the publicity, at the centre.', 'This note is an editorial explanation of the programme approach. It does not claim a particular distribution count or beneficiary total. HMSI should use activity-specific updates for those facts when they have been verified and approved for publication.'] },
@@ -224,6 +239,8 @@ export const fieldStories: FieldStory[] = [
     dek: 'A practical HMSI field note on connecting humanitarian support with local agriculture, learning, livelihoods, and climate adaptation.',
     category: 'Climate resilience',
     publishedLabel: 'Programme field note',
+    publishedAt: DEFAULT_STATIC_PUBLISHED_AT,
+    updatedAt: DEFAULT_STATIC_PUBLISHED_AT,
     programmeSlug: 'climate-resilient-community-agriculture',
     sections: [
       { heading: 'Why the transition needs care', paragraphs: ['The language of “relief to resilience” can sound simple, but the transition is not a ladder that every household climbs in the same way. A community may need food support today, a livelihood referral tomorrow, and technical help to manage agricultural risk over a longer period. The responsible starting point is to ask what people already know, what resources are available, and what risks could make a proposed intervention fail.', 'HMSI identifies agriculture, livelihoods, food security, and climate resilience among its stated areas of interest. This field note explains a direction for work, not a claim that a specific farm or harvest has already delivered a measured result.'] },
@@ -237,6 +254,8 @@ export const fieldStories: FieldStory[] = [
     dek: 'An HMSI field note on public accountability, nonprofit due diligence, and why registration information should sit alongside evidence of programme work.',
     category: 'Governance',
     publishedLabel: 'Accountability field note',
+    publishedAt: DEFAULT_STATIC_PUBLISHED_AT,
+    updatedAt: DEFAULT_STATIC_PUBLISHED_AT,
     programmeSlug: 'food-security-community-relief-edo',
     sections: [
       { heading: 'Trust is built through more than a logo', paragraphs: ['People who support an NGO need to know who the organization is, what it says it does, how it handles information, and where to ask questions. Governance information is not a substitute for programme evidence, but it is part of the foundation that lets a community member, donor, or partner begin due diligence.', 'HMSI publishes its public identity as Help Meet Shine Initiative, its base in Benin City, Edo State, and its stated areas of work. The organization also publishes CAC/IT/NO 125103, TIN 2621241776765, and SCUML RN SC 121406403. These are identifiers to support verification conversations; they should not be presented as proof of a particular impact figure.'] },
@@ -250,6 +269,8 @@ export const fieldStories: FieldStory[] = [
     dek: 'A field note on how local knowledge, practical skills, safeguarding, and clear roles can make volunteer participation more useful and respectful.',
     category: 'Volunteerism',
     publishedLabel: 'Community participation field note',
+    publishedAt: DEFAULT_STATIC_PUBLISHED_AT,
+    updatedAt: DEFAULT_STATIC_PUBLISHED_AT,
     programmeSlug: 'youth-empowerment-nigeria',
     sections: [
       { heading: 'Volunteering is a relationship, not a photo opportunity', paragraphs: ['A volunteer brings more than time. They bring local knowledge, a professional skill, lived experience, or the willingness to do careful work that may not be visible in a public photograph. Grassroots volunteerism is strongest when communities help shape the work and when volunteers understand that dignity, consent, safeguarding, and reliability come before recognition.', 'HMSI’s public volunteer route is the appropriate starting point for people who want to contribute. The website should not treat a general expression of interest as approval to represent the organization or access private beneficiary information.'] },
