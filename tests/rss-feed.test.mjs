@@ -25,6 +25,14 @@ test('RSS source selection is public and includes required HMSI content groups',
   assert.doesNotMatch(route, /author_email|contact_email|contact_phone|contact_location/);
 });
 
+test('RSS fundraiser descriptions use a privacy-safe summary instead of user narratives', () => {
+  const route = read('app/rss.xml/route.ts');
+  assert.match(route, /FUNDRAISER_FEED_DESCRIPTION/);
+  assert.match(route, /HMSI community fundraising initiative/);
+  assert.match(route, /description: FUNDRAISER_FEED_DESCRIPTION/);
+  assert.doesNotMatch(route, /description: cleanText\(fundraiser\.description\)/);
+});
+
 test('site metadata advertises the canonical RSS feed', () => {
   const layout = read('app/layout.tsx');
   assert.match(layout, /'application\/rss\+xml': 'https:\/\/www\.hmsi\.org\.ng\/rss\.xml'/);

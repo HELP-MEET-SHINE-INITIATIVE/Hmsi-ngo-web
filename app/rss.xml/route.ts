@@ -8,6 +8,7 @@ export const revalidate = 900;
 const FEED_URL = `${SITE_URL}/rss.xml`;
 const FEED_TITLE = 'Help Meet Shine Initiative (HMSI) | News, Field Stories and Initiatives';
 const FEED_DESCRIPTION = 'Published HMSI field stories, programme updates, community initiatives, and active approved fundraising pages from Nigeria.';
+const FUNDRAISER_FEED_DESCRIPTION = 'HMSI community fundraising initiative. Visit the public fundraiser page for current details and ways to support.';
 
 type FeedItem = {
   title: string;
@@ -93,7 +94,9 @@ async function getFundraiserItems(): Promise<FeedItem[]> {
     return fundraisers.slice(0, 25).map((fundraiser) => ({
       title: fundraiser.title,
       link: `${SITE_URL}/fundraise/${encodeURIComponent(fundraiser.id)}`,
-      description: cleanText(fundraiser.description),
+      // Do not syndicate user-submitted fundraiser narratives. They may contain
+      // names, addresses, ages, medical details, or other identifying information.
+      description: FUNDRAISER_FEED_DESCRIPTION,
       pubDate: validDate(fundraiser.createdAt).toUTCString(),
       category: cleanText(fundraiser.category, 80) || 'Approved HMSI fundraiser',
       guid: `${SITE_URL}/fundraise/${encodeURIComponent(fundraiser.id)}`,
