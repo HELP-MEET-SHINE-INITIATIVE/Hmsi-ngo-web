@@ -21,7 +21,7 @@ export default function Footer() {
           </div>
           <div>
             <p className="text-xs font-black uppercase tracking-[0.17em] text-[#e1ad45]">Explore</p>
-            <div className="mt-5 flex flex-col gap-3 text-sm text-white/70"><Link href="/about" className="transition hover:text-white">About us</Link><Link href="/stories" className="transition hover:text-white">Field Stories</Link><Link href="/#impact" className="transition hover:text-white">Our impact</Link><Link href="/transparency" className="transition hover:text-white">Transparency</Link></div>
+            <div className="mt-5 flex flex-col gap-3 text-sm text-white/70"><Link href="/about" className="transition hover:text-white">About us</Link><Link href="/programmes" className="transition hover:text-white">Programmes</Link><Link href="/field-stories" className="transition hover:text-white">Impact stories</Link><Link href="/stories" className="transition hover:text-white">Community stories</Link><Link href="/#impact" className="transition hover:text-white">Our impact</Link><Link href="/transparency" className="transition hover:text-white">Transparency</Link></div>
           </div>
           <div>
             <p className="text-xs font-black uppercase tracking-[0.17em] text-[#e1ad45]">Participate</p>

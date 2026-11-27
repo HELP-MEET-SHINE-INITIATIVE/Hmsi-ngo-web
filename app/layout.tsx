@@ -46,6 +46,9 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: 'https://www.hmsi.org.ng',
+    types: {
+      'application/rss+xml': 'https://www.hmsi.org.ng/rss.xml',
+    },
   },
   robots: {
     index: true,
@@ -75,8 +78,17 @@ export default function RootLayout({
     'logo': 'https://www.hmsi.org.ng/logo.png',
     'description': 'HMSI describes its activities as humanitarian assistance, education, empowerment, livelihoods, and community development in Nigeria and Africa.',
     'foundingDate': '2019-02-21',
-    'identifier': 'CAC/IT/NO 125103',
+    'identifier': [
+      { '@type': 'PropertyValue', 'name': 'CAC/IT/NO', 'value': '125103' },
+      { '@type': 'PropertyValue', 'name': 'SCUML RN', 'value': 'SC 121406403' },
+    ],
     'taxID': '2621241776765',
+    'hasCredential': {
+      '@type': 'EducationalOccupationalCredential',
+      'name': 'SCUML registration',
+      'identifier': 'SC 121406403',
+      'credentialCategory': 'Regulatory registration information published by HMSI',
+    },
     'award': '2020 Entrepreneurship Support NGO of the Year – West Africa',
     'awardSource': 'African Excellence Awards',
     'awardSourceUrl': 'https://meamarkets.digital/winners/help-meet-shine-initiative-2/',

@@ -19,7 +19,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/opportunities',
     '/get-help',
     '/projects',
+    '/programmes',
+    '/programmes/project-feed-a-home',
+    '/programmes/food-security-community-relief-edo',
+    '/programmes/youth-empowerment-nigeria',
+    '/programmes/climate-resilient-community-agriculture',
     '/stories',
+    '/field-stories',
+    '/field-stories/food-insecurity-edo-project-feed-a-home',
+    '/field-stories/immediate-relief-to-climate-resilient-farms',
+    '/field-stories/governance-and-scuml-compliance-nonprofits-nigeria',
+    '/field-stories/grassroots-volunteerism-hmsi-model',
     '/partnerships',
     '/transparency',
     '/safeguarding',
@@ -30,7 +40,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     url: `${baseUrl}${route}`,
     lastModified: new Date(),
     changeFrequency: 'daily' as const,
-    priority: route === '' ? 1 : ['/donate', '/fundraise', '/impact', '/news', '/stories', '/volunteer', '/fundraising-growth', '/instagram', '/opportunities', '/partnerships', '/transparency', '/safeguarding', '/privacy', '/cookies'].includes(route) ? 0.9 : 0.7,
+    priority: route === '' ? 1 : ['/donate', '/fundraise', '/impact', '/news', '/stories', '/field-stories', '/programmes', '/volunteer', '/fundraising-growth', '/instagram', '/opportunities', '/partnerships', '/transparency', '/safeguarding', '/privacy', '/cookies'].includes(route) ? 0.9 : 0.7,
   }));
 
   let fundraisers = [] as Awaited<ReturnType<typeof getFundraisers>>;
